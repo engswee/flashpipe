@@ -1,37 +1,13 @@
-## Welcome to GitHub Pages
+# About FlashPipe
+_FlashPipe_ is a public [Docker image](https://hub.docker.com/r/engswee/flashpipe) that provides Continuous Integration (CI) & Continuous Delivery/Deployment (CD) capabilities for SAP Integration Suite.
 
-You can use the [editor on GitHub](https://github.com/engswee/flashpipe/edit/main/docs/index.md) to maintain and preview the content for your website in Markdown files.
+_FlashPipe_ aims to simplify the Build-To-Deploy cycle for SAP Integration Suite by providing CI/CD capabilities for automating time-consuming manual tasks.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+## Getting Started
+For details on how to start using _FlashPipe_, visit the [documentation page](documentation.md).
 
-### Markdown
+## Release Notes
+The version history and details of each release can be found in the [release notes](release-notes.md).
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/engswee/flashpipe/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+## License
+_FlashPipe_ is licensed under the terms of Apache License, Version 2.0.
