@@ -26,4 +26,4 @@ Following are examples of setting up _FlashPipe_ in different CI/CD platforms.
 ## Reference
 The following repository on GitHub provides sample usage of _FlashPipe_.
 
-https://github.com/engswee/flashpipe-demo
+[https://github.com/engswee/flashpipe-demo](https://github.com/engswee/flashpipe-demo)
