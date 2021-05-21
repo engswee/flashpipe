@@ -14,9 +14,9 @@ _FlashPipe_ aims to simplify the Build-To-Deploy cycle for SAP Integration Suite
 For details on using _FlashPipe_, visit the [GitHub Pages documentation site](https://engswee.github.io/flashpipe/).
 
 ### Contributing
-Contributions from the community are welcome. This project uses [Developer Certificate of Origin (DCO)](https://developercertificate.org) to certify that contributors have the right to submit the code they are contributing.
+Contributions from the community are welcome.
 
-When submitting Pull Requests, ensure all commits contain a `Signed-off-by` line in its commit message to pass the automated check by [Probot: DCO](https://probot.github.io/apps/dco/).
+To contribute to _FlashPipe_, check the [contribution guidelines page](CONTRIBUTING.md).  
 
 ### License
 _FlashPipe_ is licensed under the terms of Apache License, Version 2.0 - see the [LICENSE](LICENSE) file for details.

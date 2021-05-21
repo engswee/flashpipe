@@ -11,7 +11,7 @@ While it is possible to use the Java executables directly, the Unix scripts do m
 ## Prerequisite
 To use _FlashPipe_, you will need the following
 1. Access to **Cloud Integration** on an SAP Integration Suite tenant - typically an Integration Developer credentials are required
-2. Access to a **CI/CD platform**, e.g. Azure Pipelines, GitHub Actions
+2. Access to a **CI/CD platform**, e.g. [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/), [GitHub Actions](https://github.com/features/actions)
 3. **Git-based repository** to host the contents of the Cloud Integration artifacts
 
 Technically, it should be possible to use _FlashPipe_ on any CI/CD platform that supports container-based pipeline execution and Unix script execution.

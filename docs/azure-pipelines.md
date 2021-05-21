@@ -1,5 +1,5 @@
 # Setting Up FlashPipe on Azure Pipelines
-The page describes the steps to set up _FlashPipe_ on Azure Pipelines.
+The page describes the steps to set up _FlashPipe_ on [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/).
 
 ### 1. Download and extract content of Integration Flow
 Download the content of the Integration Flow from the Cloud Integration tenant.
@@ -28,7 +28,7 @@ _FlashPipe_'s Maven repository comes loaded with the following libraries (and an
 For multiple integration packages/artifacts, the repository can be structured as a Maven multi-module project. An example can be found [here](https://github.com/engswee/flashpipe-demo/tree/azure-pipelines).
 
 ### 4. Add pipeline configuration YAML
-Add a pipeline configuration YAML file (`azure-pipelines.yml`) in the root directory of the Git repository.
+Add a [pipeline configuration YAML file](https://docs.microsoft.com/en-us/azure/devops/pipelines/get-started/pipelines-get-started?view=azure-devops#define-pipelines-using-yaml-syntax) (`azure-pipelines.yml`) in the root directory of the Git repository.
 
 #### Template YAML with steps to create/update and deploy one integration artifact
 ```yaml
@@ -107,7 +107,7 @@ For more advanced configuration with multiple artifacts and multiple environment
 ![Project](images/azure-pipelines/05a_azure_project.png)
 
 ### 6. Create Variable Group
-Variables can be stored securely on Azure Pipelines using a Variable Group. These can then be passed to the pipeline steps as environment variables. For FlashPipe, we will use these to securely store the details to access the Cloud Integration tenant.
+Variables can be stored securely on Azure Pipelines using a [Variable Group](https://docs.microsoft.com/en-us/azure/devops/pipelines/scripts/cli/pipeline-variable-group-secret-nonsecret-variables?view=azure-devops). These can then be passed to the pipeline steps as environment variables. For _FlashPipe_, we will use these to securely store the details to access the Cloud Integration tenant.
 
 Add a new Variable Group under `Pipelines > Library`.
 ![Library](images/azure-pipelines/06a_library.png)
@@ -132,7 +132,7 @@ Since the pipeline YAML file is already created in the repository, it will be lo
 ### 8. Check pipeline run
 Once the run is triggered, you can monitor its execution and job logs.
 
-**Note**: On the first run of the pipeline, you may be ask to approve access to the Variable Group from the pipeline.
+**Note**: On the first run of the pipeline, you may be asked to approve access to the Variable Group from the pipeline.
 
 Upon completion of the run, you can review the logs, and also check the artifact (designtime and runtime) in the Cloud Integration tenant.
 ![Monitor](images/azure-pipelines/08a_job_run.png)
