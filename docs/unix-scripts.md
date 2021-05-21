@@ -19,9 +19,9 @@ This script is used to create/update a Cloud Integration designtime artifact to 
 
 #### Usage and parameters list
 ```bash
-/usr/bin/update_designtime_artifact.sh <working_dir> <tmn_host> <cpi_user> <cpi_password> <artifact_id> <artifact_name> <package_id> <package_name> <git_src_dir> [--param_file=<path_to_file>] [--manifest_file=<path_to_file>] [--logcfgfile=<path_to_file>] [--debug] 
+/usr/bin/update_designtime_artifact.sh [--param_file=<path_to_file>] [--manifest_file=<path_to_file>] [--logcfgfile=<path_to_file>] [--debug] <working_dir> <tmn_host> <cpi_user> <cpi_password> <artifact_id> <artifact_name> <package_id> <package_name> <git_src_dir>
 
-Mandatory parameters:
+Mandatory parameters (ensure order of parameters is correct):
 <working_dir> - working directory used for storing in-transit files
 <tmn_host> - base URL for tenant management node of Cloud Integration (excluding the https:// prefix)
 <cpi_user> - user ID for Cloud Integration
@@ -32,7 +32,7 @@ Mandatory parameters:
 <package_name> - name of Integration Package
 <git_src_dir> - directory containing contents of integration artifact
 
-Optional parameters:
+Optional parameters (position must always be in front of mandatory parameters):
 --param_file=<path_to_file> - use to a different parameters.prop file instead of the default in src/main/resources/
 --manifest_file=<path_to_file> - use to a different MANIFEST.MF file instead of the default in META-INF/
 --logcfgfile=<path_to_file> - use a different log4j2.xml configuration file
@@ -52,15 +52,15 @@ This script is used to deploy a Cloud Integration designtime artifact to the run
 
 #### Usage and parameters list
 ```bash
-/usr/bin/deploy.sh <artifact_id> <tmn_host> <cpi_user> <cpi_password> [--logcfgfile=<pathtofile>] 
+/usr/bin/deploy.sh [--logcfgfile=<pathtofile>] <artifact_id> <tmn_host> <cpi_user> <cpi_password>
 
-Mandatory parameters:
+Mandatory parameters (ensure order of parameters is correct):
 <artifact_id> - ID of integration artifact
 <tmn_host> - base URL for tenant management node of Cloud Integration (excluding the https:// prefix)
 <cpi_user> - user ID for Cloud Integration
 <cpi_password> - password for above user ID
 
-Optional parameter:
+Optional parameter (position must always be in front of mandatory parameters):
 --logcfgfile=<path_to_file> - use a different log4j2.xml configuration file
 ```
 
