@@ -1,10 +1,10 @@
-package com.equalize.flashpipe.cpi.api
+package io.github.engswee.flashpipe.cpi.api
 
-import com.equalize.flashpipe.http.HTTPExecuter
-import com.equalize.flashpipe.http.HTTPExecuterApacheImpl
-import com.equalize.flashpipe.http.HTTPExecuterException
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
+import io.github.engswee.flashpipe.http.HTTPExecuter
+import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
+import io.github.engswee.flashpipe.http.HTTPExecuterException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -31,8 +31,7 @@ class DesignTimeArtifact {
         if (code == 200) {
             def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
             return root.d.Version
-        }
-        else if (code == 404)
+        } else if (code == 404)
             return null
         else
             throw new HTTPExecuterException("Query design time artifact call failed with response code = ${code}")

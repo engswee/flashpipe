@@ -1,7 +1,7 @@
-package com.equalize.flashpipe.cpi.exec
+package io.github.engswee.flashpipe.cpi.exec
 
-import com.equalize.flashpipe.cpi.api.DesignTimeArtifact
-import com.equalize.flashpipe.cpi.api.IntegrationPackage
+import io.github.engswee.flashpipe.cpi.api.DesignTimeArtifact
+import io.github.engswee.flashpipe.cpi.api.IntegrationPackage
 
 if (args.length < 5) {
     println "Enter arguments in the format: <iflow_id> <package_id> <cpi_host> <user> <password>"

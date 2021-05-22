@@ -118,7 +118,7 @@ else
   echo "[INFO] Using $classpath_base_dir as classpath base directory "
   echo "[INFO] Setting WORKING_CLASSPATH environment variable"
   #  FLASHPIPE_VERSION
-  export WORKING_CLASSPATH=$classpath_base_dir/repository/com/equalize/flashpipe/1.0.1/flashpipe-1.0.1.jar
+  export WORKING_CLASSPATH=$classpath_base_dir/repository/io/github/engswee/flashpipe/1.0.1/flashpipe-1.0.1.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/codehaus/groovy/groovy-all/2.4.12/groovy-all-2.4.12.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/apache/httpcomponents/core5/httpcore5/5.0.4/httpcore5-5.0.4.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/apache/httpcomponents/client5/httpclient5/5.0.4/httpclient5-5.0.4.jar
@@ -129,7 +129,7 @@ else
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/zeroturnaround/zt-zip/1.14/zt-zip-1.14.jar
 fi
-exec_java_command com.equalize.flashpipe.cpi.exec.QueryDesignTimeArtifact "$iflow_id" "$package_id" "$tmn_host" "$cpi_user" "$cpi_password"
+exec_java_command io.github.engswee.flashpipe.cpi.exec.QueryDesignTimeArtifact "$iflow_id" "$package_id" "$tmn_host" "$cpi_user" "$cpi_password"
 check_iflow_status=$?
 
 # Use specific MANIFEST.MF and/or parameters.prop file (typically when moving to different environment)
@@ -149,7 +149,7 @@ if [[ "$check_iflow_status" == "0" ]]; then
   # 1 - Download IFlow from tenant
   zip_file="$working_dir/$iflow_id.zip"
   echo "[INFO] Download existing IFlow from tenant for comparison"
-  exec_java_command com.equalize.flashpipe.cpi.exec.DownloadDesignTimeArtifact "$iflow_id" active "$tmn_host" "$cpi_user" "$cpi_password" "$zip_file"
+  exec_java_command io.github.engswee.flashpipe.cpi.exec.DownloadDesignTimeArtifact "$iflow_id" active "$tmn_host" "$cpi_user" "$cpi_password" "$zip_file"
 
   # 2 - Diff contents from tenant against Git
   iflow_src_diff_found=
@@ -179,7 +179,7 @@ if [[ "$check_iflow_status" == "0" ]]; then
     cp -r "$git_src_dir"/META-INF "$working_dir/upload"
     cp -r "$git_src_dir"/src/main/resources "$working_dir/upload/src/main"
     tenant_iflow_version=$(awk '/Bundle-Version/ {print $2}' "$working_dir/download/META-INF/MANIFEST.MF")
-    exec_java_command com.equalize.flashpipe.cpi.exec.UpdateDesignTimeArtifact "$iflow_name" "$iflow_id" "$package_id" "$working_dir/upload" "$tenant_iflow_version" "$tmn_host" "$cpi_user" "$cpi_password"
+    exec_java_command io.github.engswee.flashpipe.cpi.exec.UpdateDesignTimeArtifact "$iflow_name" "$iflow_id" "$package_id" "$working_dir/upload" "$tenant_iflow_version" "$tmn_host" "$cpi_user" "$cpi_password"
     echo '[INFO] IFlow updated successfully'
   fi
 
@@ -191,6 +191,6 @@ elif [[ "$check_iflow_status" == "99" ]]; then
   mkdir "$working_dir/upload" "$working_dir/upload/src" "$working_dir/upload/src/main"
   cp -r "$git_src_dir"/META-INF "$working_dir/upload"
   cp -r "$git_src_dir"/src/main/resources "$working_dir/upload/src/main"
-  exec_java_command com.equalize.flashpipe.cpi.exec.UploadDesignTimeArtifact "$iflow_name" "$iflow_id" "$package_id" "$package_name" "$working_dir/upload" "$tmn_host" "$cpi_user" "$cpi_password"
+  exec_java_command io.github.engswee.flashpipe.cpi.exec.UploadDesignTimeArtifact "$iflow_name" "$iflow_id" "$package_id" "$package_name" "$working_dir/upload" "$tmn_host" "$cpi_user" "$cpi_password"
   echo '[INFO] IFlow created successfully'
 fi

@@ -43,7 +43,7 @@ RUN mvn -B -f /tmp/pom.xml -s /usr/share/maven/ref/settings-docker.xml dependenc
 # <FLASHPIPE_VERSION>
 ARG FLASHPIPE_VERSION=1.0.1
 COPY target/flashpipe-${FLASHPIPE_VERSION}.jar /tmp/flashpipe-${FLASHPIPE_VERSION}.jar
-RUN mvn -s /usr/share/maven/ref/settings-docker.xml install:install-file -DgroupId=com.equalize -DartifactId=flashpipe -Dversion=${FLASHPIPE_VERSION} -Dpackaging=jar -Dfile=/tmp/flashpipe-${FLASHPIPE_VERSION}.jar
+RUN mvn -s /usr/share/maven/ref/settings-docker.xml install:install-file -DgroupId=io.github.engswee -DartifactId=flashpipe -Dversion=${FLASHPIPE_VERSION} -Dpackaging=jar -Dfile=/tmp/flashpipe-${FLASHPIPE_VERSION}.jar
 
 COPY src/main/docker/script/*.sh /usr/bin/
 RUN chmod +x /usr/bin/*.sh

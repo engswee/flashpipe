@@ -1,7 +1,7 @@
 # FlashPipe
 ## The CI/CD Companion for SAP Integration Suite
 
-[![Build Status](https://dev.azure.com/engswee/equalize-flashpipe/_apis/build/status/engswee.flashpipe?branchName=main)](https://dev.azure.com/engswee/equalize-flashpipe/_build/latest?definitionId=11&branchName=main)
+[![Build Status](https://dev.azure.com/engswee/flashpipe/_apis/build/status/engswee.flashpipe?branchName=main)](https://dev.azure.com/engswee/flashpipe/_build/latest?definitionId=11&branchName=main)
 [![GitHub license](https://img.shields.io/github/license/engswee/flashpipe)](https://github.com/engswee/flashpipe/blob/main/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/engswee/flashpipe.svg)](https://github.com/engswee/flashpipe/releases/latest)
 

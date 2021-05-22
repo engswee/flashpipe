@@ -1,4 +1,4 @@
-package com.equalize.flashpipe.http
+package io.github.engswee.flashpipe.http
 
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials
 import org.apache.hc.client5.http.impl.auth.BasicScheme

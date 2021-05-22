@@ -77,7 +77,7 @@ else
   echo "[INFO] Using $classpath_base_dir as classpath base directory "
   echo "[INFO] Setting WORKING_CLASSPATH environment variable"
   #  FLASHPIPE_VERSION
-  export WORKING_CLASSPATH=$classpath_base_dir/repository/com/equalize/flashpipe/1.0.1/flashpipe-1.0.1.jar
+  export WORKING_CLASSPATH=$classpath_base_dir/repository/io/github/engswee/flashpipe/1.0.1/flashpipe-1.0.1.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/codehaus/groovy/groovy-all/2.4.12/groovy-all-2.4.12.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/apache/httpcomponents/core5/httpcore5/5.0.4/httpcore5-5.0.4.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/apache/httpcomponents/client5/httpclient5/5.0.4/httpclient5-5.0.4.jar
@@ -91,9 +91,9 @@ fi
 
 echo "[INFO] Deploying design time IFlow $iflow_id to tenant runtime"
 if [ -z "$logcfgfile" ]; then
-  echo "[INFO] Executing command: java -classpath $WORKING_CLASSPATH com.equalize.flashpipe.cpi.exec.DeployDesignTimeArtifact $iflow_id $tmn_host $cpi_user $cpi_password $delay_in $maxcheck_in"
-  java -classpath "$WORKING_CLASSPATH" com.equalize.flashpipe.cpi.exec.DeployDesignTimeArtifact "$iflow_id" "$tmn_host" "$cpi_user" "$cpi_password" $delay_in $maxcheck_in
+  echo "[INFO] Executing command: java -classpath $WORKING_CLASSPATH io.github.engswee.flashpipe.cpi.exec.DeployDesignTimeArtifact $iflow_id $tmn_host $cpi_user $cpi_password $delay_in $maxcheck_in"
+  java -classpath "$WORKING_CLASSPATH" io.github.engswee.flashpipe.cpi.exec.DeployDesignTimeArtifact "$iflow_id" "$tmn_host" "$cpi_user" "$cpi_password" $delay_in $maxcheck_in
 else
-  echo "[INFO] Executing command: java -Dlog4j.configurationFile=$logcfgfile -classpath $WORKING_CLASSPATH com.equalize.flashpipe.cpi.exec.DeployDesignTimeArtifact $iflow_id $tmn_host $cpi_user $cpi_password $delay_in $maxcheck_in"
-  java -Dlog4j.configurationFile="$logcfgfile" -classpath "$WORKING_CLASSPATH" com.equalize.flashpipe.cpi.exec.DeployDesignTimeArtifact "$iflow_id" "$tmn_host" "$cpi_user" "$cpi_password" $delay_in $maxcheck_in
+  echo "[INFO] Executing command: java -Dlog4j.configurationFile=$logcfgfile -classpath $WORKING_CLASSPATH io.github.engswee.flashpipe.cpi.exec.DeployDesignTimeArtifact $iflow_id $tmn_host $cpi_user $cpi_password $delay_in $maxcheck_in"
+  java -Dlog4j.configurationFile="$logcfgfile" -classpath "$WORKING_CLASSPATH" io.github.engswee.flashpipe.cpi.exec.DeployDesignTimeArtifact "$iflow_id" "$tmn_host" "$cpi_user" "$cpi_password" $delay_in $maxcheck_in
 fi

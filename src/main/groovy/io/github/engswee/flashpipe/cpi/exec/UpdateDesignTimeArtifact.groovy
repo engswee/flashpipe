@@ -1,6 +1,6 @@
-package com.equalize.flashpipe.cpi.exec
+package io.github.engswee.flashpipe.cpi.exec
 
-import com.equalize.flashpipe.cpi.api.DesignTimeArtifact
+import io.github.engswee.flashpipe.cpi.api.DesignTimeArtifact
 import org.zeroturnaround.zip.ZipUtil
 
 if (args.length < 8) {

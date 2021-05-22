@@ -1,4 +1,4 @@
-package com.equalize.flashpipe.http
+package io.github.engswee.flashpipe.http
 
 abstract class HTTPExecuter {
 

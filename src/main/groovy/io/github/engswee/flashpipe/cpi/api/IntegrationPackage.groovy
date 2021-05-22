@@ -1,10 +1,10 @@
-package com.equalize.flashpipe.cpi.api
+package io.github.engswee.flashpipe.cpi.api
 
-import com.equalize.flashpipe.http.HTTPExecuter
-import com.equalize.flashpipe.http.HTTPExecuterApacheImpl
-import com.equalize.flashpipe.http.HTTPExecuterException
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
+import io.github.engswee.flashpipe.http.HTTPExecuter
+import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
+import io.github.engswee.flashpipe.http.HTTPExecuterException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
