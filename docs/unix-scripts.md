@@ -47,12 +47,12 @@ NOTE: Encapsulate values in double quotes ("") if there are space characters in 
 ```
 
 ### 2. deploy_runtime_artifact.sh
-This script is used to deploy a Cloud Integration designtime artifact to the runtime.
+This script is used to deploy a Cloud Integration designtime artifact to the runtime. It will compare the version of the designtime artifact against the runtime artifact before executing deployment if there are diferences.
 
 
 #### Usage and parameters list
 ```bash
-/usr/bin/deploy.sh [--logcfgfile=<pathtofile>] <artifact_id> <tmn_host> <cpi_user> <cpi_password>
+/usr/bin/deploy_runtime_artifact.sh [--logcfgfile=<pathtofile>] [--delay=<delay_in_sec>] [--maxcheck=<count>] <artifact_id> <tmn_host> <cpi_user> <cpi_password>
 
 Mandatory parameters (ensure order of parameters is correct):
 <artifact_id> - ID of integration artifact
@@ -60,8 +60,10 @@ Mandatory parameters (ensure order of parameters is correct):
 <cpi_user> - user ID for Cloud Integration
 <cpi_password> - password for above user ID
 
-Optional parameter (position must always be in front of mandatory parameters):
+Optional parameters (position must always be in front of mandatory parameters):
 --logcfgfile=<path_to_file> - use a different log4j2.xml configuration file
+--delay=<delay_in_sec> - delay between each check of IFlow deployment status (default to 30 if not set)
+--maxcheck=<count> - max number of times to check for IFlow deployment status (default to 10 if not set)
 ```
 
 #### Example
