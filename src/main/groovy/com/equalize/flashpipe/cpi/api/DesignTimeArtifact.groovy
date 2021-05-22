@@ -4,6 +4,7 @@ import com.equalize.flashpipe.http.HTTPExecuter
 import com.equalize.flashpipe.http.HTTPExecuterApacheImpl
 import com.equalize.flashpipe.http.HTTPExecuterException
 import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -21,16 +22,18 @@ class DesignTimeArtifact {
         this.httpExecuter.setBasicAuth(user, password)
     }
 
-    boolean exists(String iFlowId, String iFlowVersion) {
+    String getVersion(String iFlowId, String iFlowVersion) {
         logger.info('Query Design time artifact')
-        this.httpExecuter.executeRequest("/api/v1/IntegrationDesigntimeArtifacts(Id='$iFlowId',Version='$iFlowVersion')")
+        this.httpExecuter.executeRequest("/api/v1/IntegrationDesigntimeArtifacts(Id='$iFlowId',Version='$iFlowVersion')", ['Accept': 'application/json'])
 
         def code = this.httpExecuter.getResponseCode()
         logger.info("HTTP Response code = ${code}")
-        if (code == 200)
-            return true
+        if (code == 200) {
+            def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
+            return root.d.Version
+        }
         else if (code == 404)
-            return false
+            return null
         else
             throw new HTTPExecuterException("Query design time artifact call failed with response code = ${code}")
     }

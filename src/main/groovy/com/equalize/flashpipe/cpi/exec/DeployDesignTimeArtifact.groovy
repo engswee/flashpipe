@@ -17,31 +17,38 @@ def pw = args[3]
 int delayLength = (args.length > 4) ? args[4] as int : 30
 int maxCheckLimit = (args.length > 5) ? args[5] as int : 10
 
+// Compare designtime version with runtime version to determine if deployment is needed
 DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('https', host_tmn, 443, user, pw)
-// TODO - before deploying, check timestamp of latest design time, and also runtime - do not deploy if latest design time already deployed
+def designtimeVersion = designTimeArtifact.getVersion(iFlowId, 'active')
 
-designTimeArtifact.deploy(iFlowId)
-
-println "[INFO] Checking deployment status every ${delayLength} seconds up to ${maxCheckLimit} times"
 RuntimeArtifact runtimeArtifact = new RuntimeArtifact('https', host_tmn, 443, user, pw)
-Boolean deploymentComplete = false
-int checkCounter = 0
-while (!deploymentComplete) {
-    TimeUnit.SECONDS.sleep(delayLength)
-    def status = runtimeArtifact.getStatus(iFlowId)
-    println "[INFO] Current IFlow status = ${status}"
-    if (status != 'STARTING') {
-        deploymentComplete = true
-        if (status != 'STARTED') {
-            def errorMessage = runtimeArtifact.getErrorInfo(iFlowId)
-            println "[ERROR] IFlow deployment unsuccessful, ended with status ${status}"
-            println "[ERROR] Error message = ${errorMessage}"
+def runtimeVersion = runtimeArtifact.getVersion(iFlowId)
+
+if (runtimeVersion == designtimeVersion) {
+    println "[INFO] IFlow ${iFlowId} with version ${runtimeVersion} already deployed. Skipping runtime deployment"
+} else {
+    designTimeArtifact.deploy(iFlowId)
+
+    println "[INFO] Checking deployment status every ${delayLength} seconds up to ${maxCheckLimit} times"
+    Boolean deploymentComplete = false
+    int checkCounter = 0
+    while (!deploymentComplete) {
+        TimeUnit.SECONDS.sleep(delayLength)
+        def status = runtimeArtifact.getStatus(iFlowId)
+        println "[INFO] Current IFlow status = ${status}"
+        if (status != 'STARTING') {
+            deploymentComplete = true
+            if (status != 'STARTED') {
+                def errorMessage = runtimeArtifact.getErrorInfo(iFlowId)
+                println "[ERROR] IFlow deployment unsuccessful, ended with status ${status}"
+                println "[ERROR] Error message = ${errorMessage}"
+                System.exit(1)
+            }
+        }
+        checkCounter++
+        if (checkCounter == maxCheckLimit && status != 'STARTED') {
+            println "[ERROR] IFlow status remained in ${status} after ${maxCheckLimit} checks"
             System.exit(1)
         }
-    }
-    checkCounter++
-    if (checkCounter == maxCheckLimit && status != 'STARTED') {
-        println "[ERROR] IFlow status remained in ${status} after ${maxCheckLimit} checks"
-        System.exit(1)
     }
 }

@@ -15,7 +15,7 @@ def user = args[3]
 def pw = args[4]
 
 DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('https', host_tmn, 443, user, pw)
-if (designTimeArtifact.exists(iFlowId, 'active')) {
+if (designTimeArtifact.getVersion(iFlowId, 'active')) {
     println "[INFO] Active version of IFlow ${iFlowId} exists"
 //  Check if version is in draft mode
     IntegrationPackage integrationPackage = new IntegrationPackage('https', host_tmn, 443, user, pw)

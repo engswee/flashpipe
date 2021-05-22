@@ -22,14 +22,22 @@ class RuntimeArtifact {
     }
 
     String getStatus(String iFlowId) {
+        return getDetails(iFlowId, 'Status')
+    }
+
+    String getVersion(String iFlowId) {
+        return getDetails(iFlowId, 'Version')
+    }
+
+    private String getDetails(String iFlowId, String fieldName) {
         // Get deployed IFlow's status
-        logger.info('Get runtime artifact status')
+        logger.info('Get runtime artifact details')
         this.httpExecuter.executeRequest("/api/v1/IntegrationRuntimeArtifacts('${iFlowId}')", ['Accept': 'application/json'])
         def code = this.httpExecuter.getResponseCode()
         logger.info("HTTP Response code = ${code}")
         if (code == 200) {
             def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
-            return root.d.Status
+            return root.d."${fieldName}"
         } else {
             logger.info("Response body = ${this.httpExecuter.getResponseBody().getText('UTF8')}")
             throw new HTTPExecuterException("Get runtime artifact call failed with response code = ${code}")

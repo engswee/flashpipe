@@ -63,14 +63,14 @@ class DesignTimeArtifactSpec extends Specification {
                 .withPath("/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')")
         def httpResponse = HttpResponse.response()
                 .withStatusCode(200)
-                .withBody('Success')
+                .withBody('{"d": {"Version": "1.0.4"}}')
         mockServerClient.when(httpRequest).respond(httpResponse)
 
         when:
-        def iFlowExists = designTimeArtifact.exists('FlashPipe_IFlow', 'active')
+        def iFlowExists = designTimeArtifact.getVersion('FlashPipe_IFlow', 'active')
 
         then:
-        iFlowExists == true
+        iFlowExists == '1.0.4'
     }
 
     def 'Query - IFlow does not exist'() {
@@ -83,15 +83,14 @@ class DesignTimeArtifactSpec extends Specification {
                 .withMethod('GET')
                 .withPath("/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')")
         def httpResponse = HttpResponse.response()
-                .withStatusCode(200)
-                .withBody('Success')
+                .withStatusCode(404)
         mockServerClient.when(httpRequest).respond(httpResponse)
 
         when:
-        def iFlowExists = designTimeArtifact.exists('FlashPipe_IFlow2', 'active')
+        def iFlowExists = designTimeArtifact.getVersion('FlashPipe_IFlow', 'active')
 
         then:
-        iFlowExists == false
+        iFlowExists == null
     }
 
     def 'Failure during query call'() {
@@ -109,7 +108,7 @@ class DesignTimeArtifactSpec extends Specification {
         mockServerClient.when(httpRequest).respond(httpResponse)
 
         when:
-        designTimeArtifact.exists('FlashPipe_IFlow', 'active')
+        designTimeArtifact.getVersion('FlashPipe_IFlow', 'active')
 
         then:
         HTTPExecuterException e = thrown()
