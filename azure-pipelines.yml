@@ -23,4 +23,4 @@ steps:
     command: 'buildAndPush'
     Dockerfile: 'src/main/docker/Dockerfile'
     buildContext: '.'
-    tags: 1.0.0  # FLASHPIPE_VERSION
+    tags: 1.0.1  # FLASHPIPE_VERSION

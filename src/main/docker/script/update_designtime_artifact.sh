@@ -6,7 +6,7 @@ function die() {
 }
 
 function usage() {
-  echo -e "usage: update_designtime_artifact.sh [--logcfgfile=<path_to_file>] [--debug] [--classpath_base_dir=<path_to_dir>] [--param_file=<path_to_file>] [--manifest_file=<path_to_file>] working_dir tmn_host cpi_user cpi_password iflow_id iflow_name package_id package_name git_src_dir\n"
+  echo -e "usage: update_designtime_artifact.sh [--logcfgfile=<path_to_file>] [--param_file=<path_to_file>] [--manifest_file=<path_to_file>] [--debug] [--classpath_base_dir=<path_to_dir>] working_dir tmn_host cpi_user cpi_password iflow_id iflow_name package_id package_name git_src_dir\n"
 }
 
 function diff_directories() {
@@ -80,7 +80,7 @@ while :; do
   --classpath_base_dir=?*)
     classpath_base_dir=${1#*=} # Delete everything up to "=" and assign the remainder.
     ;;
-  --classpath_base_dir=) # Handle the case of an empty --logcfgfile=
+  --classpath_base_dir=) # Handle the case of an empty --classpath_base_dir=
     die 'ERROR: "--classpath_base_dir" requires a non-empty option argument.'
     ;;
   --) # End of all options.
@@ -118,7 +118,7 @@ else
   echo "[INFO] Using $classpath_base_dir as classpath base directory "
   echo "[INFO] Setting WORKING_CLASSPATH environment variable"
   #  FLASHPIPE_VERSION
-  export WORKING_CLASSPATH=$classpath_base_dir/repository/com/equalize/flashpipe/1.0.0/flashpipe-1.0.0.jar
+  export WORKING_CLASSPATH=$classpath_base_dir/repository/com/equalize/flashpipe/1.0.1/flashpipe-1.0.1.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/codehaus/groovy/groovy-all/2.4.12/groovy-all-2.4.12.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/apache/httpcomponents/core5/httpcore5/5.0.4/httpcore5-5.0.4.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/apache/httpcomponents/client5/httpclient5/5.0.4/httpclient5-5.0.4.jar
