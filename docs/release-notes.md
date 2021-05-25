@@ -1,5 +1,11 @@
 # Release Notes
 
+## 1.0.2 (Released 25 May 2021)
+
+---
+
+- Bug fix for error in comparison before deployment if there are no runtime artifact
+
 ## 1.0.1 (Released 22 May 2021)
 
 ---

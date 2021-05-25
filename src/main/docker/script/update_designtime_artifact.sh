@@ -118,7 +118,7 @@ else
   echo "[INFO] Using $classpath_base_dir as classpath base directory "
   echo "[INFO] Setting WORKING_CLASSPATH environment variable"
   #  FLASHPIPE_VERSION
-  export WORKING_CLASSPATH=$classpath_base_dir/repository/io/github/engswee/flashpipe/1.0.1/flashpipe-1.0.1.jar
+  export WORKING_CLASSPATH=$classpath_base_dir/repository/io/github/engswee/flashpipe/1.0.2/flashpipe-1.0.2.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/codehaus/groovy/groovy-all/2.4.12/groovy-all-2.4.12.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/apache/httpcomponents/core5/httpcore5/5.0.4/httpcore5-5.0.4.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/apache/httpcomponents/client5/httpclient5/5.0.4/httpclient5-5.0.4.jar

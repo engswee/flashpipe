@@ -27,7 +27,11 @@ class RuntimeArtifact {
     }
 
     String getVersion(String iFlowId) {
-        return getDetails(iFlowId, 'Version')
+        try {
+            return getDetails(iFlowId, 'Version')
+        } catch (ignored) {
+            return null
+        }
     }
 
     private String getDetails(String iFlowId, String fieldName) {
