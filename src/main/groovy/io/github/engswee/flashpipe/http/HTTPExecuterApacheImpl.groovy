@@ -10,6 +10,8 @@ import org.apache.hc.core5.http.Header
 import org.apache.hc.core5.http.HttpHost
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder
 import org.apache.hc.core5.net.URIBuilder
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class HTTPExecuterApacheImpl extends HTTPExecuter {
 
@@ -20,6 +22,39 @@ class HTTPExecuterApacheImpl extends HTTPExecuter {
     int responseCode
     Header[] headers
     byte[] responseBytes
+    String token
+
+    static Logger logger = LoggerFactory.getLogger(HTTPExecuterApacheImpl)
+
+    private HTTPExecuterApacheImpl() {
+    }
+
+    static HTTPExecuter newInstance(String scheme, String host, int port, String user, String password) {
+        if (!host || !scheme || !port)
+            throw new HTTPExecuterException('Mandatory input scheme/host/port is missing')
+        def httpExecuter = new HTTPExecuterApacheImpl()
+        httpExecuter.setBaseURL(scheme, host, port)
+        logger.info("Using Basic Authentication for ${scheme}://${host}:${port}")
+        httpExecuter.setBasicAuth(user, password)
+        return httpExecuter
+    }
+
+    static HTTPExecuter newInstance(String scheme, String host, int port, String token) {
+        if (!host || !scheme || !port)
+            throw new HTTPExecuterException('Mandatory input scheme/host/port is missing')
+        def httpExecuter = new HTTPExecuterApacheImpl()
+        httpExecuter.setBaseURL(scheme, host, port)
+        logger.info("Using OAuth 2.0 Authentication ${scheme}://${host}:${port}")
+        httpExecuter.setOAuthToken(token)
+        return httpExecuter
+    }
+
+    static HTTPExecuter newInstance(String scheme, String host, int port, String user, String password, String token) {
+        if (token)
+            return newInstance(scheme, host, port, token)
+        else
+            return newInstance(scheme, host, port, user, password)
+    }
 
     @Override
     void setBaseURL(String scheme, String host, int port) {
@@ -31,11 +66,20 @@ class HTTPExecuterApacheImpl extends HTTPExecuter {
 
     @Override
     void setBasicAuth(String user, String password) {
+        if (!user || !password)
+            throw new HTTPExecuterException('Mandatory input user/password is missing')
         final HttpHost targetHost = new HttpHost(this.scheme, this.host, this.port)
         final BasicScheme basicAuth = new BasicScheme()
         basicAuth.initPreemptive(new UsernamePasswordCredentials(user, password.toCharArray()))
 
         this.context.resetAuthExchange(targetHost, basicAuth)
+    }
+
+    @Override
+    void setOAuthToken(String token) {
+        if (!token)
+            throw new HTTPExecuterException('Mandatory input token is missing')
+        this.token = token
     }
 
     @Override
@@ -60,6 +104,11 @@ class HTTPExecuterApacheImpl extends HTTPExecuter {
                 builder.setHeader(key, value)
             }
         }
+        // If an OAuth token is set, use it in the Authorization header
+        if (this.token) {
+            builder.setHeader('Authorization', "Bearer ${this.token}")
+        }
+
         if (requestBytes)
             builder.setEntity(requestBytes, ContentType.create(mimeType))
         ClassicHttpRequest request = builder.build()

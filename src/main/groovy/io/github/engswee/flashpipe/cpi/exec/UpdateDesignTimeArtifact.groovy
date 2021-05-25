@@ -1,10 +1,14 @@
 package io.github.engswee.flashpipe.cpi.exec
 
+import io.github.engswee.flashpipe.cpi.api.CSRFToken
 import io.github.engswee.flashpipe.cpi.api.DesignTimeArtifact
+import io.github.engswee.flashpipe.http.HTTPExecuter
+import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
+import io.github.engswee.flashpipe.http.OAuthToken
 import org.zeroturnaround.zip.ZipUtil
 
 if (args.length < 8) {
-    println "Enter arguments in the format: <iflow_name> <iflow_id> <package_id> <iflow_dir> <tenant_iflow_version> <cpi_host> <user> <password>"
+    println "Enter arguments in the format: <iflow_name> <iflow_id> <package_id> <iflow_dir> <tenant_iflow_version> <cpi_host> <user> <password> <oauth_token_host>"
     System.exit(1)
 }
 
@@ -16,6 +20,7 @@ def currentiFlowVersion = args[4]
 def host_tmn = args[5]
 def user = args[6]
 def pw = args[7]
+def oauthTokenHost = (args.length > 8) ? args[8] : null
 
 // Get current iFlow Version and bump up the number before upload
 println "[INFO] Current IFlow Version in Tenant - ${currentiFlowVersion}"
@@ -38,5 +43,8 @@ ByteArrayOutputStream baos = new ByteArrayOutputStream()
 ZipUtil.pack(new File(iFlowDir), baos)
 def iFlowContent = baos.toByteArray().encodeBase64().toString()
 
-DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('https', host_tmn, 443, user, pw)
-designTimeArtifact.update(iFlowContent, iFlowId, iFlowName, packageId)
+String token = oauthTokenHost ? OAuthToken.get('https', oauthTokenHost, 443, user, pw) : null
+HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host_tmn, 443, user, pw, token)
+DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
+CSRFToken csrfToken = oauthTokenHost ? null : new CSRFToken(httpExecuter)
+designTimeArtifact.update(iFlowContent, iFlowId, iFlowName, packageId, csrfToken)

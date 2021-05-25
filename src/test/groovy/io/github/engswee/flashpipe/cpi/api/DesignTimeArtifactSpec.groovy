@@ -1,6 +1,8 @@
 package io.github.engswee.flashpipe.cpi.api
 
 import groovy.json.JsonSlurper
+import io.github.engswee.flashpipe.http.HTTPExecuter
+import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
 import io.github.engswee.flashpipe.http.HTTPExecuterException
 import org.mockserver.client.MockServerClient
 import org.mockserver.integration.ClientAndServer
@@ -13,11 +15,14 @@ class DesignTimeArtifactSpec extends Specification {
 
     @Shared
     ClientAndServer mockServer
+    @Shared
+    HTTPExecuter httpExecuter
 
     final static String LOCALHOST = 'localhost'
 
     def setupSpec() {
         mockServer = ClientAndServer.startClientAndServer(9443)
+        httpExecuter = HTTPExecuterApacheImpl.newInstance('http', LOCALHOST, 9443, 'dummy', 'dummy')
     }
 
     def setup() {
@@ -43,18 +48,9 @@ class DesignTimeArtifactSpec extends Specification {
         setupCSRFTokenExpectation(mockServerClient, 200)
     }
 
-    def 'Missing mandatory input exception during instantiation'() {
-        when:
-        new DesignTimeArtifact('http', LOCALHOST, 9443, '', '')
-
-        then:
-        HTTPExecuterException e = thrown()
-        e.getMessage() == 'Mandatory input host/user/password is missing'
-    }
-
     def 'Query - IFlow exists'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         and:
         MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
@@ -67,7 +63,7 @@ class DesignTimeArtifactSpec extends Specification {
         mockServerClient.when(httpRequest).respond(httpResponse)
 
         when:
-        def iFlowExists = designTimeArtifact.getVersion('FlashPipe_IFlow', 'active')
+        def iFlowExists = designTimeArtifact.getVersion('FlashPipe_IFlow', 'active', true)
 
         then:
         iFlowExists == '1.0.4'
@@ -75,7 +71,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Query - IFlow does not exist'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         and:
         MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
@@ -84,10 +80,11 @@ class DesignTimeArtifactSpec extends Specification {
                 .withPath("/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')")
         def httpResponse = HttpResponse.response()
                 .withStatusCode(404)
+                .withBody('{"error": {"message": {"value": "Integration design time artifact not found"}}}')
         mockServerClient.when(httpRequest).respond(httpResponse)
 
         when:
-        def iFlowExists = designTimeArtifact.getVersion('FlashPipe_IFlow', 'active')
+        def iFlowExists = designTimeArtifact.getVersion('FlashPipe_IFlow', 'active', true)
 
         then:
         iFlowExists == null
@@ -95,7 +92,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Failure during query call'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         and:
         MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
@@ -104,20 +101,20 @@ class DesignTimeArtifactSpec extends Specification {
                 .withPath("/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')")
         def httpResponse = HttpResponse.response()
                 .withStatusCode(500)
-                .withBody('Success')
+                .withBody('Error')
         mockServerClient.when(httpRequest).respond(httpResponse)
 
         when:
-        designTimeArtifact.getVersion('FlashPipe_IFlow', 'active')
+        designTimeArtifact.getVersion('FlashPipe_IFlow', 'active', true)
 
         then:
         HTTPExecuterException e = thrown()
-        e.getMessage() == 'Query design time artifact call failed with response code = 500'
+        e.getMessage() == 'Get design time artifact call failed with response code = 500'
     }
 
     def 'Successful download'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         and:
         MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
@@ -138,7 +135,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Failure during download'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         and:
         MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
@@ -159,7 +156,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Successful upload'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         and:
         MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
@@ -176,7 +173,7 @@ class DesignTimeArtifactSpec extends Specification {
         mockServerClient.when(request).respond(response)
 
         when:
-        def uploadResponseBody = designTimeArtifact.upload('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy')
+        def uploadResponseBody = designTimeArtifact.upload('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
 
         then:
         uploadResponseBody == 'Success'
@@ -184,14 +181,14 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Failure during upload - CSRF step'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         and:
         MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
         setupCSRFTokenExpectation(mockServerClient, 400)
 
         when:
-        designTimeArtifact.upload('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy')
+        designTimeArtifact.upload('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
 
         then:
         HTTPExecuterException e = thrown()
@@ -200,7 +197,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Failure during upload - upload step'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         and:
         MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
@@ -216,7 +213,7 @@ class DesignTimeArtifactSpec extends Specification {
         mockServerClient.when(request).respond(response)
 
         when:
-        designTimeArtifact.upload('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy')
+        designTimeArtifact.upload('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
 
         then:
         HTTPExecuterException e = thrown()
@@ -225,7 +222,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Successful update'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         and:
         MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
@@ -241,7 +238,7 @@ class DesignTimeArtifactSpec extends Specification {
         mockServerClient.when(request).respond(response)
 
         when:
-        designTimeArtifact.update('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy')
+        designTimeArtifact.update('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
 
         then:
         noExceptionThrown()
@@ -249,7 +246,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Failure during update'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         and:
         MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
@@ -265,7 +262,7 @@ class DesignTimeArtifactSpec extends Specification {
         mockServerClient.when(request).respond(response)
 
         when:
-        designTimeArtifact.update('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy')
+        designTimeArtifact.update('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
 
         then:
         HTTPExecuterException e = thrown()
@@ -275,7 +272,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Successful delete'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         and:
         MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
@@ -290,7 +287,7 @@ class DesignTimeArtifactSpec extends Specification {
         mockServerClient.when(request).respond(response)
 
         when:
-        designTimeArtifact.delete('FlashPipe_IFlow')
+        designTimeArtifact.delete('FlashPipe_IFlow', new CSRFToken(httpExecuter))
 
         then:
         noExceptionThrown()
@@ -298,7 +295,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Failure during delete'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         and:
         MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
@@ -313,7 +310,7 @@ class DesignTimeArtifactSpec extends Specification {
         mockServerClient.when(request).respond(response)
 
         when:
-        designTimeArtifact.delete('FlashPipe_IFlow')
+        designTimeArtifact.delete('FlashPipe_IFlow', new CSRFToken(httpExecuter))
 
         then:
         HTTPExecuterException e = thrown()
@@ -322,7 +319,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Successful deployment'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         and:
         MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
@@ -340,7 +337,7 @@ class DesignTimeArtifactSpec extends Specification {
         mockServerClient.when(request).respond(response)
 
         when:
-        designTimeArtifact.deploy('FlashPipe_IFlow')
+        designTimeArtifact.deploy('FlashPipe_IFlow', new CSRFToken(httpExecuter))
 
         then:
         noExceptionThrown()
@@ -348,7 +345,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Failure during deployment'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         and:
         MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
@@ -366,7 +363,7 @@ class DesignTimeArtifactSpec extends Specification {
         mockServerClient.when(request).respond(response)
 
         when:
-        designTimeArtifact.deploy('FlashPipe_IFlow')
+        designTimeArtifact.deploy('FlashPipe_IFlow', new CSRFToken(httpExecuter))
 
         then:
         HTTPExecuterException e = thrown()
@@ -375,7 +372,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'JSON payload generation'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact('http', LOCALHOST, 9443, 'dummy', 'dummy')
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
 
         when:
         def output = designTimeArtifact.constructPayload('FlashPipe IFlow', 'FlashPipe_IFlow', 'FlashPipe_Package', 'base64_dummy')

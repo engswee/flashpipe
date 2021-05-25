@@ -3,23 +3,18 @@ package io.github.engswee.flashpipe.cpi.api
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import io.github.engswee.flashpipe.http.HTTPExecuter
-import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
 import io.github.engswee.flashpipe.http.HTTPExecuterException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class IntegrationPackage {
 
-    HTTPExecuter httpExecuter
+    final HTTPExecuter httpExecuter
 
     static Logger logger = LoggerFactory.getLogger(IntegrationPackage)
 
-    IntegrationPackage(String scheme, String host, int port, String user, String password) {
-        if (!host || !user || !password)
-            throw new HTTPExecuterException('Mandatory input host/user/password is missing')
-        this.httpExecuter = new HTTPExecuterApacheImpl()
-        this.httpExecuter.setBaseURL(scheme, host, port)
-        this.httpExecuter.setBasicAuth(user, password)
+    IntegrationPackage(HTTPExecuter httpExecuter) {
+        this.httpExecuter = httpExecuter
     }
 
     boolean iFlowInDraftVersion(String packageId, String iFlowId) {
@@ -64,12 +59,12 @@ class IntegrationPackage {
         }
     }
 
-    String create(String packageId, String packageName) {
+    String create(String packageId, String packageName, CSRFToken csrfToken) {
         // 1 - Get CSRF token
-        String csrfToken = getCSRFToken()
+        String token = csrfToken ? csrfToken.get() : ''
 
         // Create package
-        return createPackage(packageId, packageName, csrfToken)
+        return createPackage(packageId, packageName, token)
     }
 
     private String createPackage(String packageId, String packageName, String csrfToken) {
@@ -94,15 +89,5 @@ class IntegrationPackage {
         }
 
         return this.httpExecuter.getResponseBody().getText('UTF-8')
-    }
-
-    private String getCSRFToken() {
-        logger.info('Get CSRF Token')
-        this.httpExecuter.executeRequest('/api/v1/', ['x-csrf-token': 'fetch'])
-        def code = this.httpExecuter.getResponseCode()
-        if (code == 200)
-            return this.httpExecuter.getResponseHeader('x-csrf-token')
-        else
-            throw new HTTPExecuterException("Get CSRF Token call failed with response code = ${code}")
     }
 }

@@ -6,6 +6,8 @@ abstract class HTTPExecuter {
 
     abstract void setBasicAuth(String user, String password)
 
+    abstract void setOAuthToken(String token)
+
     abstract void executeRequest(String method, String path, Map headers, Map queryParameters, byte[] requestBytes, String mimeType)
 
     void executeRequest(String method, String path, Map headers, Map queryParameters, String requestBody, String charset, String mimeType) {
