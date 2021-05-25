@@ -1,4 +1,4 @@
-# FlashPipe
+<img src="https://github.com/engswee/flashpipe/raw/main/docs/images/logo/flashpipe_logo_wording.png" alt="FlashPipe Logo" width="200" height="140"/>
 
 ## The CI/CD Companion for SAP Integration Suite
 
@@ -6,7 +6,7 @@
 [![GitHub license](https://img.shields.io/github/license/engswee/flashpipe)](https://github.com/engswee/flashpipe/blob/main/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/engswee/flashpipe.svg)](https://github.com/engswee/flashpipe/releases/latest)
 [![Docker Image Size (latest semver)](https://img.shields.io/docker/image-size/engswee/flashpipe)](https://hub.docker.com/r/engswee/flashpipe/tags?page=1&ordering=last_updated)
-![Docker Pulls](https://img.shields.io/docker/pulls/engswee/flashpipe)
+[![Docker Pulls](https://img.shields.io/docker/pulls/engswee/flashpipe)](https://hub.docker.com/r/engswee/flashpipe/tags?page=1&ordering=last_updated)
 
 ### About
 
