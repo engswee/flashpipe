@@ -1,8 +1,11 @@
 trigger:
-- main
+- oauth
 
 pool:
   vmImage: 'ubuntu-latest'
+
+variables:
+  - group: cpi-dev
 
 steps:
 - task: Maven@3
@@ -14,12 +17,13 @@ steps:
     jdkArchitectureOption: 'x64'
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+    goals: 'verify'
+    options: '-Dcpi.host.tmn=$(dev_host_tmn) -Dcpi.basic.userid=$(dev_user) -Dcpi.basic.password=$(dev_password) -Dcpi.host.oauth=$(dev_oauth_host) -Dcpi.oauth.clientid=$(dev_clientid) -Dcpi.oauth.clientsecret=$(dev_clientsecret)'
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/build/docker?view=azure-devops
 - task: Docker@2
   inputs:
     containerRegistry: 'Docker Hub engswee'
-    repository: 'engswee/flashpipe'
+    repository: 'engswee/cpi-cicd'
     command: 'buildAndPush'
     Dockerfile: 'src/main/docker/Dockerfile'
     buildContext: '.'
