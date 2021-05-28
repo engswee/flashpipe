@@ -1,6 +1,11 @@
 package io.github.engswee.flashpipe.http
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 abstract class HTTPExecuter {
+
+    static Logger logger = LoggerFactory.getLogger(HTTPExecuter)
 
     abstract void setBaseURL(String scheme, String host, int port)
 
@@ -28,6 +33,11 @@ abstract class HTTPExecuter {
 
     void executeRequest(String path, Map headers, Map queryParameters) {
         executeRequest('GET', path, headers, queryParameters, null, null)
+    }
+
+    void logError(String callType) {
+        logger.error("Response body = ${this.getResponseBody().getText('UTF8')}")
+        throw new HTTPExecuterException("${callType} call failed with response code = ${this.getResponseCode()}")
     }
 
     abstract InputStream getResponseBody()

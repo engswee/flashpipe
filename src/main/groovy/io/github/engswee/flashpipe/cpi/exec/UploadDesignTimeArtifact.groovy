@@ -28,7 +28,7 @@ HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host_tmn
 CSRFToken csrfToken = oauthTokenHost ? null : new CSRFToken(httpExecuter)
 
 IntegrationPackage integrationPackage = new IntegrationPackage(httpExecuter)
-if (!integrationPackage.packageExists(packageId)) {
+if (!integrationPackage.exists(packageId)) {
     println "[INFO] Package ${packageId} does not exist. Creating package..."
     def result = integrationPackage.create(packageId, packageName, csrfToken)
     println result

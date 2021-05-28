@@ -22,7 +22,6 @@ class IntegrationPackage {
         logger.info("Checking version of IFlow ${iFlowId} in package ${packageId}")
         this.httpExecuter.executeRequest("/api/v1/IntegrationPackages('${packageId}')/IntegrationDesigntimeArtifacts", ['Accept': 'application/json'])
         def code = this.httpExecuter.getResponseCode()
-        logger.info("HTTP Response code = ${code}")
         if (code == 200) {
             def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
             def iFlowMetadata = root.d.results.find { it.Id == iFlowId }
@@ -32,18 +31,15 @@ class IntegrationPackage {
             } else {
                 throw new HTTPExecuterException("IFlow ${iFlowId} not found in package ${packageId}")
             }
-        } else {
-            logger.info("Response body = ${this.httpExecuter.getResponseBody().getText('UTF8')}")
-            throw new HTTPExecuterException("Get IntegrationPackages call failed with response code = ${code}")
-        }
+        } else
+            this.httpExecuter.logError('Get artifacts of IntegrationPackages')
     }
 
-    boolean packageExists(String packageId) {
+    boolean exists(String packageId) {
         // Check existence of package
         logger.info("Checking existence of package ${packageId}")
         this.httpExecuter.executeRequest("/api/v1/IntegrationPackages('${packageId}')", ['Accept': 'application/json'])
         def code = this.httpExecuter.getResponseCode()
-        logger.info("HTTP Response code = ${code}")
         if (code == 200) {
             return true
         } else {
@@ -54,8 +50,7 @@ class IntegrationPackage {
                     return false
                 }
             }
-            logger.info("Response body = ${responseBody}")
-            throw new HTTPExecuterException("Get IntegrationPackages call failed with response code = ${code}")
+            this.httpExecuter.logError('Get IntegrationPackages')
         }
     }
 
@@ -65,6 +60,17 @@ class IntegrationPackage {
 
         // Create package
         return createPackage(packageId, packageName, token)
+    }
+
+    void delete(String packageId, CSRFToken csrfToken) {
+        // 1 - Get CSRF token
+        String token = csrfToken ? csrfToken.get() : ''
+
+        // Delete package
+        this.httpExecuter.executeRequest('DELETE', "/api/v1/IntegrationPackages('${packageId}')", ['x-csrf-token': token], null)
+        def code = this.httpExecuter.getResponseCode()
+        if (code != 202)
+            this.httpExecuter.logError('Delete integration package')
     }
 
     private String createPackage(String packageId, String packageName, String csrfToken) {
@@ -82,11 +88,8 @@ class IntegrationPackage {
 
         this.httpExecuter.executeRequest('POST', '/api/v1/IntegrationPackages', ['x-csrf-token': csrfToken, 'Accept': 'application/json'], null, payload, 'UTF-8', 'application/json')
         def code = this.httpExecuter.getResponseCode()
-        logger.info("HTTP Response code = ${code}")
-        if (code != 201) {
-            logger.info("Response body = ${this.httpExecuter.getResponseBody().getText('UTF8')}")
-            throw new HTTPExecuterException("Create integration package call failed with response code = ${code}")
-        }
+        if (code != 201)
+            this.httpExecuter.logError('Create integration package')
 
         return this.httpExecuter.getResponseBody().getText('UTF-8')
     }

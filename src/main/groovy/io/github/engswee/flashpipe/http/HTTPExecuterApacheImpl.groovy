@@ -44,7 +44,7 @@ class HTTPExecuterApacheImpl extends HTTPExecuter {
             throw new HTTPExecuterException('Mandatory input scheme/host/port is missing')
         def httpExecuter = new HTTPExecuterApacheImpl()
         httpExecuter.setBaseURL(scheme, host, port)
-        logger.info("Using OAuth 2.0 Authentication ${scheme}://${host}:${port}")
+        logger.info("Using OAuth 2.0 Authentication for ${scheme}://${host}:${port}")
         httpExecuter.setOAuthToken(token)
         return httpExecuter
     }
@@ -146,6 +146,7 @@ class HTTPExecuterApacheImpl extends HTTPExecuter {
 
     @Override
     int getResponseCode() {
+        logger.info("HTTP Response code = ${this.responseCode}")
         return this.responseCode
     }
 

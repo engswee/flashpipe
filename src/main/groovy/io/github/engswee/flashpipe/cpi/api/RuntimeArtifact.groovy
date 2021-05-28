@@ -2,7 +2,6 @@ package io.github.engswee.flashpipe.cpi.api
 
 import groovy.json.JsonSlurper
 import io.github.engswee.flashpipe.http.HTTPExecuter
-import io.github.engswee.flashpipe.http.HTTPExecuterException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -29,7 +28,6 @@ class RuntimeArtifact {
         logger.info('Get runtime artifact details')
         this.httpExecuter.executeRequest("/api/v1/IntegrationRuntimeArtifacts('${iFlowId}')", ['Accept': 'application/json'])
         def code = this.httpExecuter.getResponseCode()
-        logger.info("HTTP Response code = ${code}")
         if (code == 200) {
             def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
             return root.d."${fieldName}"
@@ -37,14 +35,10 @@ class RuntimeArtifact {
             def error = new XmlSlurper().parse(this.httpExecuter.getResponseBody())
             if (error.message == 'Requested entity could not be found.') {
                 return null
-            } else {
-                logger.info("Response body = ${this.httpExecuter.getResponseBody().getText('UTF8')}")
-                throw new HTTPExecuterException("Get runtime artifact call failed with response code = ${code}")
-            }
-        } else {
-            logger.info("Response body = ${this.httpExecuter.getResponseBody().getText('UTF8')}")
-            throw new HTTPExecuterException("Get runtime artifact call failed with response code = ${code}")
-        }
+            } else
+                this.httpExecuter.logError('Get runtime artifact')
+        } else
+            this.httpExecuter.logError('Get runtime artifact')
     }
 
     String getErrorInfo(String iFlowId) {
@@ -52,13 +46,10 @@ class RuntimeArtifact {
         logger.info('Get runtime artifact error information')
         this.httpExecuter.executeRequest("/api/v1/IntegrationRuntimeArtifacts('${iFlowId}')/ErrorInformation/\$value", ['Accept': 'application/json'])
         def code = this.httpExecuter.getResponseCode()
-        logger.info("HTTP Response code = ${code}")
         if (code == 200) {
             def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
             return root.parameter
-        } else {
-            logger.info("Response body = ${this.httpExecuter.getResponseBody().getText('UTF8')}")
-            throw new HTTPExecuterException("Get runtime artifact error information call failed with response code = ${code}")
-        }
+        } else
+            this.httpExecuter.logError('Get runtime artifact error information')
     }
 }

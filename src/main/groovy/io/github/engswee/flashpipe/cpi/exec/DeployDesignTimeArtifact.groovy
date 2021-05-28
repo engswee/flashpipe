@@ -37,6 +37,7 @@ if (runtimeVersion == designtimeVersion) {
     println "[INFO] IFlow ${iFlowId} with version ${runtimeVersion} already deployed. Skipping runtime deployment"
 } else {
     CSRFToken csrfToken = oauthTokenHost ? null: new CSRFToken(httpExecuter)
+    println "[INFO] 🚀 Deploying IFlow ${iFlowId} with version ${designtimeVersion} "
     designTimeArtifact.deploy(iFlowId, csrfToken)
 
     println "[INFO] Checking deployment status every ${delayLength} seconds up to ${maxCheckLimit} times"

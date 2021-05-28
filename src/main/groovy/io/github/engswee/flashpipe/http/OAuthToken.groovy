@@ -23,15 +23,13 @@ class OAuthToken {
     }
 
     private String getToken() {
-        httpExecuter.executeRequest('/oauth/token', [:], ['grant_type': 'client_credentials'])
+        logger.info('Get OAuth token')
+        this.httpExecuter.executeRequest('/oauth/token', [:], ['grant_type': 'client_credentials'])
         def code = this.httpExecuter.getResponseCode()
-        logger.info("HTTP Response code = ${code}")
         if (code == 200) {
             def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
             return root.access_token
-        } else {
-            logger.info("Response body = ${this.httpExecuter.getResponseBody().getText('UTF8')}")
-            throw new HTTPExecuterException("Get OAuth token call failed with response code = ${code}")
-        }
+        } else
+            this.httpExecuter.logError('Get OAuth token')
     }
 }

@@ -3,7 +3,6 @@ package io.github.engswee.flashpipe.cpi.api
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import io.github.engswee.flashpipe.http.HTTPExecuter
-import io.github.engswee.flashpipe.http.HTTPExecuterException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -22,7 +21,6 @@ class DesignTimeArtifact {
         this.httpExecuter.executeRequest("/api/v1/IntegrationDesigntimeArtifacts(Id='$iFlowId',Version='$iFlowVersion')", ['Accept': 'application/json'])
 
         def code = this.httpExecuter.getResponseCode()
-        logger.info("HTTP Response code = ${code}")
         if (code == 200) {
             def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
             return root.d.Version
@@ -30,12 +28,10 @@ class DesignTimeArtifact {
             def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
             if (root.error.message.value == 'Integration design time artifact not found') {
                 return null
-            } else {
-                logger.info("Response body = ${this.httpExecuter.getResponseBody().getText('UTF8')}")
-                throw new HTTPExecuterException("Get design time artifact call failed with response code = ${code}")
-            }
+            } else
+                this.httpExecuter.logError('Get design time artifact')
         } else
-            throw new HTTPExecuterException("Get design time artifact call failed with response code = ${code}")
+            this.httpExecuter.logError('Get design time artifact')
     }
 
     byte[] download(String iFlowId, String iFlowVersion) {
@@ -43,12 +39,10 @@ class DesignTimeArtifact {
         this.httpExecuter.executeRequest("/api/v1/IntegrationDesigntimeArtifacts(Id='$iFlowId',Version='$iFlowVersion')/\$value")
 
         def code = this.httpExecuter.getResponseCode()
-        logger.info("HTTP Response code = ${code}")
-        if (code == 200) {
-            byte[] responseBody = this.httpExecuter.getResponseBody().getBytes()
-            return responseBody
-        } else
-            throw new HTTPExecuterException("Download design time artifact call failed with response code = ${code}")
+        if (code == 200)
+            return this.httpExecuter.getResponseBody().getBytes()
+        else
+            this.httpExecuter.logError('Download design time artifact')
     }
 
     void update(String iFlowContent, String iFlowId, String iFlowName, String packageId, CSRFToken csrfToken) {
@@ -83,11 +77,8 @@ class DesignTimeArtifact {
         logger.info('Deploy design time artifact')
         this.httpExecuter.executeRequest('POST', '/api/v1/DeployIntegrationDesigntimeArtifact', ['x-csrf-token': token, 'Accept': 'application/json'], ['Id': "'${iFlowId}'", 'Version': "'active'"])
         def code = this.httpExecuter.getResponseCode()
-        logger.info("HTTP Response code = ${code}")
-        if (code != 202) {
-            logger.info("Response body = ${this.httpExecuter.getResponseBody().getText('UTF8')}")
-            throw new HTTPExecuterException("Deploy design time artifact call failed with response code = ${code}")
-        }
+        if (code != 202)
+            this.httpExecuter.logError('Deploy design time artifact')
     }
 
     private String constructPayload(String iFlowName, String iFlowId, String packageId, String iFlowContent) {
@@ -107,20 +98,16 @@ class DesignTimeArtifact {
         logger.debug("Request body = ${payload}")
         this.httpExecuter.executeRequest('PUT', "/api/v1/IntegrationDesigntimeArtifacts(Id='${iFlowId}',Version='active')", ['x-csrf-token': token, 'Accept': 'application/json'], null, payload, 'UTF-8', 'application/json')
         def code = this.httpExecuter.getResponseCode()
-        logger.info("HTTP Response code = ${code}")
-        if (code != 200) {
-            logger.info("Response body = ${this.httpExecuter.getResponseBody().getText('UTF8')}")
-            throw new HTTPExecuterException("Update design time artifact call failed with response code = ${code}")
-        }
+        if (code != 200)
+            this.httpExecuter.logError('Update design time artifact')
     }
 
     private void deleteArtifact(String iFlowId, String token) {
         logger.info('Delete existing design time artifact')
         this.httpExecuter.executeRequest('DELETE', "/api/v1/IntegrationDesigntimeArtifacts(Id='$iFlowId',Version='active')", ['x-csrf-token': token], null)
         def code = this.httpExecuter.getResponseCode()
-        logger.info("HTTP Response code = ${code}")
         if (code != 200)
-            throw new HTTPExecuterException("Delete design time artifact call failed with response code = ${code}")
+            this.httpExecuter.logError('Delete design time artifact')
     }
 
     private String uploadArtifact(String iFlowName, String iFlowId, String packageId, String iFlowContent, String token) {
@@ -130,11 +117,8 @@ class DesignTimeArtifact {
 
         this.httpExecuter.executeRequest('POST', '/api/v1/IntegrationDesigntimeArtifacts', ['x-csrf-token': token, 'Accept': 'application/json'], null, payload, 'UTF-8', 'application/json')
         def code = this.httpExecuter.getResponseCode()
-        logger.info("HTTP Response code = ${code}")
-        if (code != 201) {
-            logger.info("Response body = ${this.httpExecuter.getResponseBody().getText('UTF8')}")
-            throw new HTTPExecuterException("Upload design time artifact call failed with response code = ${code}")
-        }
+        if (code != 201)
+            this.httpExecuter.logError('Upload design time artifact')
 
         return this.httpExecuter.getResponseBody().getText('UTF-8')
     }

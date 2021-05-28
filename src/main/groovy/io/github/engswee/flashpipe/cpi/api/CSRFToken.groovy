@@ -1,7 +1,6 @@
 package io.github.engswee.flashpipe.cpi.api
 
 import io.github.engswee.flashpipe.http.HTTPExecuter
-import io.github.engswee.flashpipe.http.HTTPExecuterException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -28,7 +27,7 @@ class CSRFToken {
                 logger.debug("Received CSRF Token - ${this.token}")
                 return this.token
             } else
-                throw new HTTPExecuterException("Get CSRF Token call failed with response code = ${code}")
+                this.httpExecuter.logError('Get CSRF Token')
         }
     }
 }
