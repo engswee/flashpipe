@@ -7,7 +7,7 @@ FROM bitnami/java:1.8.292-prod-debian-10-r23
 # ----------------------------------------
 # 1 - Install zip functionality
 # ----------------------------------------
-RUN install_packages zip unzip
+RUN install_packages unzip
 
 # ----------------------------------------
 # 2 - Install Maven

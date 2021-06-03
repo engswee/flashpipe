@@ -25,9 +25,9 @@ class RuntimeArtifactBasicAuthIT extends Specification {
 
     def 'Query'() {
         when:
-        def version = runtimeArtifact.getVersion('FlashPipe_Update')
+        runtimeArtifact.getStatus('FlashPipe_Update')
 
         then:
-        version == '1.0.1'
+        noExceptionThrown()
     }
 }

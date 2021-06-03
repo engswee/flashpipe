@@ -16,27 +16,28 @@ class RuntimeArtifact {
     }
 
     String getStatus(String iFlowId) {
-        return getDetails(iFlowId, 'Status', false)
+        Map responseRoot = getDetails(iFlowId, false)
+        return responseRoot.d.Status
     }
 
     String getVersion(String iFlowId) {
-        return getDetails(iFlowId, 'Version', true)
+        Map responseRoot = getDetails(iFlowId, true)
+        if (responseRoot?.d?.Status == 'STARTED') {
+            return responseRoot.d.Version
+        } else {
+            return null
+        }
     }
 
-    private String getDetails(String iFlowId, String fieldName, boolean skipNotFoundException) {
+    private Map getDetails(String iFlowId, boolean skipNotFoundException) {
         // Get deployed IFlow's details
         logger.info('Get runtime artifact details')
         this.httpExecuter.executeRequest("/api/v1/IntegrationRuntimeArtifacts('${iFlowId}')", ['Accept': 'application/json'])
         def code = this.httpExecuter.getResponseCode()
         if (code == 200) {
-            def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
-            return root.d."${fieldName}"
+            return new JsonSlurper().parse(this.httpExecuter.getResponseBody())
         } else if (skipNotFoundException && code == 404) {
-            def error = new XmlSlurper().parse(this.httpExecuter.getResponseBody())
-            if (error.message == 'Requested entity could not be found.') {
-                return null
-            } else
-                this.httpExecuter.logError('Get runtime artifact')
+            return [:]
         } else
             this.httpExecuter.logError('Get runtime artifact')
     }

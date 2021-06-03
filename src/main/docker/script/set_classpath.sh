@@ -1,6 +1,6 @@
 echo "[INFO] Setting WORKING_CLASSPATH environment variable"
 #FLASHPIPE_VERSION
-export WORKING_CLASSPATH=/usr/share/maven/ref/repository/io/github/engswee/flashpipe/1.0.2/flashpipe-1.0.2.jar
+export WORKING_CLASSPATH=/usr/share/maven/ref/repository/io/github/engswee/flashpipe/2.0.0/flashpipe-2.0.0.jar
 export WORKING_CLASSPATH=$WORKING_CLASSPATH:/usr/share/maven/ref/repository/org/codehaus/groovy/groovy-all/2.4.21/groovy-all-2.4.21.jar
 export WORKING_CLASSPATH=$WORKING_CLASSPATH:/usr/share/maven/ref/repository/org/apache/httpcomponents/core5/httpcore5/5.0.4/httpcore5-5.0.4.jar
 export WORKING_CLASSPATH=$WORKING_CLASSPATH:/usr/share/maven/ref/repository/org/apache/httpcomponents/client5/httpclient5/5.0.4/httpclient5-5.0.4.jar

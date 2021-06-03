@@ -1,12 +1,35 @@
 #!/bin/bash
 
-function die() {
-  printf '%s\n' "$1" >&2
-  exit 1
-}
+# Arguments are passed to the script (and subsequently the Java commands)
+# via environment variables. Below are the list of the variables:
+#
+# 1. Tenant details and credentials:
+# HOST_TMN - Base URL for tenant management node of Cloud Integration (excluding the https:// prefix)
+# BASIC_USERID - User ID (required when using Basic Authentication)
+# BASIC_PASSWORD - Password (required when using Basic Authentication)
+# HOST_OAUTH - Host name for OAuth authentication server (required when using OAuth Authentication)
+# OAUTH_CLIENTID - OAuth Client ID (required when using OAuth Authentication)
+# OAUTH_CLIENTSECRET - OAuth Client Secret (required when using OAuth Authentication)
+#
+# 2. Mandatory variables:
+# IFLOW_ID - ID of Integration Flow
+# IFLOW_NAME - Name of Integration Flow
+# PACKAGE_ID - ID of Integration Package
+# PACKAGE_NAME - Name of Integration Package
+# GIT_DIR - directory containing contents of Integration Flow
+#
+# 3. Optional variables:
+# PARAM_FILE - Use to a different parameters.prop file instead of the default in src/main/resources/
+# MANIFEST_FILE - Use to a different MANIFEST.MF file instead of the default in META-INF/
+# WORK_DIR - Working directory for in-transit files (default is /tmp if not set)
 
-function usage() {
-  echo -e "usage: update_designtime_artifact.sh [--logcfgfile=<path_to_file>] [--param_file=<path_to_file>] [--manifest_file=<path_to_file>] [--debug] [--classpath_base_dir=<path_to_dir>] [--oauth_host=<host_address>] working_dir tmn_host cpi_user cpi_password iflow_id iflow_name package_id package_name git_src_dir\n"
+function check_mandatory_env_var() {
+  local env_var_name=$1
+  local env_var_value=$2
+  if [ -z "$env_var_value" ]; then
+    echo "[ERROR] Mandatory environment variable $env_var_name is not populated"
+    exit 1
+  fi
 }
 
 function diff_directories() {
@@ -21,11 +44,7 @@ function diff_directories() {
     echo "[INFO] No changes found in $directory directory"
   else
     echo "[INFO] Changes found in $directory directory"
-    if [ -z "$debug" ]; then
-      echo "$diffoutput"
-    else
-      diff --strip-trailing-cr -r "$tenant_dir/download/$directory/" "$git_dir/$directory/"
-    fi
+    diff --strip-trailing-cr -r "$tenant_dir/download/$directory/" "$git_dir/$directory/"
     diff_found=1
   fi
   return $diff_found
@@ -33,12 +52,12 @@ function diff_directories() {
 
 function exec_java_command() {
   local return_code
-  if [ -z "$logcfgfile" ]; then
+  if [ -z "$LOG4J_FILE" ]; then
     echo "[INFO] Executing command: java -classpath $WORKING_CLASSPATH" "$@"
     java -classpath "$WORKING_CLASSPATH" "$@"
   else
-    echo "[INFO] Executing command: java -Dlog4j.configurationFile=$logcfgfile -classpath $WORKING_CLASSPATH" "$@"
-    java -Dlog4j.configurationFile="$logcfgfile" -classpath "$WORKING_CLASSPATH" "$@"
+    echo "[INFO] Executing command: java -Dlog4j.configurationFile=$LOG4J_FILE -classpath $WORKING_CLASSPATH" "$@"
+    java -Dlog4j.configurationFile="$LOG4J_FILE" -classpath "$WORKING_CLASSPATH" "$@"
   fi
   return_code=$?
   if [[ "$return_code" == "1" ]]; then
@@ -48,115 +67,83 @@ function exec_java_command() {
   return $return_code
 }
 
-logcfgfile=
+# ----------------------------------------------------------------
+# Check presence of environment variables
+# ----------------------------------------------------------------
+check_mandatory_env_var "HOST_TMN" "$HOST_TMN"
+if [ -z "$HOST_OAUTH" ]; then
+  # Basic Auth
+  check_mandatory_env_var "BASIC_USERID" "$BASIC_USERID"
+  check_mandatory_env_var "BASIC_PASSWORD" "$BASIC_PASSWORD"
+else
+  # OAuth
+  check_mandatory_env_var "OAUTH_CLIENTID" "$OAUTH_CLIENTID"
+  check_mandatory_env_var "OAUTH_CLIENTSECRET" "$OAUTH_CLIENTSECRET"
+fi
+check_mandatory_env_var "GIT_DIR" "$GIT_DIR"
+check_mandatory_env_var "IFLOW_ID" "$IFLOW_ID"
+check_mandatory_env_var "IFLOW_NAME" "$IFLOW_NAME"
+check_mandatory_env_var "PACKAGE_ID" "$PACKAGE_ID"
+check_mandatory_env_var "PACKAGE_NAME" "PACKAGE_NAME"
 
-while :; do
-  case $1 in
-  -h)
-    usage
-    exit
-    ;;
-  --logcfgfile=?*)
-    logcfgfile=${1#*=} # Delete everything up to "=" and assign the remainder.
-    ;;
-  --logcfgfile=) # Handle the case of an empty --logcfgfile=
-    die 'ERROR: "--logcfgfile" requires a non-empty option argument.'
-    ;;
-  --param_file=?*)
-    param_file=${1#*=} # Delete everything up to "=" and assign the remainder.
-    ;;
-  --param_file=) # Handle the case of an empty --param_file=
-    die 'ERROR: "--param_file" requires a non-empty option argument.'
-    ;;
-  --manifest_file=?*)
-    manifest_file=${1#*=} # Delete everything up to "=" and assign the remainder.
-    ;;
-  --manifest_file=) # Handle the case of an empty --manifest_file=
-    die 'ERROR: "--manifest_file" requires a non-empty option argument.'
-    ;;
-  --debug)
-    debug="X"
-    ;;
-  --classpath_base_dir=?*)
-    classpath_base_dir=${1#*=} # Delete everything up to "=" and assign the remainder.
-    ;;
-  --classpath_base_dir=) # Handle the case of an empty --classpath_base_dir=
-    die 'ERROR: "--classpath_base_dir" requires a non-empty option argument.'
-    ;;
-  --oauth_host=?*)
-    oauth_host=${1#*=} # Delete everything up to "=" and assign the remainder.
-    ;;
-  --oauth_host=) # Handle the case of an empty --oauth_host=
-    die 'ERROR: "--oauth_host" requires a non-empty option argument.'
-    ;;
-  --) # End of all options.
-    shift
-    break
-    ;;
-  *) # Default case: No more options, so break out of the loop.
-    break ;;
-  esac
-  shift
-done
+if [ -z "$WORK_DIR" ]; then
+  working_dir="/tmp"
+else
+  working_dir=$WORK_DIR
+fi
+git_src_dir=$GIT_DIR
 
-#Arguments
-#1 - Working directory
-#2 - CPI tenant management host
-#3 - CPI username
-#4 - CPI password
-#5 - IFlow ID
-#6 - IFlow Name
-#7 - Package ID
-#8 - Directory for Git source
-working_dir=$1
-tmn_host=$2
-cpi_user=$3
-cpi_password=$4
-iflow_id=$5
-iflow_name=$6
-package_id=$7
-package_name=$8
-git_src_dir=$9
-oauth_token_host=$oauth_host
+# ----------------------------------------------------------------
+# Use specific MANIFEST.MF and/or parameters.prop file (typically when moving to different environment)
+# ----------------------------------------------------------------
+if [ -n "$PARAM_FILE" ]; then
+  echo "[INFO] Using $PARAM_FILE as parameters.prop file"
+  cp "$PARAM_FILE" "$git_src_dir/src/main/resources/parameters.prop"
+fi
+if [ -n "$MANIFEST_FILE" ]; then
+  echo "[INFO] Using $MANIFEST_FILE as MANIFEST.MF file"
+  cp "$MANIFEST_FILE" "$git_src_dir/META-INF/MANIFEST.MF"
+fi
 
-if [ -z "$classpath_base_dir" ]; then
+# ----------------------------------------------------------------
+# Set classpath for Java execution
+# ----------------------------------------------------------------
+if [ -z "$CLASSPATH_DIR" ]; then
   source /usr/bin/set_classpath.sh
 else
-  echo "[INFO] Using $classpath_base_dir as classpath base directory "
+  echo "[INFO] Using $CLASSPATH_DIR as classpath base directory "
   echo "[INFO] Setting WORKING_CLASSPATH environment variable"
   #  FLASHPIPE_VERSION
-  export WORKING_CLASSPATH=$classpath_base_dir/repository/io/github/engswee/flashpipe/1.1.0/flashpipe-1.1.0.jar
-  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/codehaus/groovy/groovy-all/2.4.12/groovy-all-2.4.12.jar
-  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/apache/httpcomponents/core5/httpcore5/5.0.4/httpcore5-5.0.4.jar
-  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/apache/httpcomponents/client5/httpclient5/5.0.4/httpclient5-5.0.4.jar
-  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/commons-codec/commons-codec/1.15/commons-codec-1.15.jar
-  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar
-  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/apache/logging/log4j/log4j-slf4j-impl/2.14.1/log4j-slf4j-impl-2.14.1.jar
-  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/apache/logging/log4j/log4j-api/2.14.1/log4j-api-2.14.1.jar
-  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar
-  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$classpath_base_dir/repository/org/zeroturnaround/zt-zip/1.14/zt-zip-1.14.jar
+  export WORKING_CLASSPATH=$CLASSPATH_DIR/repository/io/github/engswee/flashpipe/2.0.0/flashpipe-2.0.0.jar
+  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/codehaus/groovy/groovy-all/2.4.12/groovy-all-2.4.12.jar
+  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/apache/httpcomponents/core5/httpcore5/5.0.4/httpcore5-5.0.4.jar
+  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/apache/httpcomponents/client5/httpclient5/5.0.4/httpclient5-5.0.4.jar
+  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/commons-codec/commons-codec/1.15/commons-codec-1.15.jar
+  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar
+  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/apache/logging/log4j/log4j-slf4j-impl/2.14.1/log4j-slf4j-impl-2.14.1.jar
+  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/apache/logging/log4j/log4j-api/2.14.1/log4j-api-2.14.1.jar
+  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar
+  export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/zeroturnaround/zt-zip/1.14/zt-zip-1.14.jar
 fi
-exec_java_command io.github.engswee.flashpipe.cpi.exec.QueryDesignTimeArtifact "$iflow_id" "$package_id" "$tmn_host" "$cpi_user" "$cpi_password" "$oauth_token_host"
+
+# ----------------------------------------------------------------
+# Query for existence of IFlow
+# ----------------------------------------------------------------
+exec_java_command io.github.engswee.flashpipe.cpi.exec.QueryDesignTimeArtifact
 check_iflow_status=$?
 
-# Use specific MANIFEST.MF and/or parameters.prop file (typically when moving to different environment)
-if [ -n "$param_file" ]; then
-  echo "[INFO] Using $param_file as parameters.prop file"
-  cp "$param_file" "$git_src_dir/src/main/resources/parameters.prop"
-fi
-if [ -n "$manifest_file" ]; then
-  echo "[INFO] Using $manifest_file as MANIFEST.MF file"
-  cp "$manifest_file" "$git_src_dir/META-INF/MANIFEST.MF"
-fi
-
+# ----------------------------------------------------------------
+# (A) IFlow already exists in tenant, so check if it needs to be updated
+# ----------------------------------------------------------------
 if [[ "$check_iflow_status" == "0" ]]; then
-  # (A)  IFlow already exists in tenant, so check if it needs to be updated
   echo "[INFO] IFlow will be updated (where necessary)"
 
   # 1 - Download IFlow from tenant
-  zip_file="$working_dir/$iflow_id.zip"
+  zip_file="$working_dir/$IFLOW_ID.zip"
   echo "[INFO] Download existing IFlow from tenant for comparison"
-  exec_java_command io.github.engswee.flashpipe.cpi.exec.DownloadDesignTimeArtifact "$iflow_id" active "$tmn_host" "$cpi_user" "$cpi_password" "$zip_file" "$oauth_token_host"
+  export OUTPUT_FILE=$zip_file
+  export IFLOW_VER=active
+  exec_java_command io.github.engswee.flashpipe.cpi.exec.DownloadDesignTimeArtifact
 
   # 2 - Diff contents from tenant against Git
   iflow_src_diff_found=
@@ -166,7 +153,7 @@ if [[ "$check_iflow_status" == "0" ]]; then
   rm -rf "$working_dir/download"
 
   echo "[INFO] Unzipping downloaded IFlow artifact"
-  echo "[INFO] Executing command: - /usr/bin/unzip -d download $zip_file"
+  echo "[INFO] Executing command: - /usr/bin/unzip -d $working_dir/download $zip_file"
   /usr/bin/unzip -d "$working_dir/download" "$zip_file"
 
   # Diff src/main/resources directory
@@ -186,18 +173,23 @@ if [[ "$check_iflow_status" == "0" ]]; then
     cp -r "$git_src_dir"/META-INF "$working_dir/upload"
     cp -r "$git_src_dir"/src/main/resources "$working_dir/upload/src/main"
     tenant_iflow_version=$(awk '/Bundle-Version/ {print $2}' "$working_dir/download/META-INF/MANIFEST.MF")
-    exec_java_command io.github.engswee.flashpipe.cpi.exec.UpdateDesignTimeArtifact "$iflow_name" "$iflow_id" "$package_id" "$working_dir/upload" "$tenant_iflow_version" "$tmn_host" "$cpi_user" "$cpi_password" "$oauth_token_host"
+    export IFLOW_DIR="$working_dir/upload"
+    export CURR_IFLOW_VER=$tenant_iflow_version
+    exec_java_command io.github.engswee.flashpipe.cpi.exec.UpdateDesignTimeArtifact
     echo '[INFO] IFlow updated successfully'
   fi
 
+# ----------------------------------------------------------------
+# (B) IFlow does not exist in tenant, so upload the version from Git
+# ----------------------------------------------------------------
 elif [[ "$check_iflow_status" == "99" ]]; then
-  #  (B) IFlow does not exist in tenant, so upload the version from Git
   echo "[INFO] IFlow will be uploaded to tenant"
   # Clean up previous uploads
   rm -rf "$working_dir/upload"
   mkdir "$working_dir/upload" "$working_dir/upload/src" "$working_dir/upload/src/main"
   cp -r "$git_src_dir"/META-INF "$working_dir/upload"
   cp -r "$git_src_dir"/src/main/resources "$working_dir/upload/src/main"
-  exec_java_command io.github.engswee.flashpipe.cpi.exec.UploadDesignTimeArtifact "$iflow_name" "$iflow_id" "$package_id" "$package_name" "$working_dir/upload" "$tmn_host" "$cpi_user" "$cpi_password" "$oauth_token_host"
+  export IFLOW_DIR="$working_dir/upload"
+  exec_java_command io.github.engswee.flashpipe.cpi.exec.UploadDesignTimeArtifact
   echo '[INFO] IFlow created successfully'
 fi

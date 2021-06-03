@@ -8,18 +8,14 @@ variables:
   - group: cpi-dev
 
 steps:
+# https://docs.microsoft.com/azure/devops/pipelines/tasks/build/maven
 - task: Maven@3
   inputs:
-    mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
     jdkVersionOption: '1.8'
-    jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'verify'
-    options: '-Dcpi.host.tmn=$(dev_host_tmn) -Dcpi.basic.userid=$(dev_user) -Dcpi.basic.password=$(dev_password) -Dcpi.host.oauth=$(dev_oauth_host) -Dcpi.oauth.clientid=$(dev_clientid) -Dcpi.oauth.clientsecret=$(dev_clientsecret)'
-# https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/build/docker?view=azure-devops
+    options: '-Dcpi.host.tmn=$(dev-host-tmn) -Dcpi.basic.userid=$(dev-user) -Dcpi.basic.password=$(dev-password) -Dcpi.host.oauth=$(dev-oauth-host) -Dcpi.oauth.clientid=$(dev-client-id) -Dcpi.oauth.clientsecret=$(dev-client-secret)'
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/build/docker
 - task: Docker@2
   inputs:
     containerRegistry: 'Docker Hub engswee'
