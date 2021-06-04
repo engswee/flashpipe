@@ -107,7 +107,7 @@ For more advanced configuration with multiple artifacts and multiple environment
 ![Project](images/azure-pipelines/05a_azure_project.png)
 
 ### 6. Create Variable Group
-Variables can be stored securely on Azure Pipelines using a [Variable Group](https://docs.microsoft.com/en-us/azure/devops/pipelines/scripts/cli/pipeline-variable-group-secret-nonsecret-variables?view=azure-devops). These can then be passed to the pipeline steps as environment variables. For _FlashPipe_, we will use these to securely store the details to access the Cloud Integration tenant.
+Variables can be stored securely on Azure Pipelines using a [Variable Group](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/variable-groups?view=azure-devops&tabs=yaml). These can then be passed to the pipeline steps as environment variables. For _FlashPipe_, we will use these to securely store the details to access the Cloud Integration tenant.
 
 Add a new Variable Group under `Pipelines > Library`.
 ![Library](images/azure-pipelines/06a_library.png)
