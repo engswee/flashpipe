@@ -1,5 +1,5 @@
 trigger:
-- oauth
+- main
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -19,8 +19,8 @@ steps:
 - task: Docker@2
   inputs:
     containerRegistry: 'Docker Hub engswee'
-    repository: 'engswee/cpi-cicd'
+    repository: 'engswee/flashpipe'
     command: 'buildAndPush'
     Dockerfile: 'src/main/docker/Dockerfile'
     buildContext: '.'
-    tags: 1.0.2  # FLASHPIPE_VERSION
+    tags: 2.0.0  # FLASHPIPE_VERSION
