@@ -51,22 +51,43 @@ jobs:
     container: flashpipe
     steps:
       # Upload/Update design time
-      - bash: /usr/bin/update_designtime_artifact.sh <working_dir> $DEV_HOST_TMN $DEV_CPI_USER $DEV_CPI_PW <artifact_id> <artifact_name> <package_id> <package_name> <git_src_dir>
+      - bash: /usr/bin/update_designtime_artifact.sh 
         env:
-          DEV_CPI_USER: $(dev_user)
-          DEV_CPI_PW: $(dev_password)
+          HOST_TMN: $(dev-host-tmn)
+          BASIC_USERID: $(dev-user) # When using Basic authentication
+          BASIC_PASSWORD: $(dev-password) # When using Basic authentication
+          HOST_OAUTH: $(dev-oauth-host) # When using OAuth authentication
+          OAUTH_CLIENTID: $(dev-client-id) # When using OAuth authentication
+          OAUTH_CLIENTSECRET: $(dev-client-secret) # When using OAuth authentication
+          IFLOW_ID: <iflow_id>
+          IFLOW_NAME: <iflow_name>
+          PACKAGE_ID: <package_id>
+          PACKAGE_NAME: <package_name>
+          GIT_DIR: <git_src_dir>
+          PARAM_FILE: <param_file> # Optional
+          MANIFEST_FILE: <manifest_file> # Optional
+          WORK_DIR: <working_directory> # Optional
       # Deploy runtime
-      - bash: /usr/bin/deploy_runtime_artifact.sh <artifact_id> $DEV_HOST_TMN $DEV_CPI_USER $DEV_CPI_PW
+      - bash: /usr/bin/deploy_runtime_artifact.sh
         env:
-          DEV_CPI_USER: $(dev_user)
-          DEV_CPI_PW: $(dev_password)
+          HOST_TMN: $(dev-host-tmn)
+          BASIC_USERID: $(dev-user) # When using Basic authentication
+          BASIC_PASSWORD: $(dev-password) # When using Basic authentication
+          HOST_OAUTH: $(dev-oauth-host) # When using OAuth authentication
+          OAUTH_CLIENTID: $(dev-client-id) # When using OAuth authentication
+          OAUTH_CLIENTSECRET: $(dev-client-secret) # When using OAuth authentication
+          IFLOW_ID: <iflow_id>
+          DELAY_LENGTH: <delay_in_seconds> # Optional
+          MAX_CHECK_LIMIT: <max_check_limit> # Optional
 ```
 Where:
 - `<branch_name>` - branch name of Git repository that will automatically trigger pipeline
-- `<variable_group_name>` - name of Azure Pipeline variable group that stores environment variables for access to Cloud Integration tenant - `$DEV_HOST_TMN, $(dev_user), $(dev_password)`. Further explanation below
+- `<variable_group_name>` - name of Azure Pipeline variable group that stores environment variables for access to Cloud Integration tenant - `$(dev-host-tmn), $(dev-user), $(dev-password)`. Further explanation in step 6
 - `<flashpipe_version>` - version of _FlashPipe_
 
-#### Example
+**Note**: Environment variables are mapped to the script's execution environment using the `env:` keyword.
+
+#### Example (using OAuth authentication)
 
 ```yaml
 trigger:
@@ -81,24 +102,34 @@ variables:
 resources:
   containers:
     - container: flashpipe
-      image: engswee/flashpipe:1.0.2
+      image: engswee/flashpipe:2.0.0
 
 jobs:
   - job: build
     container: flashpipe
     steps:
       # Upload/Update design time
-      - bash: /usr/bin/update_designtime_artifact.sh /tmp $DEV_HOST_TMN $DEV_CPI_USER $DEV_CPI_PW GroovyXMLTransformation "Groovy XML Transformation" FlashPipeDemo "FlashPipe Demo" "$(Build.SourcesDirectory)/FlashPipe Demo/Groovy XML Transformation" --debug
+      - bash: /usr/bin/update_designtime_artifact.sh
         displayName: 'Update/Upload Groovy XML Transformation to design time'
         env:
-          DEV_CPI_USER: $(dev_user)
-          DEV_CPI_PW: $(dev_password)
+          HOST_TMN: $(dev-host-tmn)
+          HOST_OAUTH: $(dev-oauth-host)
+          OAUTH_CLIENTID: $(dev-client-id)
+          OAUTH_CLIENTSECRET: $(dev-client-secret)
+          IFLOW_ID: GroovyXMLTransformation
+          IFLOW_NAME: "Groovy XML Transformation"
+          PACKAGE_ID: FlashPipeDemo
+          PACKAGE_NAME: "FlashPipe Demo"
+          GIT_DIR: "$(Build.SourcesDirectory)/FlashPipe Demo/Groovy XML Transformation"
       # Deploy runtime
-      - bash: /usr/bin/deploy_runtime_artifact.sh GroovyXMLTransformation $DEV_HOST_TMN $DEV_CPI_USER $DEV_CPI_PW
+      - bash: /usr/bin/deploy_runtime_artifact.sh
         displayName: 'Deploy Groovy XML Transformation to runtime'
         env:
-          DEV_CPI_USER: $(dev_user)
-          DEV_CPI_PW: $(dev_password)
+          HOST_TMN: $(dev-host-tmn)
+          HOST_OAUTH: $(dev-oauth-host)
+          OAUTH_CLIENTID: $(dev-client-id)
+          OAUTH_CLIENTSECRET: $(dev-client-secret)
+          IFLOW_ID: GroovyXMLTransformation
 ```
 
 For more advanced configuration with multiple artifacts and multiple environments, an example can be found [here](https://github.com/engswee/flashpipe-demo/blob/azure-pipelines/azure-pipelines.yml).
@@ -109,15 +140,27 @@ For more advanced configuration with multiple artifacts and multiple environment
 ### 6. Create Variable Group
 Variables can be stored securely on Azure Pipelines using a [Variable Group](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/variable-groups?view=azure-devops&tabs=yaml). These can then be passed to the pipeline steps as environment variables. For _FlashPipe_, we will use these to securely store the details to access the Cloud Integration tenant.
 
-Add a new Variable Group under `Pipelines > Library`.
+Create a new Variable Group under `Pipelines > Library`. Use the same name as defined in the `variables` section of the YAML, e.g. `cpi-dev`
 ![Library](images/azure-pipelines/06a_library.png)
 
+**Basic Authentication**
+
 Add the following three variables in the group.
-1. `dev_host_tmn` - base URL for tenant management node of Cloud Integration (excluding the https:// prefix)
-2. `dev_user` - user ID for Cloud Integration
-3. `dev_password` - password for above user ID
-![Variable Group](images/azure-pipelines/06b_variable_group.png)
-**Note**: For the password (and optionally the user ID), it can be stored securely as a secret instead of plain text by clicking the padlock button on its right.
+1. `dev-host-tmn` - base URL for tenant management node of Cloud Integration (excluding the https:// prefix)
+2. `dev-user` - user ID for Cloud Integration
+3. `dev-password` - password for above user ID
+![Variable Group](images/azure-pipelines/06b_variable_group_basic.png)
+
+**OAuth Authentication**
+
+Add the following four variables in the group.
+1. `dev-host-tmn` - base URL for tenant management node of Cloud Integration (excluding the https:// prefix)
+2. `dev-oauth-host` - host name for OAuth authentication server
+3. `dev-client-id` - OAuth client ID
+4. `dev-client-secret` - OAuth client secret
+   ![Variable Group](images/azure-pipelines/06c_variable_group_oauth.png)
+
+**Note**: For the password and client secret (and optionally the user ID), it can be stored securely as a secret instead of plain text by clicking the padlock button on its right.
 
 ### 7. Create new pipeline based on Git repository
 Next, move on to create a new pipeline in the Azure DevOps project.
