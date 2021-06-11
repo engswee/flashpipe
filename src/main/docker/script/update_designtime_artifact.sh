@@ -98,11 +98,11 @@ git_src_dir=$GIT_DIR
 # ----------------------------------------------------------------
 if [ -n "$PARAM_FILE" ]; then
   echo "[INFO] Using $PARAM_FILE as parameters.prop file"
-  cp "$PARAM_FILE" "$git_src_dir/src/main/resources/parameters.prop"
+  cp "$PARAM_FILE" "$git_src_dir/src/main/resources/parameters.prop" || exit 1
 fi
 if [ -n "$MANIFEST_FILE" ]; then
   echo "[INFO] Using $MANIFEST_FILE as MANIFEST.MF file"
-  cp "$MANIFEST_FILE" "$git_src_dir/META-INF/MANIFEST.MF"
+  cp "$MANIFEST_FILE" "$git_src_dir/META-INF/MANIFEST.MF" || exit 1
 fi
 
 # ----------------------------------------------------------------
@@ -148,7 +148,7 @@ if [[ "$check_iflow_status" == "0" ]]; then
   # 2 - Diff contents from tenant against Git
   iflow_src_diff_found=
 
-  cd "$working_dir" || exit
+  cd "$working_dir" || exit 1
   echo "[INFO] Working in directory $working_dir"
   rm -rf "$working_dir/download"
 
