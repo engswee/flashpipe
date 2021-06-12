@@ -7,10 +7,12 @@ _FlashPipe_ relies heavily on access to Cloud Integration's public APIs. As such
 Tasks | Role (Neo) | Role-Templates (Cloud Foundry)
 ------------ | ------------- | -------------
 Create/edit design time artifacts | `WebToolingWorkspace.Write`, `WebToolingWorkspace.Read` | `WorkspacePackagesEdit`
+Configure artifacts | `WebTooling.IntegrationFlowConfigure` | `WorkspacePackagesConfigure`
 Deploy artifacts to runtime | `NodeManager.deploycontent`, `GenerationAndBuild.generationandbuildcontent` | `WorkspaceArtifactsDeploy`
 Monitor runtime artifacts | `IntegrationOperationServer.read`, `NodeManager.read` | `MonitoringDataRead`
 
 ## Creating an OAuth Client on Cloud Foundry
+For Cloud Foundry, the default Process Integration Runtime service instance (with Plan = `api`) created using the guided Booster do not have sufficient permissions required for _FlashPipe_ to operate correctly. Therefore it is necessary to create an additional one following the steps listed below.
 
 ### 1. Logon to SAP BTP Cockpit
 Access the relevant Cloud Foundry space on SAP BTP Cockpit.
