@@ -12,8 +12,6 @@ class RuntimeArtifactOAuthIT extends Specification {
     HTTPExecuter httpExecuter
     @Shared
     RuntimeArtifact runtimeArtifact
-    @Shared
-    CSRFToken csrfToken
 
     def setupSpec() {
         def host = System.getProperty('cpi.host.tmn')

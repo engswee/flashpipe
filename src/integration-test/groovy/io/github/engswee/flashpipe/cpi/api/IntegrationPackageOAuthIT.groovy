@@ -13,8 +13,6 @@ class IntegrationPackageOAuthIT extends Specification {
     HTTPExecuter httpExecuter
     @Shared
     IntegrationPackage integrationPackage
-    @Shared
-    CSRFToken csrfToken
 
     def setupSpec() {
         def host = System.getProperty('cpi.host.tmn')
@@ -29,7 +27,7 @@ class IntegrationPackageOAuthIT extends Specification {
 
     def 'Create'() {
         when:
-        def responseBody = integrationPackage.create('FlashPipeIntegrationTestCreate', 'FlashPipe Integration Test Create', csrfToken)
+        def responseBody = integrationPackage.create('FlashPipeIntegrationTestCreate', 'FlashPipe Integration Test Create', null)
 
         then:
         def root = new JsonSlurper().parseText(responseBody)
@@ -51,7 +49,7 @@ class IntegrationPackageOAuthIT extends Specification {
 
     def 'Delete'() {
         when:
-        integrationPackage.delete('FlashPipeIntegrationTestCreate', csrfToken)
+        integrationPackage.delete('FlashPipeIntegrationTestCreate', null)
 
         then:
         noExceptionThrown()
