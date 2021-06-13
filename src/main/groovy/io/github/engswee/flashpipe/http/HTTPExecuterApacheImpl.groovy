@@ -98,6 +98,12 @@ class HTTPExecuterApacheImpl extends HTTPExecuter {
             default:
                 builder = ClassicRequestBuilder.create(method)
         }
+        if (queryParameters) {
+            def paramString = queryParameters.collect {"${it.key}=${it.value}"}.join('&')
+            logger.info("Executing ${method} ${scheme}://${this.host}${path}?${paramString}")
+        }
+        else
+            logger.info("Executing ${method} ${scheme}://${this.host}${path}")
         builder = builder.setUri(createURI(path, queryParameters))
         if (headers) {
             headers.each { key, value ->
