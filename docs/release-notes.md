@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2.0.1 (Released 14 Jun 2021)
+
+---
+
+- Corrected handling of configuration parameters update via Configurations API
+
 ## 2.0.0 (Released 10 June 2021)
 
 ---
