@@ -29,14 +29,27 @@ class RuntimeArtifact {
         }
     }
 
+    void undeploy(String iFlowId, CSRFToken csrfToken) {
+        // 1 - Get CSRF token
+        String token = csrfToken ? csrfToken.get() : ''
+
+        logger.info('Undeploy runtime artifact')
+        this.httpExecuter.executeRequest('DELETE', "/api/v1/IntegrationRuntimeArtifacts('$iFlowId')", ['x-csrf-token': token], null)
+        String code = this.httpExecuter.getResponseCode()
+        if (code == '404')
+            logger.info('Undeployment skipped as no existing runtime artifact deployed')
+        else if (!code.startsWith('2'))
+            this.httpExecuter.logError('Undeploy runtime artifact')
+    }
+
     private Map getDetails(String iFlowId, boolean skipNotFoundException) {
         // Get deployed IFlow's details
         logger.info('Get runtime artifact details')
         this.httpExecuter.executeRequest("/api/v1/IntegrationRuntimeArtifacts('${iFlowId}')", ['Accept': 'application/json'])
-        def code = this.httpExecuter.getResponseCode()
-        if (code == 200) {
+        String code = this.httpExecuter.getResponseCode()
+        if (code.startsWith('2')) {
             return new JsonSlurper().parse(this.httpExecuter.getResponseBody())
-        } else if (skipNotFoundException && code == 404) {
+        } else if (skipNotFoundException && code == '404') {
             return [:]
         } else
             this.httpExecuter.logError('Get runtime artifact')
@@ -46,8 +59,8 @@ class RuntimeArtifact {
         // Get deployed IFlow error information
         logger.info('Get runtime artifact error information')
         this.httpExecuter.executeRequest("/api/v1/IntegrationRuntimeArtifacts('${iFlowId}')/ErrorInformation/\$value", ['Accept': 'application/json'])
-        def code = this.httpExecuter.getResponseCode()
-        if (code == 200) {
+        String code = this.httpExecuter.getResponseCode()
+        if (code.startsWith('2')) {
             def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
             return root.parameter
         } else
