@@ -32,24 +32,6 @@ function check_mandatory_env_var() {
   fi
 }
 
-function diff_directories() {
-  local directory=$1
-  local tenant_dir=$2
-  local git_dir=$3
-  local diff_found
-  echo "[INFO] Checking for changes in $directory directory"
-  echo "[INFO] Executing command: - diff --strip-trailing-cr -qr $tenant_dir/download/$directory/ $git_dir/$directory/"
-  diffoutput="$(diff --strip-trailing-cr -qr "$tenant_dir/download/$directory/" "$git_dir/$directory/")"
-  if [ -z "$diffoutput" ]; then
-    echo "[INFO] No changes found in $directory directory"
-  else
-    echo "[INFO] Changes found in $directory directory"
-    diff --strip-trailing-cr -r "$tenant_dir/download/$directory/" "$git_dir/$directory/"
-    diff_found=1
-  fi
-  return $diff_found
-}
-
 function exec_java_command() {
   local return_code
   if [ -z "$LOG4J_FILE" ]; then
@@ -114,7 +96,7 @@ else
   echo "[INFO] Using $CLASSPATH_DIR as classpath base directory "
   echo "[INFO] Setting WORKING_CLASSPATH environment variable"
   #  FLASHPIPE_VERSION
-  export WORKING_CLASSPATH=$CLASSPATH_DIR/repository/io/github/engswee/flashpipe/2.0.0/flashpipe-2.0.0.jar
+  export WORKING_CLASSPATH=$CLASSPATH_DIR/repository/io/github/engswee/flashpipe/2.0.1/flashpipe-2.0.1.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/codehaus/groovy/groovy-all/2.4.12/groovy-all-2.4.12.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/apache/httpcomponents/core5/httpcore5/5.0.4/httpcore5-5.0.4.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/apache/httpcomponents/client5/httpclient5/5.0.4/httpclient5-5.0.4.jar
@@ -136,7 +118,7 @@ check_iflow_status=$?
 # (A) IFlow already exists in tenant, so check if it needs to be updated
 # ----------------------------------------------------------------
 if [[ "$check_iflow_status" == "0" ]]; then
-  echo "[INFO] IFlow will be updated (where necessary)"
+  echo "[INFO] Checking if IFlow design needs to be updated"
 
   # 1 - Download IFlow from tenant
   zip_file="$working_dir/$IFLOW_ID.zip"
@@ -146,8 +128,6 @@ if [[ "$check_iflow_status" == "0" ]]; then
   exec_java_command io.github.engswee.flashpipe.cpi.exec.DownloadDesignTimeArtifact
 
   # 2 - Diff contents from tenant against Git
-  iflow_src_diff_found=
-
   cd "$working_dir" || exit 1
   echo "[INFO] Working in directory $working_dir"
   rm -rf "$working_dir/download"
@@ -156,39 +136,52 @@ if [[ "$check_iflow_status" == "0" ]]; then
   echo "[INFO] Executing command: - /usr/bin/unzip -d $working_dir/download $zip_file"
   /usr/bin/unzip -d "$working_dir/download" "$zip_file"
 
-  # Diff src/main/resources directory
-  echo "[INFO] Removing commented lines from src/main/resources/parameters.prop files before comparison"
-  sed -i '/^#/d' "$working_dir/download/src/main/resources/parameters.prop"
-  sed -i '/^#/d' "$git_src_dir/src/main/resources/parameters.prop"
-
-  diff_directories src/main/resources "$working_dir" "$git_src_dir"
-  iflow_src_diff_found=$?
+  # Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
+  # Therefore diff of parameters.prop may come up with false differences
+  echo "[INFO] Checking for changes in src/main/resources directory"
+  echo "[INFO] Executing command: - diff --strip-trailing-cr -qr $working_dir/download/src/main/resources/ $git_src_dir/src/main/resources/"
+  diffoutput="$(diff --strip-trailing-cr -qr -x 'parameters.prop' "$working_dir/download/src/main/resources/" "$git_src_dir/src/main/resources/")"
+  if [ -z "$diffoutput" ]; then
+    echo "[INFO] No changes found in src/main/resources directory"
+  else
+    echo "[INFO] Changes found in src/main/resources directory"
+    diff --strip-trailing-cr -r -x 'parameters.prop' "$working_dir/download/src/main/resources/" "$git_src_dir/src/main/resources/"
+    iflow_src_diff_found=1
+  fi
 
   # 3 - If there are differences, then update the IFlow
   if [[ "$iflow_src_diff_found" == "1" ]]; then
-    echo '[INFO] IFlow will be updated in CPI tenant'
+    echo '[INFO] IFlow design will be updated in CPI tenant'
     # Clean up previous uploads
     rm -rf "$working_dir/upload"
     mkdir "$working_dir/upload" "$working_dir/upload/src" "$working_dir/upload/src/main"
-    cp -r "$git_src_dir"/META-INF "$working_dir/upload"
-    cp -r "$git_src_dir"/src/main/resources "$working_dir/upload/src/main"
+    cp -r "$git_src_dir/META-INF" "$working_dir/upload"
+    cp -r "$git_src_dir/src/main/resources" "$working_dir/upload/src/main"
     tenant_iflow_version=$(awk '/Bundle-Version/ {print $2}' "$working_dir/download/META-INF/MANIFEST.MF")
     export IFLOW_DIR="$working_dir/upload"
     export CURR_IFLOW_VER=$tenant_iflow_version
     exec_java_command io.github.engswee.flashpipe.cpi.exec.UpdateDesignTimeArtifact
-    echo '[INFO] IFlow updated successfully'
+    echo '[INFO] IFlow design updated successfully'
+  else
+    echo '[INFO] No changes detected. IFlow design does not need to be updated'
   fi
+
+  # 4 - Update the configuration of the IFlow based on parameters.prop file
+  echo '[INFO] Updating configured parameter(s) of IFlow where necessary'
+  if [ -z "$PARAM_FILE" ]; then
+    export PARAM_FILE="$git_src_dir/src/main/resources/parameters.prop"
+  fi
+  exec_java_command io.github.engswee.flashpipe.cpi.exec.UpdateConfiguration
 
 # ----------------------------------------------------------------
 # (B) IFlow does not exist in tenant, so upload the version from Git
 # ----------------------------------------------------------------
 elif [[ "$check_iflow_status" == "99" ]]; then
-  echo "[INFO] IFlow will be uploaded to tenant"
-  # Clean up previous uploads
+  echo "[INFO] IFlow will be uploaded to tenant" # Clean up previous uploads
   rm -rf "$working_dir/upload"
   mkdir "$working_dir/upload" "$working_dir/upload/src" "$working_dir/upload/src/main"
-  cp -r "$git_src_dir"/META-INF "$working_dir/upload"
-  cp -r "$git_src_dir"/src/main/resources "$working_dir/upload/src/main"
+  cp -r "$git_src_dir/META-INF" "$working_dir/upload"
+  cp -r "$git_src_dir/src/main/resources" "$working_dir/upload/src/main"
   export IFLOW_DIR="$working_dir/upload"
   exec_java_command io.github.engswee.flashpipe.cpi.exec.UploadDesignTimeArtifact
   echo '[INFO] IFlow created successfully'
