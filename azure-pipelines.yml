@@ -16,6 +16,15 @@ steps:
     goals: 'verify'
     options: '-Dcpi.host.tmn=$(dev-host-tmn) -Dcpi.basic.userid=$(dev-user) -Dcpi.basic.password=$(dev-password) -Dcpi.host.oauth=$(dev-oauth-host) -Dcpi.oauth.clientid=$(dev-client-id) -Dcpi.oauth.clientsecret=$(dev-client-secret)'
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/build/docker
+  # Lite version
+- task: Docker@2
+  inputs:
+    containerRegistry: 'Docker Hub engswee'
+    repository: 'engswee/flashpipe'
+    command: 'buildAndPush'
+    Dockerfile: 'src/main/docker/lite.Dockerfile'
+    buildContext: '.'
+    tags: 2.0.1-lite  # FLASHPIPE_VERSION
 # Full version with Maven
 - task: Docker@2
   inputs:
@@ -24,13 +33,4 @@ steps:
     command: 'buildAndPush'
     Dockerfile: 'src/main/docker/Dockerfile'
     buildContext: '.'
-    tags: 2.0.0  # FLASHPIPE_VERSION
-# Lite version
-- task: Docker@2
-  inputs:
-    containerRegistry: 'Docker Hub engswee'
-    repository: 'engswee/flashpipe'
-    command: 'buildAndPush'
-    Dockerfile: 'src/main/docker/lite.Dockerfile'
-    buildContext: '.'
-    tags: 2.0.0-lite  # FLASHPIPE_VERSION
+    tags: 2.0.1  # FLASHPIPE_VERSION
