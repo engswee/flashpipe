@@ -42,6 +42,10 @@ class UpdateConfiguration extends APIExecuter {
                 String tenantValue = it.ParameterValue
                 String fileValue = fileParameters.getProperty(parameterKey)
                 if (fileValue != null && fileValue != tenantValue) {
+                    if (parameterKey.contains('/')) {
+                        logger.error("Parameter name with / character is not possible to be updated via API. Please rename parameter ${parameterKey}")
+                        System.exit(1)
+                    }
                     logger.info("Parameter ${parameterKey} to be updated from ${tenantValue} to ${fileValue}")
                     configuration.update(iFlowId, 'active', parameterKey, fileValue, csrfToken)
                     atLeastOneUpdated = true
