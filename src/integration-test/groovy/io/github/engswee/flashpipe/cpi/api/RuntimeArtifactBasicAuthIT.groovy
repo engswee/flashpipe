@@ -23,6 +23,25 @@ class RuntimeArtifactBasicAuthIT extends Specification {
         csrfToken = new CSRFToken(httpExecuter)
     }
 
+    def 'Undeploy'() {
+        when:
+        runtimeArtifact.undeploy('FlashPipe_Update', csrfToken)
+
+        then:
+        noExceptionThrown()
+    }
+
+    def 'Deploy'() {
+        given:
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
+
+        when:
+        designTimeArtifact.deploy('FlashPipe_Update', csrfToken)
+
+        then:
+        noExceptionThrown()
+    }
+
     def 'Query'() {
         when:
         runtimeArtifact.getStatus('FlashPipe_Update')

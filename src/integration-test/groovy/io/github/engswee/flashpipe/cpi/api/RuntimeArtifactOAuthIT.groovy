@@ -24,6 +24,25 @@ class RuntimeArtifactOAuthIT extends Specification {
         runtimeArtifact = new RuntimeArtifact(httpExecuter)
     }
 
+    def 'Undeploy'() {
+        when:
+        runtimeArtifact.undeploy('FlashPipe_Update', null)
+
+        then:
+        noExceptionThrown()
+    }
+
+    def 'Deploy'() {
+        given:
+        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
+
+        when:
+        designTimeArtifact.deploy('FlashPipe_Update', null)
+
+        then:
+        noExceptionThrown()
+    }
+
     def 'Query'() {
         when:
         runtimeArtifact.getStatus('FlashPipe_Update')
