@@ -37,6 +37,7 @@ For details on usage of the Unix scripts in pipeline steps, visit the [Unix scri
 ## Setup examples
 Following are examples of setting up _FlashPipe_ in different CI/CD platforms.
 - [Azure Pipelines](azure-pipelines.md)
+- [GitHub Actions](github-actions.md)
 
 ## Reference
 The following repository on GitHub provides sample usage of _FlashPipe_.

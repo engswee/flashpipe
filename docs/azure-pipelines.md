@@ -3,14 +3,14 @@ The page describes the steps to set up _FlashPipe_ on [Azure Pipelines](https://
 
 ### 1. Download and extract content of Integration Flow
 Download the content of the Integration Flow from the Cloud Integration tenant.
-![Download](images/azure-pipelines/01a_download_iflow.png)
+![Download](images/setup/01a_download_iflow.png)
 
 Extract the content of the downloaded ZIP file
-![Content](images/azure-pipelines/01b_iflow_contents.png)
+![Content](images/setup/01b_iflow_contents.png)
 
 ### 2. Add content to Git repository
-Add the contents to a new or existing Git repository. 
-![Git](images/azure-pipelines/02a_add_to_git.png)
+Add the contents to a new or existing Git repository.
+![Git](images/setup/02a_add_to_git.png)
 
 ### 3. Add Maven POM for unit testing [Optional]
 If you intend to execute unit testing using Maven, add a Maven POM file (`pom.xml`) to the Git repository with the appropriate content.
@@ -51,7 +51,7 @@ jobs:
     container: flashpipe
     steps:
       # Upload/Update design time
-      - bash: /usr/bin/update_designtime_artifact.sh 
+      - bash: /usr/bin/update_designtime_artifact.sh
         env:
           HOST_TMN: $(dev-host-tmn)
           BASIC_USERID: $(dev-user) # When using Basic authentication
@@ -135,13 +135,13 @@ jobs:
 For more advanced configuration with multiple artifacts and multiple environments, an example can be found [here](https://github.com/engswee/flashpipe-demo/blob/azure-pipelines/azure-pipelines.yml).
 
 ### 5. Create new project in Azure DevOps
-![Project](images/azure-pipelines/05a_azure_project.png)
+![Project](images/setup/azure-pipelines/05a_azure_project.png)
 
 ### 6. Create Variable Group
 Variables can be stored securely on Azure Pipelines using a [Variable Group](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/variable-groups?view=azure-devops&tabs=yaml). These can then be passed to the pipeline steps as environment variables. For _FlashPipe_, we will use these to securely store the details to access the Cloud Integration tenant.
 
 Create a new Variable Group under `Pipelines > Library`. Use the same name as defined in the `variables` section of the YAML, e.g. `cpi-dev`
-![Library](images/azure-pipelines/06a_library.png)
+![Library](images/setup/azure-pipelines/06a_library.png)
 
 **Basic Authentication**
 
@@ -149,7 +149,7 @@ Add the following three variables in the group.
 1. `dev-host-tmn` - base URL for tenant management node of Cloud Integration (excluding the https:// prefix)
 2. `dev-user` - user ID for Cloud Integration
 3. `dev-password` - password for above user ID
-![Variable Group](images/azure-pipelines/06b_variable_group_basic.png)
+   ![Variable Group](images/setup/azure-pipelines/06b_variable_group_basic.png)
 
 **OAuth Authentication**
 
@@ -158,19 +158,19 @@ Add the following four variables in the group.
 2. `dev-oauth-host` - host name for OAuth authentication server
 3. `dev-client-id` - OAuth client ID
 4. `dev-client-secret` - OAuth client secret
-   ![Variable Group](images/azure-pipelines/06c_variable_group_oauth.png)
+   ![Variable Group](images/setup/azure-pipelines/06c_variable_group_oauth.png)
 
 **Note**: For the password and client secret (and optionally the user ID), it can be stored securely as a secret instead of plain text by clicking the padlock button on its right.
 
 ### 7. Create new pipeline based on Git repository
 Next, move on to create a new pipeline in the Azure DevOps project.
-![Pipeline](images/azure-pipelines/07a_pipeline.png)
+![Pipeline](images/setup/azure-pipelines/07a_pipeline.png)
 
 Select the Git repository to be used in the pipeline.
-![Select Repo](images/azure-pipelines/07b_select_repo.png)
+![Select Repo](images/setup/azure-pipelines/07b_select_repo.png)
 
 Since the pipeline YAML file is already created in the repository, it will be loaded. Review it and then select `Run` to execute the pipeline.
-![Review Run](images/azure-pipelines/07c_review_run.png)
+![Review Run](images/setup/azure-pipelines/07c_review_run.png)
 
 ### 8. Check pipeline run
 Once the run is triggered, you can monitor its execution and job logs.
@@ -178,4 +178,4 @@ Once the run is triggered, you can monitor its execution and job logs.
 **Note**: On the first run of the pipeline, you may be asked to approve access to the Variable Group from the pipeline.
 
 Upon completion of the run, you can review the logs, and also check the artifact (designtime and runtime) in the Cloud Integration tenant.
-![Monitor](images/azure-pipelines/08a_job_run.png)
+![Monitor](images/setup/azure-pipelines/08a_job_run.png)
