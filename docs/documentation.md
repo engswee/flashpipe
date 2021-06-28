@@ -18,10 +18,10 @@ Technically, it should be possible to use _FlashPipe_ on any CI/CD platform that
 
 ## Docker image tags
 _FlashPipe_'s Docker images comes in two flavours. The difference between the full and lite tags for each version release is the inclusion of Maven capabilities in the image.
-- **Full** (e.g. tag `2.0.1`)
+- **Full** (e.g. tag `2.1.0`)
   - The full image includes Maven and selected local repositories of third-party libraries. This can be used for Maven-based testing and the cached libraries improves the execution time.
 
-- **Lite** (e.g. tag `2.0.1-lite`)
+- **Lite** (e.g. tag `2.1.0-lite`)
   - The lite image only contains the required third-party libraries (without the full-blown Maven) for execution of the Unix scripts. The smaller size reduces the time required to pull the image from Docker and is recommended when Maven is not used.
 
 ## Authentication
