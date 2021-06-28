@@ -98,11 +98,12 @@ class DownloadIntegrationPackageContent extends APIExecuter {
                     removeCommentsFromFile(tenantParamFile)
                     removeCommentsFromFile(gitParamFile)
                 }
-
                 // Execute shell command diff to compare directory contents
-                String command = "diff --strip-trailing-cr -qr ${workDir}/from_tenant/${directoryName} ${workDir}/from_git/${directoryName}"
+                String command = "diff --strip-trailing-cr -qr -x '.DS_Store' ${workDir}/from_tenant/${directoryName} ${workDir}/from_git/${directoryName}"
                 println "[INFO] Executing shell command: ${command}"
-                Process process = command.execute()
+                ProcessBuilder processBuilder = new ProcessBuilder()
+                processBuilder.command('bash', '-c', command)
+                Process process = processBuilder.start()
                 process.waitFor()
                 switch (process.exitValue()) {
                     case 0:
