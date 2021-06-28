@@ -7,7 +7,7 @@ FROM bitnami/java:1.8.292-prod-debian-10-r23
 # ----------------------------------------
 # 1 - Install unzip functionality
 # ----------------------------------------
-RUN install_packages unzip
+RUN install_packages git unzip
 
 # ----------------------------------------
 # 2 - Copy third-party JAR file used for accessing CPI APIs
@@ -52,7 +52,7 @@ RUN mkdir -p       ${MAVEN_REPO_DIR}/org/zeroturnaround/zt-zip/${ZT_ZIP_VER} \
 # ----------------------------------------
 # 3 - Copy FlashPipe JAR file used for accessing CPI APIs
 # ----------------------------------------
-ARG FLASHPIPE_VERSION=2.0.1
+ARG FLASHPIPE_VERSION=2.1.0
 RUN mkdir -p ${MAVEN_REPO_DIR}/io/github/engswee/flashpipe/${FLASHPIPE_VERSION}
 COPY target/flashpipe-${FLASHPIPE_VERSION}.jar ${MAVEN_REPO_DIR}/io/github/engswee/flashpipe/${FLASHPIPE_VERSION}/flashpipe-${FLASHPIPE_VERSION}.jar
 

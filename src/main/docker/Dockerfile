@@ -7,7 +7,7 @@ FROM bitnami/java:1.8.292-prod-debian-10-r23
 # ----------------------------------------
 # 1 - Install zip functionality
 # ----------------------------------------
-RUN install_packages unzip
+RUN install_packages git unzip
 
 # ----------------------------------------
 # 2 - Install Maven
@@ -41,7 +41,7 @@ RUN mvn -B -f /tmp/pom.xml -s /usr/share/maven/ref/settings-docker.xml dependenc
 # 4 - Copy JAR file used for accessing CPI APIs
 # ----------------------------------------
 # <FLASHPIPE_VERSION>
-ARG FLASHPIPE_VERSION=2.0.1
+ARG FLASHPIPE_VERSION=2.1.0
 COPY target/flashpipe-${FLASHPIPE_VERSION}.jar /tmp/flashpipe-${FLASHPIPE_VERSION}.jar
 RUN mvn -s /usr/share/maven/ref/settings-docker.xml install:install-file -DgroupId=io.github.engswee -DartifactId=flashpipe -Dversion=${FLASHPIPE_VERSION} -Dpackaging=jar -Dfile=/tmp/flashpipe-${FLASHPIPE_VERSION}.jar
 
