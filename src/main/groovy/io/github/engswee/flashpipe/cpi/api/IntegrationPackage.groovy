@@ -35,6 +35,20 @@ class IntegrationPackage {
             this.httpExecuter.logError('Get artifacts of IntegrationPackages')
     }
 
+    List getIFlowsWithDraftState(String packageId) {
+        // Get artifacts of package
+        logger.debug("Get designtime artifacts in package ${packageId}")
+        this.httpExecuter.executeRequest("/api/v1/IntegrationPackages('${packageId}')/IntegrationDesigntimeArtifacts", ['Accept': 'application/json'])
+        def code = this.httpExecuter.getResponseCode()
+        if (code == 200) {
+            def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
+            return root.d.results.collect {
+                [id: it.Id, name: it.Name, isDraft: (it.Version == 'Active')]
+            }
+        } else
+            this.httpExecuter.logError('Get designtime artifacts of IntegrationPackages')
+    }
+
     boolean exists(String packageId) {
         // Check existence of package
         logger.info("Checking existence of package ${packageId}")

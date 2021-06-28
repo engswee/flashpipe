@@ -54,11 +54,24 @@ class IntegrationPackageBasicAuthIT extends Specification {
         noExceptionThrown()
     }
 
-    def 'Get Designtime Artifacts'() {
+    def 'Check Designtime Artifact in draft'() {
         when:
         def draftVersion = integrationPackage.iFlowInDraftVersion('FlashPipeIntegrationTest', 'FlashPipe_Update')
 
         then:
         draftVersion == false
+    }
+
+    def 'Get Designtime Artifacts'() {
+        when:
+        List flows = integrationPackage.getIFlowsWithDraftState('FlashPipeIntegrationTest')
+
+        then:
+        verifyAll {
+            flows.size() == 1
+            flows[0].id == 'FlashPipe_Update'
+            flows[0].name == 'FlashPipe Update'
+            flows[0].isDraft == false
+        }
     }
 }
