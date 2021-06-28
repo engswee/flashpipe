@@ -45,17 +45,18 @@ class DeployDesignTimeArtifact extends APIExecuter {
                     deploymentComplete = true
                     if (status != 'STARTED') {
                         def errorMessage = runtimeArtifact.getErrorInfo(iFlowId)
-                        println "[ERROR] IFlow deployment unsuccessful, ended with status ${status}"
-                        println "[ERROR] Error message = ${errorMessage}"
+                        println "[ERROR] 🛑 IFlow deployment unsuccessful, ended with status ${status}"
+                        println "[ERROR] 🛑 Error message = ${errorMessage}"
                         System.exit(1)
                     }
                 }
                 checkCounter++
                 if (checkCounter == maxCheckLimit && status != 'STARTED') {
-                    println "[ERROR] IFlow status remained in ${status} after ${maxCheckLimit} checks"
+                    println "[ERROR] 🛑 IFlow status remained in ${status} after ${maxCheckLimit} checks"
                     System.exit(1)
                 }
             }
+            println "[INFO] 🏆 IFlow deployment completed successfully"
         }
     }
 }

@@ -100,10 +100,10 @@ class HTTPExecuterApacheImpl extends HTTPExecuter {
         }
         if (queryParameters) {
             def paramString = queryParameters.collect {"${it.key}=${it.value}"}.join('&')
-            logger.info("Executing ${method} ${scheme}://${this.host}${path}?${paramString}")
+            logger.debug("Executing ${method} ${scheme}://${this.host}${path}?${paramString}")
         }
         else
-            logger.info("Executing ${method} ${scheme}://${this.host}${path}")
+            logger.debug("Executing ${method} ${scheme}://${this.host}${path}")
         builder = builder.setUri(createURI(path, queryParameters))
         if (headers) {
             headers.each { key, value ->
@@ -152,7 +152,7 @@ class HTTPExecuterApacheImpl extends HTTPExecuter {
 
     @Override
     int getResponseCode() {
-        logger.info("HTTP Response code = ${this.responseCode}")
+        logger.debug("HTTP Response code = ${this.responseCode}")
         return this.responseCode
     }
 

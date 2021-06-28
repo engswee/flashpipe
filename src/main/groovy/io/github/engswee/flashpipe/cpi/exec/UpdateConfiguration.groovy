@@ -36,7 +36,7 @@ class UpdateConfiguration extends APIExecuter {
         def atLeastOneUpdated = false
         // Compare and update where necessary
         tenantParameters.each {
-            if (it.DataType != 'custom:schedule') {
+            if (it.DataType != 'custom:schedule') { // TODO - handle translation to Cron
                 // Skip updating for schedulers which require translation to Cron values
                 String parameterKey = it.ParameterKey
                 String tenantValue = it.ParameterValue

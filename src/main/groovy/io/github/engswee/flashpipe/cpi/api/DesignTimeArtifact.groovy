@@ -35,7 +35,7 @@ class DesignTimeArtifact {
     }
 
     byte[] download(String iFlowId, String iFlowVersion) {
-        logger.info('Download Design time artifact')
+        logger.debug("Download Design time artifact ${iFlowId}")
         this.httpExecuter.executeRequest("/api/v1/IntegrationDesigntimeArtifacts(Id='$iFlowId',Version='$iFlowVersion')/\$value")
 
         def code = this.httpExecuter.getResponseCode()
