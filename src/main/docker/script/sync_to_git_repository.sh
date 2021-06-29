@@ -21,6 +21,7 @@
 # DRAFT_HANDLING - Handling when IFlow is in draft version
 # INCLUDE_IDS - List of included IFlow IDs
 # EXCLUDE_IDS - List of excluded IFlow IDs
+# COMMIT_MESSAGE - Message used in commit
 
 function check_mandatory_env_var() {
   local env_var_name=$1
@@ -67,6 +68,19 @@ if [ -z "$WORK_DIR" ]; then
   export WORK_DIR="/tmp"
 fi
 
+# Set debug log4j config
+if [[ "$DEBUG" == "FLASHPIPE" ]]; then
+  LOG4J_FILE='/tmp/log4j2-config/log4j2-debug-flashpipe.xml'
+elif [[ "$DEBUG" == "APACHE" ]]; then
+  LOG4J_FILE='/tmp/log4j2-config/log4j2-debug-apache.xml'
+elif [[ "$DEBUG" == "ALL" ]]; then
+  LOG4J_FILE='/tmp/log4j2-config/log4j2-debug-all.xml'
+fi
+
+if [ -z "$COMMIT_MESSAGE" ]; then
+  COMMIT_MESSAGE="Sync repo from tenant"
+fi
+
 if [ -z "$CLASSPATH_DIR" ]; then
   source /usr/bin/set_classpath.sh
 else
@@ -93,7 +107,7 @@ git config --local user.name "github-actions[bot]"
 echo "[INFO] Adding all files for Git tracking"
 git add --all --verbose
 echo "[INFO] Trying to commit changes"
-if git commit -m "Sync repo from tenant" -a --verbose; then
+if git commit -m "$COMMIT_MESSAGE" -a --verbose; then
   echo "[INFO] 🏆 Changes committed"
 else
   echo "[INFO] 🏆 No changes to commit"

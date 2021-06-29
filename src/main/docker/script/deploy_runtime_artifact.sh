@@ -39,6 +39,15 @@ else
 fi
 check_mandatory_env_var "IFLOW_ID" "$IFLOW_ID"
 
+# Set debug log4j config
+if [[ "$DEBUG" == "FLASHPIPE" ]]; then
+  LOG4J_FILE='/tmp/log4j2-config/log4j2-debug-flashpipe.xml'
+elif [[ "$DEBUG" == "APACHE" ]]; then
+  LOG4J_FILE='/tmp/log4j2-config/log4j2-debug-apache.xml'
+elif [[ "$DEBUG" == "ALL" ]]; then
+  LOG4J_FILE='/tmp/log4j2-config/log4j2-debug-all.xml'
+fi
+
 if [ -z "$CLASSPATH_DIR" ]; then
   source /usr/bin/set_classpath.sh
 else

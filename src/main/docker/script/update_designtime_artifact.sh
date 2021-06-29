@@ -84,6 +84,15 @@ if [ -n "$MANIFEST_FILE" ]; then
   cp "$MANIFEST_FILE" "$GIT_DIR/META-INF/MANIFEST.MF" || exit 1
 fi
 
+# Set debug log4j config
+if [[ "$DEBUG" == "FLASHPIPE" ]]; then
+  LOG4J_FILE='/tmp/log4j2-config/log4j2-debug-flashpipe.xml'
+elif [[ "$DEBUG" == "APACHE" ]]; then
+  LOG4J_FILE='/tmp/log4j2-config/log4j2-debug-apache.xml'
+elif [[ "$DEBUG" == "ALL" ]]; then
+  LOG4J_FILE='/tmp/log4j2-config/log4j2-debug-all.xml'
+fi
+
 # ----------------------------------------------------------------
 # Set classpath for Java execution
 # ----------------------------------------------------------------
