@@ -2,7 +2,7 @@
 <Configuration>
     <Appenders>
         <Console name="STDOUT">
-            <PatternLayout pattern="%d %-5level [%logger] %msg%n%xThrowable" />
+            <PatternLayout pattern="[%highlight{%level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue}] %msg%n%xThrowable" />
         </Console>
     </Appenders>
     <Loggers>
