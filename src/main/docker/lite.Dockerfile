@@ -58,3 +58,6 @@ COPY target/flashpipe-${FLASHPIPE_VERSION}.jar ${MAVEN_REPO_DIR}/io/github/engsw
 
 COPY src/main/docker/script/*.sh /usr/bin/
 RUN chmod +x /usr/bin/*.sh
+
+RUN mkdir -p /tmp/log4j2-config
+COPY src/main/docker/log4j2-config/*.xml /tmp/log4j2-config/

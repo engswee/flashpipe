@@ -47,3 +47,6 @@ RUN mvn -s /usr/share/maven/ref/settings-docker.xml install:install-file -Dgroup
 
 COPY src/main/docker/script/*.sh /usr/bin/
 RUN chmod +x /usr/bin/*.sh
+
+RUN mkdir -p /tmp/log4j2-config
+COPY src/main/docker/log4j2-config/*.xml /tmp/log4j2-config/
