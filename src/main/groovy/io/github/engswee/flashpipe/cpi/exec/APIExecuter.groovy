@@ -3,11 +3,15 @@ package io.github.engswee.flashpipe.cpi.exec
 import io.github.engswee.flashpipe.http.HTTPExecuter
 import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
 import io.github.engswee.flashpipe.http.OAuthToken
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 abstract class APIExecuter {
     final HTTPExecuter httpExecuter
     final String oauthTokenHost
 
+    static Logger logger = LoggerFactory.getLogger(APIExecuter)
+    
     APIExecuter() {
         this.oauthTokenHost = System.getenv('HOST_OAUTH') ?: null
 
@@ -27,7 +31,7 @@ abstract class APIExecuter {
     protected String getMandatoryEnvVar(String envVarName) {
         def envVar = System.getenv(envVarName)
         if (!envVar) {
-            println "[ERROR] - Mandatory environment variable ${envVarName} not populated"
+            logger.error("🛑 Mandatory environment variable ${envVarName} not populated")
             System.exit(1)
         }
         return envVar

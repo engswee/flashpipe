@@ -43,7 +43,7 @@ class UpdateConfiguration extends APIExecuter {
                 String fileValue = fileParameters.getProperty(parameterKey)
                 if (fileValue != null && fileValue != tenantValue) {
                     if (parameterKey.contains('/')) {
-                        logger.error("Parameter name with / character is not possible to be updated via API. Please rename parameter ${parameterKey}")
+                        logger.error("🛑 Parameter name with / character is not possible to be updated via API. Please rename parameter ${parameterKey}")
                         System.exit(1)
                     }
                     logger.info("Parameter ${parameterKey} to be updated from ${tenantValue} to ${fileValue}")
@@ -53,10 +53,10 @@ class UpdateConfiguration extends APIExecuter {
             }
         }
         if (atLeastOneUpdated) {
-            logger.info('Undeploying existing runtime artifact due to changes in configured parameters')
+            logger.info('🏆 Undeploying existing runtime artifact due to changes in configured parameters')
             RuntimeArtifact runtimeArtifact = new RuntimeArtifact(this.httpExecuter)
             runtimeArtifact.undeploy(iFlowId, csrfToken)
         } else
-            logger.info('No updates required for configured parameters')
+            logger.info('🏆 No updates required for configured parameters')
     }
 }

@@ -1,9 +1,13 @@
 package io.github.engswee.flashpipe.cpi.exec
 
 import io.github.engswee.flashpipe.cpi.api.DesignTimeArtifact
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class DownloadDesignTimeArtifact extends APIExecuter {
 
+    static Logger logger = LoggerFactory.getLogger(DownloadDesignTimeArtifact)
+    
     static void main(String[] args) {
         DownloadDesignTimeArtifact downloadDesignTimeArtifact = new DownloadDesignTimeArtifact()
         downloadDesignTimeArtifact.execute()
@@ -18,7 +22,8 @@ class DownloadDesignTimeArtifact extends APIExecuter {
         DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(this.httpExecuter)
 
         File outputZip = new File(outputFile)
+        logger.info("Downloading IFlow ${iFlowId}")
         outputZip.bytes = designTimeArtifact.download(iFlowId, iFlowVersion)
-        println "[INFO] IFlow downloaded to ${outputFile}"
+        logger.info("IFlow downloaded to ${outputFile}")
     }
 }

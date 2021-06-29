@@ -17,7 +17,7 @@ class DesignTimeArtifact {
     }
 
     String getVersion(String iFlowId, String iFlowVersion, boolean skipNotFoundException) {
-        logger.info('Get Design time artifact')
+        logger.debug('Get Design time artifact')
         this.httpExecuter.executeRequest("/api/v1/IntegrationDesigntimeArtifacts(Id='$iFlowId',Version='$iFlowVersion')", ['Accept': 'application/json'])
 
         def code = this.httpExecuter.getResponseCode()
@@ -74,7 +74,7 @@ class DesignTimeArtifact {
         String token = csrfToken ? csrfToken.get() : ''
 
         // 2 - Deploy IFlow
-        logger.info('Deploy design time artifact')
+        logger.debug('Deploy design time artifact')
         this.httpExecuter.executeRequest('POST', '/api/v1/DeployIntegrationDesigntimeArtifact', ['x-csrf-token': token, 'Accept': 'application/json'], ['Id': "'${iFlowId}'", 'Version': "'active'"])
         def code = this.httpExecuter.getResponseCode()
         if (code != 202)
@@ -93,7 +93,7 @@ class DesignTimeArtifact {
     }
 
     private void updateArtifact(String iFlowName, String iFlowId, String packageId, String iFlowContent, String token) {
-        logger.info('Update design time artifact')
+        logger.info("Update design time artifact ${iFlowId}")
         def payload = constructPayload(iFlowName, iFlowId, packageId, iFlowContent)
         logger.debug("Request body = ${payload}")
         this.httpExecuter.executeRequest('PUT', "/api/v1/IntegrationDesigntimeArtifacts(Id='${iFlowId}',Version='active')", ['x-csrf-token': token, 'Accept': 'application/json'], null, payload, 'UTF-8', 'application/json')
@@ -103,7 +103,7 @@ class DesignTimeArtifact {
     }
 
     private void deleteArtifact(String iFlowId, String token) {
-        logger.info('Delete existing design time artifact')
+        logger.debug('Delete existing design time artifact')
         this.httpExecuter.executeRequest('DELETE', "/api/v1/IntegrationDesigntimeArtifacts(Id='$iFlowId',Version='active')", ['x-csrf-token': token], null)
         def code = this.httpExecuter.getResponseCode()
         if (code != 200)
@@ -111,7 +111,7 @@ class DesignTimeArtifact {
     }
 
     private String uploadArtifact(String iFlowName, String iFlowId, String packageId, String iFlowContent, String token) {
-        logger.info('Upload design time artifact')
+        logger.info("Upload design time artifact ${iFlowId}")
         def payload = constructPayload(iFlowName, iFlowId, packageId, iFlowContent)
         logger.debug("Request body = ${payload}")
 

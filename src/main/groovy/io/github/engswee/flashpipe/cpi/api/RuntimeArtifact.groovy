@@ -33,7 +33,7 @@ class RuntimeArtifact {
         // 1 - Get CSRF token
         String token = csrfToken ? csrfToken.get() : ''
 
-        logger.info('Undeploy runtime artifact')
+        logger.debug('Undeploy runtime artifact')
         this.httpExecuter.executeRequest('DELETE', "/api/v1/IntegrationRuntimeArtifacts('$iFlowId')", ['x-csrf-token': token], null)
         String code = this.httpExecuter.getResponseCode()
         if (code == '404')
@@ -44,7 +44,7 @@ class RuntimeArtifact {
 
     private Map getDetails(String iFlowId, boolean skipNotFoundException) {
         // Get deployed IFlow's details
-        logger.info('Get runtime artifact details')
+        logger.debug('Get runtime artifact details')
         this.httpExecuter.executeRequest("/api/v1/IntegrationRuntimeArtifacts('${iFlowId}')", ['Accept': 'application/json'])
         String code = this.httpExecuter.getResponseCode()
         if (code.startsWith('2')) {
@@ -57,7 +57,7 @@ class RuntimeArtifact {
 
     String getErrorInfo(String iFlowId) {
         // Get deployed IFlow error information
-        logger.info('Get runtime artifact error information')
+        logger.debug('Get runtime artifact error information')
         this.httpExecuter.executeRequest("/api/v1/IntegrationRuntimeArtifacts('${iFlowId}')/ErrorInformation/\$value", ['Accept': 'application/json'])
         String code = this.httpExecuter.getResponseCode()
         if (code.startsWith('2')) {

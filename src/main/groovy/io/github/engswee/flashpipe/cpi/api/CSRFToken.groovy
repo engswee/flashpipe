@@ -19,7 +19,7 @@ class CSRFToken {
         if (this.token) {
             return this.token
         } else {
-            logger.info('Get CSRF Token')
+            logger.debug('Get CSRF Token')
             httpExecuter.executeRequest('/api/v1/', ['x-csrf-token': 'fetch'])
             def code = httpExecuter.getResponseCode()
             if (code == 200) {

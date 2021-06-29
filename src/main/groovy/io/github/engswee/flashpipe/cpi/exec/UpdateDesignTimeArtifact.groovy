@@ -2,10 +2,14 @@ package io.github.engswee.flashpipe.cpi.exec
 
 import io.github.engswee.flashpipe.cpi.api.CSRFToken
 import io.github.engswee.flashpipe.cpi.api.DesignTimeArtifact
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.zeroturnaround.zip.ZipUtil
 
 class UpdateDesignTimeArtifact extends APIExecuter {
 
+    static Logger logger = LoggerFactory.getLogger(UpdateDesignTimeArtifact)
+    
     static void main(String[] args) {
         UpdateDesignTimeArtifact updateDesignTimeArtifact = new UpdateDesignTimeArtifact()
         updateDesignTimeArtifact.execute()
@@ -20,16 +24,16 @@ class UpdateDesignTimeArtifact extends APIExecuter {
         def packageId = getMandatoryEnvVar('PACKAGE_ID')
 
         // Get current iFlow Version and bump up the number before upload
-        println "[INFO] Current IFlow Version in Tenant - ${currentiFlowVersion}"
+        logger.info("Current IFlow Version in Tenant - ${currentiFlowVersion}")
         def matcher = (currentiFlowVersion =~ /(\S+\.)(\d+)\s*/)
         if (matcher.size()) {
             def patchNo = matcher[0][2] as int
             currentiFlowVersion = "${matcher[0][1]}${patchNo + 1}"
         }
-        println "[INFO] New IFlow Version to be updated - ${currentiFlowVersion}"
+        logger.info("New IFlow Version to be updated - ${currentiFlowVersion}")
 
         // Update the manifest file with new version number
-        println "[INFO] Updating MANIFEST.MF"
+        logger.debug('Updating MANIFEST.MF')
         File manifestFile = new File("${iFlowDir}/META-INF/MANIFEST.MF")
         def manifestContent = manifestFile.getText('UTF-8')
         def updatedContent = manifestContent.replaceFirst(/Bundle-Version: \S+/, "Bundle-Version: ${currentiFlowVersion}")
@@ -40,9 +44,9 @@ class UpdateDesignTimeArtifact extends APIExecuter {
         ZipUtil.pack(new File(iFlowDir), baos)
         def iFlowContent = baos.toByteArray().encodeBase64().toString()
 
-
         DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(this.httpExecuter)
         CSRFToken csrfToken = this.oauthTokenHost ? null : new CSRFToken(this.httpExecuter)
         designTimeArtifact.update(iFlowContent, iFlowId, iFlowName, packageId, csrfToken)
+        logger.info("IFlow ${iFlowId} updated")
     }
 }

@@ -17,7 +17,7 @@ class Configuration {
     }
 
     List getParameters(String iFlowId, String iFlowVersion) {
-        logger.info('Get configuration parameters')
+        logger.debug('Get configuration parameters')
         this.httpExecuter.executeRequest("/api/v1/IntegrationDesigntimeArtifacts(Id='$iFlowId',Version='$iFlowVersion')/Configurations", ['Accept': 'application/json'])
 
         def code = this.httpExecuter.getResponseCode()

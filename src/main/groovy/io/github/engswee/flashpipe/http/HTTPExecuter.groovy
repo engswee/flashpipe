@@ -36,7 +36,7 @@ abstract class HTTPExecuter {
     }
 
     void logError(String callType) {
-        logger.error("Response body = ${this.getResponseBody().getText('UTF8')}")
+        logger.error("🛑 Response body = ${this.getResponseBody().getText('UTF8')}")
         throw new HTTPExecuterException("${callType} call failed with response code = ${this.getResponseCode()}")
     }
 

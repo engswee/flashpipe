@@ -23,7 +23,7 @@ class OAuthToken {
     }
 
     private String getToken() {
-        logger.info('Get OAuth token')
+        logger.debug('Get OAuth token')
         this.httpExecuter.executeRequest('/oauth/token', [:], ['grant_type': 'client_credentials'])
         def code = this.httpExecuter.getResponseCode()
         if (code == 200) {

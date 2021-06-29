@@ -3,10 +3,14 @@ package io.github.engswee.flashpipe.cpi.exec
 import io.github.engswee.flashpipe.cpi.api.CSRFToken
 import io.github.engswee.flashpipe.cpi.api.DesignTimeArtifact
 import io.github.engswee.flashpipe.cpi.api.IntegrationPackage
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.zeroturnaround.zip.ZipUtil
 
 class UploadDesignTimeArtifact extends APIExecuter {
 
+    static Logger logger = LoggerFactory.getLogger(UploadDesignTimeArtifact)
+    
     static void main(String[] args) {
         UploadDesignTimeArtifact uploadDesignTimeArtifact = new UploadDesignTimeArtifact()
         uploadDesignTimeArtifact.execute()
@@ -24,9 +28,10 @@ class UploadDesignTimeArtifact extends APIExecuter {
 
         IntegrationPackage integrationPackage = new IntegrationPackage(this.httpExecuter)
         if (!integrationPackage.exists(packageId)) {
-            println "[INFO] Package ${packageId} does not exist. Creating package..."
+            logger.info("Package ${packageId} does not exist. Creating package...")
             def result = integrationPackage.create(packageId, packageName, csrfToken)
-            println result
+            logger.info("Package ${packageId} created")
+            logger.debug("${result}")
         }
 
         // Zip iFlow directory and encode to Base 64
@@ -36,6 +41,7 @@ class UploadDesignTimeArtifact extends APIExecuter {
 
         DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(this.httpExecuter)
         def response = designTimeArtifact.upload(iFlowContent, iFlowId, iFlowName, packageId, csrfToken)
-        println response
+        logger.info("IFlow ${iFlowId} created")
+        logger.debug("${response}")
     }
 }

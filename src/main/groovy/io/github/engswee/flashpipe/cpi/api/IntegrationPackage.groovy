@@ -19,7 +19,7 @@ class IntegrationPackage {
 
     boolean iFlowInDraftVersion(String packageId, String iFlowId) {
         // Check version of IFlow
-        logger.info("Checking version of IFlow ${iFlowId} in package ${packageId}")
+        logger.debug("Checking version of IFlow ${iFlowId} in package ${packageId}")
         this.httpExecuter.executeRequest("/api/v1/IntegrationPackages('${packageId}')/IntegrationDesigntimeArtifacts", ['Accept': 'application/json'])
         def code = this.httpExecuter.getResponseCode()
         if (code == 200) {
@@ -88,7 +88,7 @@ class IntegrationPackage {
     }
 
     private String createPackage(String packageId, String packageName, String csrfToken) {
-        logger.info('Create integration package')
+        logger.debug('Create integration package')
         def builder = new JsonBuilder()
         builder {
             'Id' packageId
