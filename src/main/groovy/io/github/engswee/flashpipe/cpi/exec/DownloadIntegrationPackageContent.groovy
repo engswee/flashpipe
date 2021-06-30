@@ -35,8 +35,8 @@ class DownloadIntegrationPackageContent extends APIExecuter {
             logger.error("🛑 Value ${draftHandling} for environment variable DRAFT_HANDLING not in list of accepted values: SKIP, ADD or ERROR")
             System.exit(1)
         }
-        List includedIds = System.getenv('INCLUDE_IDS')?.split(',')?.toList()*.trim()
-        List excludeIds = System.getenv('EXCLUDE_IDS')?.split(',')?.toList()*.trim()
+        List includedIds = System.getenv('INCLUDE_IDS') ? System.getenv('INCLUDE_IDS').split(',').toList()*.trim() : []
+        List excludeIds = System.getenv('EXCLUDE_IDS') ? System.getenv('EXCLUDE_IDS').split(',').toList()*.trim() : []
         if (includedIds && excludeIds) {
             logger.error('🛑 INCLUDE_IDS and EXCLUDE_IDS are mutually exclusive - use only one of them')
             System.exit(1)
