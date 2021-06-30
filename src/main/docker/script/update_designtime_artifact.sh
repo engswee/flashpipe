@@ -148,7 +148,7 @@ if [[ "$check_iflow_status" == "0" ]]; then
   echo "[INFO] Executing command: - diff --strip-trailing-cr -qr $WORK_DIR/download/src/main/resources/ $GIT_DIR/src/main/resources/"
   diffoutput="$(diff --strip-trailing-cr -qr -x 'parameters.prop' "$WORK_DIR/download/src/main/resources/" "$GIT_DIR/src/main/resources/")"
   if [ -z "$diffoutput" ]; then
-    echo '[INFO] No changes detected. IFlow design does not need to be updated'
+    echo '[INFO] 🏆 No changes detected. IFlow design does not need to be updated'
   else
     echo "[INFO] Changes found in src/main/resources directory"
     diff --strip-trailing-cr -r -x 'parameters.prop' "$WORK_DIR/download/src/main/resources/" "$GIT_DIR/src/main/resources/"

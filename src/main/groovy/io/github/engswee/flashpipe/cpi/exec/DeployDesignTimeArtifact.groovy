@@ -32,7 +32,7 @@ class DeployDesignTimeArtifact extends APIExecuter {
         def runtimeVersion = runtimeArtifact.getVersion(iFlowId)
 
         if (runtimeVersion == designtimeVersion) {
-            logger.info("IFlow ${iFlowId} with version ${runtimeVersion} already deployed. Skipping runtime deployment")
+            logger.info("🏆 IFlow ${iFlowId} with version ${runtimeVersion} already deployed. Skipping runtime deployment")
         } else {
             CSRFToken csrfToken = this.oauthTokenHost ? null : new CSRFToken(this.httpExecuter)
             logger.info("🚀 Versions differ. Proceeding to deploy IFlow ${iFlowId} with version ${designtimeVersion}")
