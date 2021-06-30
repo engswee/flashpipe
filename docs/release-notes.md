@@ -1,5 +1,16 @@
 # Release Notes
 
+## 2.1.0 (Released 30 Jun 2021)
+
+---
+
+- 🔥🔥 New feature 🔥🔥 - _FlashPipe_ now enables syncing of integration flow contents from the tenant to Git repository.
+  - New script `sync_to_git_repository.sh` can be configured in a pipeline for periodic or adhoc sync
+- Clean up the logs generated
+  - A new default pattern layout for a cleaner simpler look
+  - <span style="color:blue">Spice</span> <span style="color:green">up</span> log <span style="color:red">levels</span> <span style="color:orange">with</span> <span style="color:purple">color</span>
+  - Add emojis 🛑 🏆 ⚠️ 🚀 to highlight key log messages
+
 ## 2.0.1 (Released 14 Jun 2021)
 
 ---
