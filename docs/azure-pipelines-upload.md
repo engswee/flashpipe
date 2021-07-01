@@ -1,4 +1,4 @@
-# Setting Up FlashPipe on Azure Pipelines
+# Upload/Deploy with FlashPipe on Azure Pipelines
 The page describes the steps to set up _FlashPipe_ on [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/).
 
 ### 1. Download and extract content of Integration Flow
@@ -63,7 +63,7 @@ jobs:
           IFLOW_NAME: <iflow_name>
           PACKAGE_ID: <package_id>
           PACKAGE_NAME: <package_name>
-          GIT_DIR: <git_src_dir>
+          GIT_SRC_DIR: <git_src_dir>
           PARAM_FILE: <param_file> # Optional
           MANIFEST_FILE: <manifest_file> # Optional
           WORK_DIR: <working_directory> # Optional
@@ -120,7 +120,7 @@ jobs:
           IFLOW_NAME: "Groovy XML Transformation"
           PACKAGE_ID: FlashPipeDemo
           PACKAGE_NAME: "FlashPipe Demo"
-          GIT_DIR: "$(Build.SourcesDirectory)/FlashPipe Demo/Groovy XML Transformation"
+          GIT_SRC_DIR: "$(Build.SourcesDirectory)/FlashPipe Demo/Groovy XML Transformation"
       # Deploy runtime
       - bash: /usr/bin/deploy_runtime_artifact.sh
         displayName: 'Deploy Groovy XML Transformation to runtime'

@@ -3,6 +3,7 @@
 _FlashPipe_ provides the following Unix scripts for accessing SAP Integration Suite APIs.
 - **update_designtime_artifact.sh**
 - **deploy_runtime_artifact.sh**
+- **sync_to_git_repository.sh**
 
 These scripts perform the _magic_ that significantly simplifies the steps required to complete the build and deploy steps in a CI/CD pipeline.
 
@@ -32,7 +33,7 @@ Mandatory environment variables:
     IFLOW_NAME - Name of Integration Flow
     PACKAGE_ID - ID of Integration Package
     PACKAGE_NAME - Name of Integration Package
-    GIT_DIR - directory containing contents of Integration Flow
+    GIT_SRC_DIR - directory containing contents of Integration Flow
 
 Optional environment variables:
     PARAM_FILE - Use to a different parameters.prop file instead of the default in src/main/resources/
@@ -55,11 +56,11 @@ Environment variables set before call:
     IFLOW_NAME: "Groovy XML Transformation"
     PACKAGE_ID: FlashPipeDemo
     PACKAGE_NAME: "FlashPipe Demo"
-    GIT_DIR: "FlashPipe Demo/Groovy XML Transformation"
+    GIT_SRC_DIR: "FlashPipe Demo/Groovy XML Transformation"
 ```
 
 ### 2. deploy_runtime_artifact.sh
-This script is used to deploy a Cloud Integration designtime artifact to the runtime. It will compare the version of the designtime artifact against the runtime artifact before executing deployment if there are diferences.
+This script is used to deploy a Cloud Integration designtime artifact to the runtime. It will compare the version of the designtime artifact against the runtime artifact before executing deployment if there are differences.
 
 
 #### Usage and environment variable list
@@ -90,4 +91,44 @@ Environment variables set before call:
     OAUTH_CLIENTID: <clientid>
     OAUTH_CLIENTSECRET: <clientsecret>
     IFLOW_ID: GroovyXMLTransformation
+```
+
+### 3. sync_to_git_repository.sh
+This script is used to sync Cloud Integration designtime artifacts from a tenant to a Git repository. It will compare any differences (new, deleted, changed) files from tenant and commit/push to the Git repository.
+
+
+#### Usage and environment variable list
+```bash
+/usr/bin/sync_to_git_repository.sh
+
+Mandatory environment variables:
+    HOST_TMN - Base URL for tenant management node of Cloud Integration (excluding the https:// prefix)
+    BASIC_USERID - User ID (required when using Basic Authentication)
+    BASIC_PASSWORD - Password (required when using Basic Authentication)
+    HOST_OAUTH - Host name for OAuth authentication server (required when using OAuth Authentication, excluding the https:// prefix)
+    OAUTH_CLIENTID - OAuth Client ID (required when using OAuth Authentication)
+    OAUTH_CLIENTSECRET - OAuth Client Secret (required when using OAuth Authentication)
+    PACKAGE_ID - ID of Integration Package
+    GIT_SRC_DIR - Base directory containing contents of Integration Flow(s)
+
+Optional environment variables:
+    INCLUDE_IDS - List of included IFlow IDs
+    EXCLUDE_IDS - List of excluded IFlow IDs
+    DRAFT_HANDLING - Handling when IFlow is in draft version. Allowed values: SKIP (default), ADD, ERROR
+    DIR_NAMING_TYPE - Name IFlow directories by ID or Name. Allowed values: ID (default), NAME
+    COMMIT_MESSAGE - Message used in commit
+    WORK_DIR - Working directory for in-transit files (default is /tmp if not set)
+```
+
+#### Example
+```bash
+/usr/bin/sync_to_git_repository.sh
+
+Environment variables set before call:
+    HOST_TMN: ***.hana.ondemand.com
+    HOST_OAUTH: ***.authentication.<region>.hana.ondemand.com
+    OAUTH_CLIENTID: <clientid>
+    OAUTH_CLIENTSECRET: <clientsecret>
+    PACKAGE_ID: FlashPipeDemo
+    GIT_SRC_DIR: "FlashPipe Demo"
 ```

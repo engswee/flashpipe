@@ -34,10 +34,10 @@ It is recommended to use OAuth so that the access is not linked to an individual
 ## Usage of Unix scripts
 For details on usage of the Unix scripts in pipeline steps, visit the [Unix scripts page](unix-scripts.md).
 
-## Setup examples
-Following are examples of setting up _FlashPipe_ in different CI/CD platforms.
-- [Azure Pipelines](azure-pipelines.md)
-- [GitHub Actions](github-actions.md)
+## Usage examples
+Following are different usage examples of _FlashPipe_ in different CI/CD platforms.
+- [Upload and Deploy Integration Flows using Azure Pipelines](azure-pipelines-upload.md)
+- [Upload and Deploy Integration Flows using GitHub Actions](github-actions-upload.md)
 
 ## Reference
 The following repository on GitHub provides sample usage of _FlashPipe_.

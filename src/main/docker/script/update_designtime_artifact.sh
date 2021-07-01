@@ -16,7 +16,7 @@
 # IFLOW_NAME - Name of Integration Flow
 # PACKAGE_ID - ID of Integration Package
 # PACKAGE_NAME - Name of Integration Package
-# GIT_DIR - directory containing contents of Integration Flow
+# GIT_SRC_DIR - directory containing contents of Integration Flow
 #
 # 3. Optional variables:
 # PARAM_FILE - Use to a different parameters.prop file instead of the default in src/main/resources/
@@ -62,7 +62,12 @@ else
   check_mandatory_env_var "OAUTH_CLIENTID" "$OAUTH_CLIENTID"
   check_mandatory_env_var "OAUTH_CLIENTSECRET" "$OAUTH_CLIENTSECRET"
 fi
-check_mandatory_env_var "GIT_DIR" "$GIT_DIR"
+#check_mandatory_env_var "GIT_SRC_DIR" "$GIT_SRC_DIR"
+if [ -z "$GIT_SRC_DIR" ]; then
+  echo "[ERROR] 🛑 Mandatory environment variable GIT_SRC_DIR is not populated"
+  echo "[WARN] ⚠️ If you are using GIT_DIR, it is now deprecated. Switch to GIT_SRC_DIR"
+  exit 1
+fi
 check_mandatory_env_var "IFLOW_ID" "$IFLOW_ID"
 check_mandatory_env_var "IFLOW_NAME" "$IFLOW_NAME"
 check_mandatory_env_var "PACKAGE_ID" "$PACKAGE_ID"
@@ -77,11 +82,11 @@ fi
 # ----------------------------------------------------------------
 if [ -n "$PARAM_FILE" ]; then
   echo "[INFO] Using $PARAM_FILE as parameters.prop file"
-  cp "$PARAM_FILE" "$GIT_DIR/src/main/resources/parameters.prop" || exit 1
+  cp "$PARAM_FILE" "$GIT_SRC_DIR/src/main/resources/parameters.prop" || exit 1
 fi
 if [ -n "$MANIFEST_FILE" ]; then
   echo "[INFO] Using $MANIFEST_FILE as MANIFEST.MF file"
-  cp "$MANIFEST_FILE" "$GIT_DIR/META-INF/MANIFEST.MF" || exit 1
+  cp "$MANIFEST_FILE" "$GIT_SRC_DIR/META-INF/MANIFEST.MF" || exit 1
 fi
 
 # Set debug log4j config
@@ -145,19 +150,19 @@ if [[ "$check_iflow_status" == "0" ]]; then
   # Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
   # Therefore diff of parameters.prop may come up with false differences
   echo "[INFO] Checking for changes in src/main/resources directory"
-  echo "[INFO] Executing command: - diff --strip-trailing-cr -qr $WORK_DIR/download/src/main/resources/ $GIT_DIR/src/main/resources/"
-  diffoutput="$(diff --strip-trailing-cr -qr -x 'parameters.prop' "$WORK_DIR/download/src/main/resources/" "$GIT_DIR/src/main/resources/")"
+  echo "[INFO] Executing command: - diff --strip-trailing-cr -qr $WORK_DIR/download/src/main/resources/ $GIT_SRC_DIR/src/main/resources/"
+  diffoutput="$(diff --strip-trailing-cr -qr -x 'parameters.prop' "$WORK_DIR/download/src/main/resources/" "$GIT_SRC_DIR/src/main/resources/")"
   if [ -z "$diffoutput" ]; then
     echo '[INFO] 🏆 No changes detected. IFlow design does not need to be updated'
   else
     echo "[INFO] Changes found in src/main/resources directory"
-    diff --strip-trailing-cr -r -x 'parameters.prop' "$WORK_DIR/download/src/main/resources/" "$GIT_DIR/src/main/resources/"
+    diff --strip-trailing-cr -r -x 'parameters.prop' "$WORK_DIR/download/src/main/resources/" "$GIT_SRC_DIR/src/main/resources/"
     echo '[INFO] IFlow design will be updated in CPI tenant'
     # Clean up previous uploads
     rm -rf "$WORK_DIR/upload"
     mkdir -p "$WORK_DIR/upload/src/main"
-    cp -r "$GIT_DIR/META-INF" "$WORK_DIR/upload"
-    cp -r "$GIT_DIR/src/main/resources" "$WORK_DIR/upload/src/main"
+    cp -r "$GIT_SRC_DIR/META-INF" "$WORK_DIR/upload"
+    cp -r "$GIT_SRC_DIR/src/main/resources" "$WORK_DIR/upload/src/main"
     tenant_iflow_version=$(awk '/Bundle-Version/ {print $2}' "$WORK_DIR/download/META-INF/MANIFEST.MF")
     export IFLOW_DIR="$WORK_DIR/upload"
     export CURR_IFLOW_VER=$tenant_iflow_version
@@ -168,7 +173,7 @@ if [[ "$check_iflow_status" == "0" ]]; then
   # 4 - Update the configuration of the IFlow based on parameters.prop file
   echo '[INFO] Updating configured parameter(s) of IFlow where necessary'
   if [ -z "$PARAM_FILE" ]; then
-    export PARAM_FILE="$GIT_DIR/src/main/resources/parameters.prop"
+    export PARAM_FILE="$GIT_SRC_DIR/src/main/resources/parameters.prop"
   fi
   exec_java_command io.github.engswee.flashpipe.cpi.exec.UpdateConfiguration
 
@@ -179,8 +184,8 @@ elif [[ "$check_iflow_status" == "99" ]]; then
   echo "[INFO] IFlow will be uploaded to tenant" # Clean up previous uploads
   rm -rf "$WORK_DIR/upload"
   mkdir -p "$WORK_DIR/upload/src/main"
-  cp -r "$GIT_DIR/META-INF" "$WORK_DIR/upload"
-  cp -r "$GIT_DIR/src/main/resources" "$WORK_DIR/upload/src/main"
+  cp -r "$GIT_SRC_DIR/META-INF" "$WORK_DIR/upload"
+  cp -r "$GIT_SRC_DIR/src/main/resources" "$WORK_DIR/upload/src/main"
   export IFLOW_DIR="$WORK_DIR/upload"
   exec_java_command io.github.engswee.flashpipe.cpi.exec.UploadDesignTimeArtifact
   echo '[INFO] 🏆 IFlow created successfully'
