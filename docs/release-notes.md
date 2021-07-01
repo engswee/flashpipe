@@ -1,6 +1,12 @@
 # Release Notes
 
-## 2.1.0 (Released 30 Jun 2021)
+## 2.1.1 (Released 1 July 2021)
+
+---
+
+- Switch environment variable `GIT_DIR` to `GIT_SRC_DIR` for `update_designtime_artifact.sh` due to conflict with default Git variable
+
+## 2.1.0 (Released 30 June 2021)
 
 ---
 
@@ -11,7 +17,7 @@
   - <span style="color:blue">Spice</span> <span style="color:green">up</span> log <span style="color:red">levels</span> <span style="color:orange">with</span> <span style="color:purple">color</span>
   - Add emojis 🛑 🏆 ⚠️ 🚀 to highlight key log messages
 
-## 2.0.1 (Released 14 Jun 2021)
+## 2.0.1 (Released 14 June 2021)
 
 ---
 
