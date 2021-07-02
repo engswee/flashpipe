@@ -36,8 +36,9 @@ For details on usage of the Unix scripts in pipeline steps, visit the [Unix scri
 
 ## Usage examples
 Following are different usage examples of _FlashPipe_ in different CI/CD platforms.
-- [Upload and Deploy Integration Flows using Azure Pipelines](azure-pipelines-upload.md)
-- [Upload and Deploy Integration Flows using GitHub Actions](github-actions-upload.md)
+- [Upload/Deploy Integration Flows using Azure Pipelines](azure-pipelines-upload.md)
+- [Upload/Deploy Integration Flows using GitHub Actions](github-actions-upload.md)
+- [Sync Integration Flows from Tenant to GitHub using GitHub Actions](github-actions-sync.md)
 
 ## Reference
 The following repository on GitHub provides sample usage of _FlashPipe_.

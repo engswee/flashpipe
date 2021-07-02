@@ -1,6 +1,8 @@
 # Upload/Deploy with FlashPipe on Azure Pipelines
 The page describes the steps to set up _FlashPipe_ on [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/).
 
+**Note**: [GitHub repository syncing from tenant](github-actions-sync.md) can also be used in place of steps 1 and 2.
+
 ### 1. Download and extract content of Integration Flow
 Download the content of the Integration Flow from the Cloud Integration tenant.
 ![Download](images/setup/01a_download_iflow.png)
