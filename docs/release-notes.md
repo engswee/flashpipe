@@ -10,7 +10,7 @@
 
 ---
 
-- 🔥🔥 New feature 🔥🔥 - _FlashPipe_ now enables syncing of integration flow contents from the tenant to Git repository.
+- 🔥🔥 New feature 🔥🔥 - _FlashPipe_ now enables [syncing of integration flow contents](github-actions-sync.md) from the tenant to Git repository.
   - New script `sync_to_git_repository.sh` can be configured in a pipeline for periodic or adhoc sync
 - Clean up the logs generated
   - A new default pattern layout for a cleaner simpler look

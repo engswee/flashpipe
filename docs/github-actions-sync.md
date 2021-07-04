@@ -8,7 +8,7 @@ Create (or use) and existing repository on GitHub.
 Ensure that the repository includes the following files at the root directory. The links provide samples for each file that can be used.
 
 - [.gitignore](https://github.com/engswee/flashpipe-demo/blob/github-actions-sync/.gitignore) - ensures unwanted files are not included in commits
-- [.gitattributes](https://github.com/engswee/flashpipe-demo/blob/github-actions-sync/.gitattributes) - ensures correct line endings for commited files
+- [.gitattributes](https://github.com/engswee/flashpipe-demo/blob/github-actions-sync/.gitattributes) - ensures correct line endings for committed files
 
 ### 2. Create secrets in GitHub repository
 Sensitive information can be stored securely on GitHub using [encrypted secrets](https://docs.github.com/en/actions/reference/encrypted-secrets). These can then be passed to the pipeline steps as environment variables. For _FlashPipe_, we will use these to securely store the details to access the Cloud Integration tenant.
@@ -32,7 +32,7 @@ Create the following repository secrets.
 
 **Note**: GitHub does not provide functionality to store unencrypted plain text variables, which would be useful for values like the base URLs. Optionally, these can be stored as encrypted secrets instead of being hardcoded in the YAML configuration file.
 
-### 3. Create .github/workflows directory
+### 3. Create GitHub Actions workflow
 In the GitHub repository, go to `Actions` to create new workflow.
 ![New Workflow](images/setup/git-sync/03a_new_workflow.png)
 
@@ -67,22 +67,20 @@ The changes can be viewed from the commit history.
 Click on the particular commit to review details of the changes.
 ![Commit Details](images/setup/git-sync/05d_commit_details.png)
 
-### 6. [Optional] Create workflows for syncing specific content manually or scheduled
-Once the initial Git repository has been populated, additional workflows can be created to sync specific content. These can be executed on a periodic schedule or on an adhoc basis.
+### 6. [Optional] Create workflows for syncing specific content manually or on a periodic schedule
+Once the initial Git repository has been populated, additional workflows can be created to sync specific content. These can be executed on a periodic schedule or manually on an adhoc basis.
 
-Create a new workflow file in the `.github/workflow` directory. Populate the content with the code sample below. Save and commit the file.
+Create a new workflow file in the `.github/workflow` directory. Populate the content with the code sample below. Replace the tenant and authentication details accordingly. Then, save and commit the file.
 <script src="https://gist.github.com/engswee/9a3a7e0b551f0b97ed95ff582e3cf2ba.js"></script>
 
-This workflow has been hardcoded with specific values for `GIT_SRC_DIR` and `PACKAGE_ID`. It also has two triggering events
+This workflow has been hardcoded with specific values for `GIT_SRC_DIR` and `PACKAGE_ID`. It also has two triggering events:
 - `on: workflow_dispatch` - which allows it to be executed manually
-- `on: schedule` - executes periodically based on a cron schedule (refer to [crontab guru](https://crontab.guru) to help generate the cron syntax)
+- `on: schedule` - executed periodically based on a cron schedule (refer to [crontab guru](https://crontab.guru) for help in generation of the cron syntax)
 
 ![Specific Workflow](images/setup/git-sync/06a_specific_workflow.png)
 
 The workflow can now be triggered manually from the GitHub UI.
 ![Run Specific Workflow](images/setup/git-sync/06b_run_specific.png)
 
-During any workflow run, ff there are no differences between the tenant content and the Git repository, no chnages will be committed.
+During any workflow run, if there are no differences between the tenant content and the Git repository, no changes will be committed.
 ![No Changes](images/setup/git-sync/06c_no_changes.png)
-
-
