@@ -1,5 +1,13 @@
 # Release Notes
 
+## 2.2.0 (Released 7 July 2021)
+
+---
+
+- Added new optional environment variable `HOST_OAUTH_PATH` to handle OAuth authentication with Neo environments 
+- [OAuth client setup page](oauth_client.md) updated to include steps for Neo environment
+
+
 ## 2.1.1 (Released 1 July 2021)
 
 ---
@@ -10,7 +18,7 @@
 
 ---
 
-- 🔥🔥 New feature 🔥🔥 - _FlashPipe_ now enables [syncing of integration flow contents](github-actions-sync.md) from the tenant to Git repository.
+- 🔥🔥 New feature 🔥🔥 - _FlashPipe_ now enables [syncing of integration flow contents](github-actions-sync.md) from the tenant to Git repository
   - New script `sync_to_git_repository.sh` can be configured in a pipeline for periodic or adhoc sync
 - Clean up the logs generated
   - A new default pattern layout for a cleaner simpler look
