@@ -35,13 +35,14 @@ COPY src/main/docker/settings-docker.xml /usr/share/maven/ref/
 # 3 - Copy Maven POM and download all dependencies & plugin for offline execution
 # ----------------------------------------
 COPY pom.xml /tmp/pom.xml
-RUN mvn -B -f /tmp/pom.xml -s /usr/share/maven/ref/settings-docker.xml dependency:go-offline
+RUN mvn -B -f /tmp/pom.xml -s /usr/share/maven/ref/settings-docker.xml dependency:go-offline \
+  && chmod -R 777 /usr/share/maven/ref/repository
 
 # ----------------------------------------
 # 4 - Copy JAR file used for accessing CPI APIs
 # ----------------------------------------
 # <FLASHPIPE_VERSION>
-ARG FLASHPIPE_VERSION=2.1.1
+ARG FLASHPIPE_VERSION=2.2.0
 COPY target/flashpipe-${FLASHPIPE_VERSION}.jar /tmp/flashpipe-${FLASHPIPE_VERSION}.jar
 RUN mvn -s /usr/share/maven/ref/settings-docker.xml install:install-file -DgroupId=io.github.engswee -DartifactId=flashpipe -Dversion=${FLASHPIPE_VERSION} -Dpackaging=jar -Dfile=/tmp/flashpipe-${FLASHPIPE_VERSION}.jar
 
