@@ -8,6 +8,7 @@
 # BASIC_USERID - User ID (required when using Basic Authentication)
 # BASIC_PASSWORD - Password (required when using Basic Authentication)
 # HOST_OAUTH - Host name for OAuth authentication server (required when using OAuth Authentication)
+# HOST_OAUTH_PATH - [Optional] Specific path for OAuth token server if it differs from /oauth/token, for example /oauth2/api/v1/token for Neo environments
 # OAUTH_CLIENTID - OAuth Client ID (required when using OAuth Authentication)
 # OAUTH_CLIENTSECRET - OAuth Client Secret (required when using OAuth Authentication)
 #
@@ -62,7 +63,6 @@ else
   check_mandatory_env_var "OAUTH_CLIENTID" "$OAUTH_CLIENTID"
   check_mandatory_env_var "OAUTH_CLIENTSECRET" "$OAUTH_CLIENTSECRET"
 fi
-#check_mandatory_env_var "GIT_SRC_DIR" "$GIT_SRC_DIR"
 if [ -z "$GIT_SRC_DIR" ]; then
   echo "[ERROR] 🛑 Mandatory environment variable GIT_SRC_DIR is not populated"
   echo "[WARN] ⚠️ If you are using GIT_DIR, it is now deprecated. Switch to GIT_SRC_DIR"

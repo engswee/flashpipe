@@ -8,6 +8,7 @@
 # BASIC_USERID - User ID (required when using Basic Authentication)
 # BASIC_PASSWORD - Password (required when using Basic Authentication)
 # HOST_OAUTH - Host name for OAuth authentication server (required when using OAuth Authentication)
+# HOST_OAUTH_PATH - [Optional] Specific path for OAuth token server if it differs from /oauth/token, for example /oauth2/api/v1/token for Neo environments
 # OAUTH_CLIENTID - OAuth Client ID (required when using OAuth Authentication)
 # OAUTH_CLIENTSECRET - OAuth Client Secret (required when using OAuth Authentication)
 #
