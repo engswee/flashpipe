@@ -13,21 +13,25 @@ class IntegrationPackageOAuthIT extends Specification {
     HTTPExecuter httpExecuter
     @Shared
     IntegrationPackage integrationPackage
+    @Shared
+    CSRFToken csrfToken
 
     def setupSpec() {
         def host = System.getProperty('cpi.host.tmn')
         def clientid = System.getProperty('cpi.oauth.clientid')
         def clientsecret = System.getProperty('cpi.oauth.clientsecret')
         def oauthHost = System.getProperty('cpi.host.oauth')
-        def token = OAuthToken.get('https', oauthHost, 443, clientid, clientsecret)
+        def oauthTokenPath = System.getProperty('cpi.host.oauthpath')
+        def token = OAuthToken.get('https', oauthHost, 443, clientid, clientsecret, oauthTokenPath)
 
         httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, token)
         integrationPackage = new IntegrationPackage(httpExecuter)
+        csrfToken = new CSRFToken(httpExecuter)
     }
 
     def 'Create'() {
         when:
-        def responseBody = integrationPackage.create('FlashPipeIntegrationTestCreate', 'FlashPipe Integration Test Create', null)
+        def responseBody = integrationPackage.create('FlashPipeIntegrationTestCreate', 'FlashPipe Integration Test Create', csrfToken)
 
         then:
         def root = new JsonSlurper().parseText(responseBody)
@@ -49,7 +53,7 @@ class IntegrationPackageOAuthIT extends Specification {
 
     def 'Delete'() {
         when:
-        integrationPackage.delete('FlashPipeIntegrationTestCreate', null)
+        integrationPackage.delete('FlashPipeIntegrationTestCreate', csrfToken)
 
         then:
         noExceptionThrown()

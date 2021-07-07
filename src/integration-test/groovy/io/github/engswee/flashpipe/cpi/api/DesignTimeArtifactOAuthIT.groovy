@@ -14,16 +14,20 @@ class DesignTimeArtifactOAuthIT extends Specification {
     HTTPExecuter httpExecuter
     @Shared
     DesignTimeArtifact designTimeArtifact
+    @Shared
+    CSRFToken csrfToken
 
     def setupSpec() {
         def host = System.getProperty('cpi.host.tmn')
         def clientid = System.getProperty('cpi.oauth.clientid')
         def clientsecret = System.getProperty('cpi.oauth.clientsecret')
         def oauthHost = System.getProperty('cpi.host.oauth')
-        def token = OAuthToken.get('https', oauthHost, 443, clientid, clientsecret)
+        def oauthTokenPath = System.getProperty('cpi.host.oauthpath')
+        def token = OAuthToken.get('https', oauthHost, 443, clientid, clientsecret, oauthTokenPath)
 
         httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, token)
         designTimeArtifact = new DesignTimeArtifact(httpExecuter)
+        csrfToken = new CSRFToken(httpExecuter)
     }
 
     def 'Upload'() {
@@ -33,7 +37,7 @@ class DesignTimeArtifactOAuthIT extends Specification {
         def iFlowContent = baos.toByteArray().encodeBase64().toString()
 
         when:
-        def responseBody = designTimeArtifact.upload(iFlowContent, 'FlashPipeUpload', 'FlashPipe Upload', 'FlashPipeIntegrationTest', null)
+        def responseBody = designTimeArtifact.upload(iFlowContent, 'FlashPipeUpload', 'FlashPipe Upload', 'FlashPipeIntegrationTest', csrfToken)
 
         then:
         def root = new JsonSlurper().parseText(responseBody)
@@ -65,7 +69,7 @@ class DesignTimeArtifactOAuthIT extends Specification {
         given:
 
         when:
-        designTimeArtifact.delete('FlashPipeUpload', null)
+        designTimeArtifact.delete('FlashPipeUpload', csrfToken)
 
         then:
         noExceptionThrown()
@@ -78,7 +82,7 @@ class DesignTimeArtifactOAuthIT extends Specification {
         def iFlowContent = baos.toByteArray().encodeBase64().toString()
 
         when:
-        designTimeArtifact.update(iFlowContent, 'FlashPipe_Update', 'FlashPipe Update', 'FlashPipeIntegrationTest', null)
+        designTimeArtifact.update(iFlowContent, 'FlashPipe_Update', 'FlashPipe Update', 'FlashPipeIntegrationTest', csrfToken)
 
         then:
         noExceptionThrown()
@@ -86,7 +90,7 @@ class DesignTimeArtifactOAuthIT extends Specification {
 
     def 'Deploy'() {
         when:
-        designTimeArtifact.deploy('FlashPipe_Update', null)
+        designTimeArtifact.deploy('FlashPipe_Update', csrfToken)
 
         then:
         noExceptionThrown()

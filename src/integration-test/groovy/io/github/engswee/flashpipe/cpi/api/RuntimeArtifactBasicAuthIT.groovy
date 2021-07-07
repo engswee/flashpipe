@@ -5,6 +5,8 @@ import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
 import spock.lang.Shared
 import spock.lang.Specification
 
+import java.util.concurrent.TimeUnit
+
 class RuntimeArtifactBasicAuthIT extends Specification {
 
     @Shared
@@ -37,6 +39,7 @@ class RuntimeArtifactBasicAuthIT extends Specification {
 
         when:
         designTimeArtifact.deploy('FlashPipe_Update', csrfToken)
+        TimeUnit.SECONDS.sleep(5)
 
         then:
         noExceptionThrown()
