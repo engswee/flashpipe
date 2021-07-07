@@ -26,7 +26,7 @@ Mandatory environment variables:
     HOST_TMN - Base URL for tenant management node of Cloud Integration (excluding the https:// prefix)
     BASIC_USERID - User ID (required when using Basic Authentication)
     BASIC_PASSWORD - Password (required when using Basic Authentication)
-    HOST_OAUTH - Host name for OAuth authentication server (required when using OAuth Authentication, excluding the https:// prefix) 
+    HOST_OAUTH - Host name for OAuth authentication server (required when using OAuth Authentication, excluding the https:// prefix)
     OAUTH_CLIENTID - OAuth Client ID (required when using OAuth Authentication)
     OAUTH_CLIENTSECRET - OAuth Client Secret (required when using OAuth Authentication)
     IFLOW_ID - ID of Integration Flow
@@ -39,17 +39,35 @@ Optional environment variables:
     PARAM_FILE - Use to a different parameters.prop file instead of the default in src/main/resources/
     MANIFEST_FILE - Use to a different MANIFEST.MF file instead of the default in META-INF/
     WORK_DIR - Working directory for in-transit files (default is /tmp if not set)
+    HOST_OAUTH_PATH - Specific path for OAuth token server, e.g. example /oauth2/api/v1/token for Neo environments (default is /oauth/token if not set for CF environments)
 
 NOTE: Encapsulate values in double quotes ("") if there are space characters in them
 ```
 
-#### Example
+#### Example (OAuth for Cloud Foundry)
 ```bash
 /usr/bin/update_designtime_artifact.sh
 
 Environment variables set before call:
     HOST_TMN: ***.hana.ondemand.com
     HOST_OAUTH: ***.authentication.<region>.hana.ondemand.com
+    OAUTH_CLIENTID: <clientid>
+    OAUTH_CLIENTSECRET: <clientsecret>
+    IFLOW_ID: GroovyXMLTransformation
+    IFLOW_NAME: "Groovy XML Transformation"
+    PACKAGE_ID: FlashPipeDemo
+    PACKAGE_NAME: "FlashPipe Demo"
+    GIT_SRC_DIR: "FlashPipe Demo/Groovy XML Transformation"
+```
+
+#### Example (OAuth for Neo)
+```bash
+/usr/bin/update_designtime_artifact.sh
+
+Environment variables set before call:
+    HOST_TMN: ***.hana.ondemand.com
+    HOST_OAUTH: oauthasservices-<tenantid>.<region>.hana.ondemand.com
+    HOST_OAUTH_PATH: /oauth2/api/v1/token
     OAUTH_CLIENTID: <clientid>
     OAUTH_CLIENTSECRET: <clientsecret>
     IFLOW_ID: GroovyXMLTransformation
@@ -79,15 +97,29 @@ Mandatory environment variables:
 Optional environment variables:
     DELAY_LENGTH - Delay (in seconds) between each check of IFlow deployment status (default to 30 if not set)
     MAX_CHECK_LIMIT - Max number of times to check for IFlow deployment status (default to 10 if not set)
+    HOST_OAUTH_PATH - Specific path for OAuth token server, e.g. example /oauth2/api/v1/token for Neo environments (default is /oauth/token if not set for CF environments)
 ```
 
-#### Example
+#### Example (OAuth for Cloud Foundry)
 ```bash
 /usr/bin/deploy_runtime_artifact.sh
 
 Environment variables set before call:
     HOST_TMN: ***.hana.ondemand.com
     HOST_OAUTH: ***.authentication.<region>.hana.ondemand.com
+    OAUTH_CLIENTID: <clientid>
+    OAUTH_CLIENTSECRET: <clientsecret>
+    IFLOW_ID: GroovyXMLTransformation
+```
+
+#### Example (OAuth for Neo)
+```bash
+/usr/bin/deploy_runtime_artifact.sh
+
+Environment variables set before call:
+    HOST_TMN: ***.hana.ondemand.com
+    HOST_OAUTH: oauthasservices-<tenantid>.<region>.hana.ondemand.com
+    HOST_OAUTH_PATH: /oauth2/api/v1/token
     OAUTH_CLIENTID: <clientid>
     OAUTH_CLIENTSECRET: <clientsecret>
     IFLOW_ID: GroovyXMLTransformation
@@ -118,15 +150,30 @@ Optional environment variables:
     DIR_NAMING_TYPE - Name IFlow directories by ID or Name. Allowed values: ID (default), NAME
     COMMIT_MESSAGE - Message used in commit
     WORK_DIR - Working directory for in-transit files (default is /tmp if not set)
+    HOST_OAUTH_PATH - Specific path for OAuth token server, e.g. example /oauth2/api/v1/token for Neo environments (default is /oauth/token if not set for CF environments)
 ```
 
-#### Example
+#### Example (OAuth for Cloud Foundry)
 ```bash
 /usr/bin/sync_to_git_repository.sh
 
 Environment variables set before call:
     HOST_TMN: ***.hana.ondemand.com
     HOST_OAUTH: ***.authentication.<region>.hana.ondemand.com
+    OAUTH_CLIENTID: <clientid>
+    OAUTH_CLIENTSECRET: <clientsecret>
+    PACKAGE_ID: FlashPipeDemo
+    GIT_SRC_DIR: "FlashPipe Demo"
+```
+
+#### Example (OAuth for Neo)
+```bash
+/usr/bin/sync_to_git_repository.sh
+
+Environment variables set before call:
+    HOST_TMN: ***.hana.ondemand.com
+    HOST_OAUTH: oauthasservices-<tenantid>.<region>.hana.ondemand.com
+    HOST_OAUTH_PATH: /oauth2/api/v1/token
     OAUTH_CLIENTID: <clientid>
     OAUTH_CLIENTSECRET: <clientsecret>
     PACKAGE_ID: FlashPipeDemo

@@ -25,7 +25,7 @@ Create the following repository secrets.
 
 **OAuth Authentication**
 
-Create the following repository secrets.
+Create the following repository secrets. Refer to [OAuth client setup page](oauth_client.md) for details on setting up the OAuth client for usage with _FlashPipe_.
 1. `DEV_CLIENT_ID` - OAuth client ID
 2. `DEV_CLIENT_SECRET` - OAuth client secret
    ![OAuth Secrets](images/setup/github-actions/05c_oauth_secrets.png)
@@ -38,7 +38,7 @@ In the GitHub repository, go to `Actions` to create new workflow.
 
 Skip the templates and choose `set up a workflow yourself`.
 
-Provide a suitable name for the workflow file e.g. `sync-any-iflows.yml` and replace the default content with the code sample below. Replace the tenant and authentication details accordingly.
+Provide a suitable name for the workflow file e.g. `sync-any-iflows.yml` and replace the default content with the code sample below. Replace the tenant and authentication details accordingly (adjusting the OAuth token path on Neo environment where applicable).
 ![Sync Workflow](images/setup/git-sync/03b_sync_workflow.png)
 
 <script src="https://gist.github.com/engswee/04840c31790070a1ba419bf431b4f1a2.js"></script>
@@ -70,7 +70,7 @@ Click on the particular commit to review details of the changes.
 ### 6. [Optional] Create workflows for syncing specific content manually or on a periodic schedule
 Once the initial Git repository has been populated, additional workflows can be created to sync specific content. These can be executed on a periodic schedule or manually on an adhoc basis.
 
-Create a new workflow file in the `.github/workflow` directory. Populate the content with the code sample below. Replace the tenant and authentication details accordingly. Then, save and commit the file.
+Create a new workflow file in the `.github/workflow` directory. Populate the content with the code sample below. Replace the tenant and authentication details accordingly (adjusting the OAuth token path on Neo environment where applicable). Then, save and commit the file.
 <script src="https://gist.github.com/engswee/9a3a7e0b551f0b97ed95ff582e3cf2ba.js"></script>
 
 This workflow has been hardcoded with specific values for `GIT_SRC_DIR` and `PACKAGE_ID`. It also has two triggering events:

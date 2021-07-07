@@ -59,6 +59,7 @@ jobs:
           BASIC_USERID: $(dev-user) # When using Basic authentication
           BASIC_PASSWORD: $(dev-password) # When using Basic authentication
           HOST_OAUTH: $(dev-oauth-host) # When using OAuth authentication
+          HOST_OAUTH_PATH: <oauth_path> # Optional - set to /oauth2/api/v1/token for Neo environments
           OAUTH_CLIENTID: $(dev-client-id) # When using OAuth authentication
           OAUTH_CLIENTSECRET: $(dev-client-secret) # When using OAuth authentication
           IFLOW_ID: <iflow_id>
@@ -76,6 +77,7 @@ jobs:
           BASIC_USERID: $(dev-user) # When using Basic authentication
           BASIC_PASSWORD: $(dev-password) # When using Basic authentication
           HOST_OAUTH: $(dev-oauth-host) # When using OAuth authentication
+          HOST_OAUTH_PATH: <oauth_path> # Optional - set to /oauth2/api/v1/token for Neo environments
           OAUTH_CLIENTID: $(dev-client-id) # When using OAuth authentication
           OAUTH_CLIENTSECRET: $(dev-client-secret) # When using OAuth authentication
           IFLOW_ID: <iflow_id>
@@ -89,7 +91,7 @@ Where:
 
 **Note**: Environment variables are mapped to the script's execution environment using the `env:` keyword.
 
-#### Example (using OAuth authentication)
+#### Example (using OAuth authentication for Cloud Foundry)
 
 ```yaml
 trigger:
@@ -155,7 +157,7 @@ Add the following three variables in the group.
 
 **OAuth Authentication**
 
-Add the following four variables in the group.
+Add the following four variables in the group. Refer to [OAuth client setup page](oauth_client.md) for details on setting up the OAuth client for usage with _FlashPipe_.
 1. `dev-host-tmn` - base URL for tenant management node of Cloud Integration (excluding the https:// prefix)
 2. `dev-oauth-host` - host name for OAuth authentication server
 3. `dev-client-id` - OAuth client ID

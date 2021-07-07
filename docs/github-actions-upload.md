@@ -40,7 +40,7 @@ Where:
 
 **Note**: Environment variables are mapped to the script's execution environment using the `env:` keyword. For variables that are dynamic expressions based on other variables, these needs to be stored into the `$GITHUB_ENV` variable prior to the script execution. An example shown above is `$GIT_SRC_DIR` which requires base path from `$GITHUB_WORKSPACE`.
 
-#### Example (using OAuth authentication)
+#### Example (using OAuth authentication for Cloud Foundry)
 <script src="https://gist.github.com/engswee/9de198d84650c08b7cdae4e7c08e1bcd.js"></script>
 
 ### 5. Create secrets in GitHub repository
@@ -58,7 +58,7 @@ Create the following repository secrets.
 
 **OAuth Authentication**
 
-Create the following repository secrets.
+Create the following repository secrets. Refer to [OAuth client setup page](oauth_client.md) for details on setting up the OAuth client for usage with _FlashPipe_.
 1. `DEV_CLIENT_ID` - OAuth client ID
 2. `DEV_CLIENT_SECRET` - OAuth client secret
    ![OAuth Secrets](images/setup/github-actions/05c_oauth_secrets.png)
