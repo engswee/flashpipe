@@ -19,7 +19,8 @@ abstract class APIExecuter {
         if (this.oauthTokenHost) {
             def oauthClientID = getMandatoryEnvVar('OAUTH_CLIENTID')
             def oauthClientSecret = getMandatoryEnvVar('OAUTH_CLIENTSECRET')
-            String oauthToken = OAuthToken.get('https', this.oauthTokenHost, 443, oauthClientID, oauthClientSecret)
+            def oauthTokenPath = System.getenv('HOST_OAUTH_PATH') ?: null
+            String oauthToken = OAuthToken.get('https', this.oauthTokenHost, 443, oauthClientID, oauthClientSecret, oauthTokenPath)
             this.httpExecuter = HTTPExecuterApacheImpl.newInstance('https', tenantMgmtHost, 443, oauthToken)
         } else {
             def basicAuthUser = getMandatoryEnvVar('BASIC_USERID')

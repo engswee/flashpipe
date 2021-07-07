@@ -45,7 +45,7 @@ class UpdateDesignTimeArtifact extends APIExecuter {
         def iFlowContent = baos.toByteArray().encodeBase64().toString()
 
         DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(this.httpExecuter)
-        CSRFToken csrfToken = this.oauthTokenHost ? null : new CSRFToken(this.httpExecuter)
+        CSRFToken csrfToken = new CSRFToken(this.httpExecuter)
         designTimeArtifact.update(iFlowContent, iFlowId, iFlowName, packageId, csrfToken)
         logger.info("IFlow ${iFlowId} updated")
     }

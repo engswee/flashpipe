@@ -21,7 +21,7 @@ class UpdateConfiguration extends APIExecuter {
         def paramFilePath = getMandatoryEnvVar('PARAM_FILE')
 
         Configuration configuration = new Configuration(this.httpExecuter)
-        CSRFToken csrfToken = this.oauthTokenHost ? null : new CSRFToken(this.httpExecuter)
+        CSRFToken csrfToken = new CSRFToken(this.httpExecuter)
 
         // Get configured parameters from tenant
         logger.info('Getting current configured parameters of IFlow')

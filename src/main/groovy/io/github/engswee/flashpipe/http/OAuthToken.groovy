@@ -10,9 +10,10 @@ class OAuthToken {
 
     static Logger logger = LoggerFactory.getLogger(OAuthToken)
 
-    static String get(String scheme, String host, int port, String user, String password) {
+    static String get(String scheme, String host, int port, String user, String password, String path) {
         def instance = new OAuthToken(scheme, host, port, user, password)
-        return instance.getToken()
+        String oauthTokenPath = path ?: '/oauth/token'
+        return instance.getToken(oauthTokenPath)
     }
 
     private OAuthToken() {
@@ -22,9 +23,9 @@ class OAuthToken {
         this.httpExecuter = HTTPExecuterApacheImpl.newInstance(scheme, host, port, user, password)
     }
 
-    private String getToken() {
+    private String getToken(String path) {
         logger.debug('Get OAuth token')
-        this.httpExecuter.executeRequest('/oauth/token', [:], ['grant_type': 'client_credentials'])
+        this.httpExecuter.executeRequest('POST', path, [:], ['grant_type': 'client_credentials'])
         def code = this.httpExecuter.getResponseCode()
         if (code == 200) {
             def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())

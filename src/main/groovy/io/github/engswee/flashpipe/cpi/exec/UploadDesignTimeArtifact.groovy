@@ -24,7 +24,7 @@ class UploadDesignTimeArtifact extends APIExecuter {
         def packageId = getMandatoryEnvVar('PACKAGE_ID')
         def packageName = getMandatoryEnvVar('PACKAGE_NAME')
 
-        CSRFToken csrfToken = this.oauthTokenHost ? null : new CSRFToken(this.httpExecuter)
+        CSRFToken csrfToken = new CSRFToken(this.httpExecuter)
 
         IntegrationPackage integrationPackage = new IntegrationPackage(this.httpExecuter)
         if (!integrationPackage.exists(packageId)) {

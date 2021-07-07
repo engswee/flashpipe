@@ -58,7 +58,7 @@ class DownloadIntegrationPackageContent extends APIExecuter {
         // Process through the artifacts
         for (Map artifact : filteredArtifacts) {
             println '---------------------------------------------------------------------------------'
-            logger.info("Begin processing for artifact ${artifact.id}")
+            logger.info("📢 Begin processing for artifact ${artifact.id}")
             // Check if artifact is in draft version
             if (artifact.isDraft) {
                 switch (draftHandling.toUpperCase()) {
