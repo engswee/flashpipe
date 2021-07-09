@@ -79,7 +79,7 @@ elif [[ "$DEBUG" == "ALL" ]]; then
 fi
 
 if [ -z "$COMMIT_MESSAGE" ]; then
-  COMMIT_MESSAGE="Sync repo from tenant"
+  export COMMIT_MESSAGE="Sync repo from tenant"
 fi
 
 if [ -z "$CLASSPATH_DIR" ]; then
@@ -87,7 +87,7 @@ if [ -z "$CLASSPATH_DIR" ]; then
 else
   echo "[INFO] Using $CLASSPATH_DIR as classpath base directory "
   echo "[INFO] Setting WORKING_CLASSPATH environment variable"
-  FLASHPIPE_VERSION=2.2.0
+  FLASHPIPE_VERSION=2.2.1
   export WORKING_CLASSPATH=$CLASSPATH_DIR/repository/io/github/engswee/flashpipe/$FLASHPIPE_VERSION/flashpipe-$FLASHPIPE_VERSION.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/codehaus/groovy/groovy-all/2.4.12/groovy-all-2.4.12.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/apache/httpcomponents/core5/httpcore5/5.0.4/httpcore5-5.0.4.jar

@@ -1,12 +1,18 @@
 # Release Notes
 
+## 2.2.1 (Released 9 July 2021)
+
+---
+
+- Fix bug related to recursive directory creation during syncing of IFlows 
+- Add validation to certain input environment variables to check that they do not contain secrets
+
 ## 2.2.0 (Released 7 July 2021)
 
 ---
 
 - Added new optional environment variable `HOST_OAUTH_PATH` to handle OAuth authentication with Neo environments 
 - [OAuth client setup page](oauth_client.md) updated to include steps for Neo environment
-
 
 ## 2.1.1 (Released 1 July 2021)
 
