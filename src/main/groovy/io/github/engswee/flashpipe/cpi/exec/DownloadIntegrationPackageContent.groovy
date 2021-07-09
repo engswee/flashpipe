@@ -25,6 +25,11 @@ class DownloadIntegrationPackageContent extends APIExecuter {
         def packageId = getMandatoryEnvVar('PACKAGE_ID')
         def workDir = getMandatoryEnvVar('WORK_DIR')
         def gitSrcDir = getMandatoryEnvVar('GIT_SRC_DIR')
+        
+        // Check that input environment variables do not have any of the secrets in their values
+        validateInputContainsNoSecrets('GIT_SRC_DIR')
+        validateInputContainsNoSecrets('COMMIT_MESSAGE')
+        
         String dirNamingType = (System.getenv('DIR_NAMING_TYPE') ?: 'ID')
         if (!['ID', 'NAME'].contains(dirNamingType.toUpperCase())) {
             logger.error("🛑 Value ${dirNamingType} for environment variable DIR_NAMING_TYPE not in list of accepted values: ID or NAME")
@@ -127,7 +132,7 @@ class DownloadIntegrationPackageContent extends APIExecuter {
             } else {
                 // (2) If IFlow does not exist in Git, then add it
                 if (!new File(gitSrcDir).exists()) {
-                    new File(gitSrcDir).mkdir()
+                    new File(gitSrcDir).mkdirs()
                 }
                 logger.info("🏆 Artifact ${artifact.id} does not exist, and will be added to Git")
                 copyDirectory("${workDir}/download/${directoryName}", "${gitSrcDir}/${directoryName}")

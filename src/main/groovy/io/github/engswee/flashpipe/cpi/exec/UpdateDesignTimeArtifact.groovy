@@ -23,6 +23,12 @@ class UpdateDesignTimeArtifact extends APIExecuter {
         def currentiFlowVersion = getMandatoryEnvVar('CURR_IFLOW_VER')
         def packageId = getMandatoryEnvVar('PACKAGE_ID')
 
+        // Check that input environment variables do not have any of the secrets in their values
+        validateInputContainsNoSecrets('IFLOW_ID')
+        validateInputContainsNoSecrets('IFLOW_NAME')
+        validateInputContainsNoSecrets('PACKAGE_ID')
+        validateInputContainsNoSecrets('PACKAGE_NAME')
+
         // Get current iFlow Version and bump up the number before upload
         logger.info("Current IFlow Version in Tenant - ${currentiFlowVersion}")
         def matcher = (currentiFlowVersion =~ /(\S+\.)(\d+)\s*/)

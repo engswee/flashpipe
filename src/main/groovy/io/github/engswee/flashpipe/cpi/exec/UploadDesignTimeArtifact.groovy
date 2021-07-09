@@ -24,6 +24,12 @@ class UploadDesignTimeArtifact extends APIExecuter {
         def packageId = getMandatoryEnvVar('PACKAGE_ID')
         def packageName = getMandatoryEnvVar('PACKAGE_NAME')
 
+        // Check that input environment variables do not have any of the secrets in their values
+        validateInputContainsNoSecrets('IFLOW_ID')
+        validateInputContainsNoSecrets('IFLOW_NAME')
+        validateInputContainsNoSecrets('PACKAGE_ID')
+        validateInputContainsNoSecrets('PACKAGE_NAME')
+
         CSRFToken csrfToken = new CSRFToken(this.httpExecuter)
 
         IntegrationPackage integrationPackage = new IntegrationPackage(this.httpExecuter)

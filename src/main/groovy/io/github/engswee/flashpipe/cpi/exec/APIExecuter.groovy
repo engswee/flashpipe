@@ -37,6 +37,25 @@ abstract class APIExecuter {
         }
         return envVar
     }
+    
+    protected void validateInputContainsNoSecrets(String envVarName) {
+        String envVar = System.getenv(envVarName)
+        if (envVar) {
+            checkSecretNotInVariable(envVarName, 'OAUTH_CLIENTID')
+            checkSecretNotInVariable(envVarName, 'OAUTH_CLIENTSECRET')
+            checkSecretNotInVariable(envVarName, 'BASIC_USERID')
+            checkSecretNotInVariable(envVarName, 'BASIC_PASSWORD')
+        }
+    }
+    
+    protected void checkSecretNotInVariable(String inputVarName, String secretVarName) {
+        String inputValue = System.getenv(inputVarName)
+        String secretValue = System.getenv(secretVarName)
+        if (secretValue && inputValue.contains(secretValue)) {
+            logger.error("🛑 Security risk! Environment variable ${inputVarName} contains value of secret variable ${secretVarName}")
+            System.exit(1)
+        }
+    }
 
     abstract void execute()
 }
