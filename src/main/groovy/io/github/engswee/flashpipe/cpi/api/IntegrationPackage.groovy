@@ -107,4 +107,29 @@ class IntegrationPackage {
 
         return this.httpExecuter.getResponseBody().getText('UTF-8')
     }
+
+    boolean isReadOnly(String packageId) {
+        logger.info("Checking if package is marked as read only")
+        this.httpExecuter.executeRequest("/api/v1/IntegrationPackages('${packageId}')", ['Accept': 'application/json'])
+        def code = this.httpExecuter.getResponseCode()
+        if (code == 200) {
+            def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
+            return (root.d.Mode.toString() == 'READ_ONLY')
+        } else {
+            logger.error("Error checking mode of Integration Package ${packageId}")
+            return false
+        }
+    }
+
+    List getPackagesList(){
+        // Get the list of packages of the current tenant
+        logger.info("Getting the list of packages of the current tenant")
+        this.httpExecuter.executeRequest("/api/v1/IntegrationPackages", ['Accept': 'application/json'])
+        def code = this.httpExecuter.getResponseCode()
+        if (code == 200) { 
+            def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
+            return root.d.results.collect { it }
+        } else
+            this.httpExecuter.logError('Getting the list of packages of the current tenant')
+    }
 }

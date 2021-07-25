@@ -13,11 +13,12 @@
 # OAUTH_CLIENTSECRET - OAuth Client Secret (required when using OAuth Authentication)
 #
 # 2. Mandatory variables:
-# IFLOW_ID - ID of Integration Flow
+# GIT_SRC_DIR - Base directory containing contents of Integration Flow(s)
 #
 # 3. Optional variables:
-# DELAY_LENGTH - Delay (in seconds) between each check of IFlow deployment status (default to 30 if not set)
-# MAX_CHECK_LIMIT - Max number of times to check for IFlow deployment status (default to 10 if not set)
+# GIT_BRANCH - Branch name to be used for the snapshot -TODO-
+# COMMIT_MESSAGE - Message used in commit
+
 
 function check_mandatory_env_var() {
   local env_var_name=$1
@@ -28,6 +29,26 @@ function check_mandatory_env_var() {
   fi
 }
 
+function exec_java_command() {
+  local return_code
+  if [ -z "$LOG4J_FILE" ]; then
+    echo "[INFO] Executing command: java -classpath $WORKING_CLASSPATH" "$@"
+    java -classpath "$WORKING_CLASSPATH" "$@"
+  else
+    echo "[INFO] Executing command: java -Dlog4j.configurationFile=$LOG4J_FILE -classpath $WORKING_CLASSPATH" "$@"
+    java -Dlog4j.configurationFile="$LOG4J_FILE" -classpath "$WORKING_CLASSPATH" "$@"
+  fi
+  return_code=$?
+  if [[ "$return_code" == "1" ]]; then
+    echo "[ERROR] 🛑 Execution of java command failed"
+    exit 1
+  fi
+  return $return_code
+}
+
+# ----------------------------------------------------------------
+# Check presence of environment variables
+# ----------------------------------------------------------------
 check_mandatory_env_var "HOST_TMN" "$HOST_TMN"
 if [ -z "$HOST_OAUTH" ]; then
   # Basic Auth
@@ -38,7 +59,11 @@ else
   check_mandatory_env_var "OAUTH_CLIENTID" "$OAUTH_CLIENTID"
   check_mandatory_env_var "OAUTH_CLIENTSECRET" "$OAUTH_CLIENTSECRET"
 fi
-check_mandatory_env_var "IFLOW_ID" "$IFLOW_ID"
+check_mandatory_env_var "GIT_SRC_DIR" "$GIT_SRC_DIR"
+if [ -z "$WORK_DIR" ]; then
+  export WORK_DIR="/tmp"
+fi
+NOW=$(date +"Date: %Y-%m-%d %H:%M:%S Timestamp: %s")
 
 # Set debug log4j config
 if [[ "$DEBUG" == "FLASHPIPE" ]]; then
@@ -47,6 +72,10 @@ elif [[ "$DEBUG" == "APACHE" ]]; then
   LOG4J_FILE='/tmp/log4j2-config/log4j2-debug-apache.xml'
 elif [[ "$DEBUG" == "ALL" ]]; then
   LOG4J_FILE='/tmp/log4j2-config/log4j2-debug-all.xml'
+fi
+
+if [ -z "$COMMIT_MESSAGE" ]; then
+  export COMMIT_MESSAGE="Tenant snapshot of $NOW" #-TODO- Timezone should be included
 fi
 
 if [ -z "$CLASSPATH_DIR" ]; then
@@ -67,11 +96,24 @@ else
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/zeroturnaround/zt-zip/1.14/zt-zip-1.14.jar
 fi
 
-echo "[INFO] Deploying design time IFlow $IFLOW_ID to tenant runtime"
-if [ -z "$LOG4J_FILE" ]; then
-  echo "[INFO] Executing command: java -classpath $WORKING_CLASSPATH io.github.engswee.flashpipe.cpi.exec.DeployDesignTimeArtifact"
-  java -classpath "$WORKING_CLASSPATH" io.github.engswee.flashpipe.cpi.exec.DeployDesignTimeArtifact
+# Git config
+git config --global core.autocrlf input
+git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+git config --local user.name "github-actions[bot]"
+
+exec_java_command io.github.engswee.flashpipe.cpi.exec.GetTenantSnapshot
+
+# Commit
+#-TODO-: Add Git branch support
+#if [ ! -z "$GIT_BRANCH" ]; then
+#  echo "[INFO] Using $GIT_BRANCH as branch"
+#  git checkout -b "$GIT_BRANCH"
+#fi
+echo "[INFO] Adding all files for Git tracking"
+git add --all --verbose
+echo "[INFO] Trying to commit changes"
+if git commit -m "$COMMIT_MESSAGE" -a --verbose; then
+  echo "[INFO] 🏆 Changes committed"
 else
-  echo "[INFO] Executing command: java -Dlog4j.configurationFile=$LOG4J_FILE -classpath $WORKING_CLASSPATH io.github.engswee.flashpipe.cpi.exec.DeployDesignTimeArtifact"
-  java -Dlog4j.configurationFile="$LOG4J_FILE" -classpath "$WORKING_CLASSPATH" io.github.engswee.flashpipe.cpi.exec.DeployDesignTimeArtifact
+  echo "[INFO] 🏆 No changes to commit"
 fi
