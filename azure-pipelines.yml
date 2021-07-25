@@ -32,7 +32,7 @@ steps:
     command: 'buildAndPush'
     Dockerfile: 'src/main/docker/lite.Dockerfile'
     buildContext: '.'
-    tags: 2.2.1-lite  # FLASHPIPE_VERSION
+    tags: 2.2.2-lite  # FLASHPIPE_VERSION
 # Full version with Maven
 - task: Docker@2
   inputs:
@@ -41,4 +41,4 @@ steps:
     command: 'buildAndPush'
     Dockerfile: 'src/main/docker/Dockerfile'
     buildContext: '.'
-    tags: 2.2.1  # FLASHPIPE_VERSION
+    tags: 2.2.2  # FLASHPIPE_VERSION

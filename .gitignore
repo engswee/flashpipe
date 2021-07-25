@@ -27,10 +27,14 @@ bin/
 log/
 out/
 target/
+builder.sh
 
 # IntelliJ IDEA files
 .idea/
 *.iml
+
+# VS Code files
+.vscode/
 
 # Eclipse files
 .project

@@ -51,6 +51,37 @@ function exec_java_command() {
 }
 
 # ----------------------------------------------------------------
+# Parse arguments, overriding existing environment variables
+# ----------------------------------------------------------------
+echo "[INFO] parsing arguments"
+for ARGUMENT in "$@"
+do  
+    KEY=$(echo $ARGUMENT | cut -f1 -d=)
+    VALUE=$(echo $ARGUMENT | cut -f2 -d=)   
+
+    case "$KEY" in
+            HOST_TMN)        HOST_TMN=${VALUE} ;;
+            BASIC_USERID)    BASIC_USERID=${VALUE} ;;     
+            BASIC_PASSWORD)  BASIC_PASSWORD=${VALUE} ;;
+            HOST_OAUTH)      HOST_OAUTH=${VALUE} ;;
+            HOST_OAUTH_PATH) HOST_OAUTH_PATH=${VALUE} ;;
+            OAUTH_CLIENTID)  OAUTH_CLIENTID=${VALUE} ;;
+            OAUTH_CLIENTSECRET) OAUTH_CLIENTSECRET=${VALUE} ;;           
+            LOG4J_FILE)      LOG4J_FILE=${VALUE} ;;
+            PACKAGE_ID)      PACKAGE_ID=${VALUE} ;;
+            GIT_SRC_DIR)     GIT_SRC_DIR=${VALUE} ;;
+            DRAFT_HANDLING)  DRAFT_HANDLING=${VALUE} ;;
+            INCLUDE_IDS)     INCLUDE_IDS=${VALUE} ;;
+            EXCLUDE_IDS)     EXCLUDE_IDS=${VALUE} ;;
+            WORK_DIR)        WORK_DIR=${VALUE} ;;
+            DIR_NAMING_TYPE) DIR_NAMING_TYPE=${VALUE} ;;
+            COMMIT_MESSAGE)  COMMIT_MESSAGE=${VALUE} ;;
+            DO_NOT_COMMIT)   DO_NOT_COMMIT=${VALUE} ;;
+            *)               echo "[INFO] Unknown argument: $ARGUMENT, ignoring"
+    esac    
+done
+
+# ----------------------------------------------------------------
 # Check presence of environment variables
 # ----------------------------------------------------------------
 check_mandatory_env_var "HOST_TMN" "$HOST_TMN"
@@ -67,6 +98,9 @@ check_mandatory_env_var "PACKAGE_ID" "$PACKAGE_ID"
 check_mandatory_env_var "GIT_SRC_DIR" "$GIT_SRC_DIR"
 if [ -z "$WORK_DIR" ]; then
   export WORK_DIR="/tmp"
+fi
+if [ -z "$DO_NOT_COMMIT" ]; then
+  export DO_NOT_COMMIT=0
 fi
 
 # Set debug log4j config
@@ -87,7 +121,7 @@ if [ -z "$CLASSPATH_DIR" ]; then
 else
   echo "[INFO] Using $CLASSPATH_DIR as classpath base directory "
   echo "[INFO] Setting WORKING_CLASSPATH environment variable"
-  FLASHPIPE_VERSION=2.2.1
+  FLASHPIPE_VERSION=2.2.2
   export WORKING_CLASSPATH=$CLASSPATH_DIR/repository/io/github/engswee/flashpipe/$FLASHPIPE_VERSION/flashpipe-$FLASHPIPE_VERSION.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/codehaus/groovy/groovy-all/2.4.12/groovy-all-2.4.12.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/apache/httpcomponents/core5/httpcore5/5.0.4/httpcore5-5.0.4.jar
@@ -100,16 +134,24 @@ else
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/zeroturnaround/zt-zip/1.14/zt-zip-1.14.jar
 fi
 
+# Git config
+echo "[INFO] Configuring git"
+git config --global core.autocrlf input
+git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+git config --local user.name "github-actions[bot]"
+
 exec_java_command io.github.engswee.flashpipe.cpi.exec.DownloadIntegrationPackageContent
 
 # Commit
-git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-git config --local user.name "github-actions[bot]"
-echo "[INFO] Adding all files for Git tracking"
-git add --all --verbose
-echo "[INFO] Trying to commit changes"
-if git commit -m "$COMMIT_MESSAGE" -a --verbose; then
-  echo "[INFO] 🏆 Changes committed"
+if [[ "$DO_NOT_COMMIT" != "1" ]]; then
+  echo "[INFO] Adding all files for Git tracking"
+  git add --all --verbose
+  echo "[INFO] Trying to commit changes"
+  if git commit -m "$COMMIT_MESSAGE" -a --verbose; then
+    echo "[INFO] 🏆 Changes committed"
+  else
+    echo "[INFO] 🏆 No changes to commit"
+  fi
 else
-  echo "[INFO] 🏆 No changes to commit"
+  echo "[INFO] 🏆 Changes not committed (DO_NOT_COMMIT=1)"
 fi

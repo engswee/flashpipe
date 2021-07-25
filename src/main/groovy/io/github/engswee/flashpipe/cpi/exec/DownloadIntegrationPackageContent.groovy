@@ -50,13 +50,19 @@ class DownloadIntegrationPackageContent extends APIExecuter {
         // Get all design time artifacts of package
         logger.info("Getting artifacts in integration package ${packageId}")
         IntegrationPackage integrationPackage = new IntegrationPackage(this.httpExecuter)
+        // Verify the package is downloabable
+        if (integrationPackage.isReadOnly(packageId)) {
+            logger.info("⚠️ Package ${packageId} is not available for download, gracefully aborting")
+            System.exit(0)
+        }
+
         List artifacts = integrationPackage.getIFlowsWithDraftState(packageId)
         DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(this.httpExecuter)
 
         // Create temp directories in working dir
-        new File("${workDir}/download").mkdir()
-        new File("${workDir}/from_git").mkdir()
-        new File("${workDir}/from_tenant").mkdir()
+        new File("${workDir}/download").mkdirs()
+        new File("${workDir}/from_git").mkdirs()
+        new File("${workDir}/from_tenant").mkdirs()
 
         List filteredArtifacts = filterArtifacts(artifacts, includedIds, excludeIds)
 
