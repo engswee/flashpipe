@@ -10,7 +10,7 @@ Create/edit design time artifacts | `WebToolingWorkspace.Write`, `WebToolingWork
 Configure artifacts | `WebTooling.IntegrationFlowConfigure` | `WorkspacePackagesConfigure`
 Deploy artifacts to runtime | `NodeManager.deploycontent`, `GenerationAndBuild.generationandbuildcontent` | `WorkspaceArtifactsDeploy`
 Monitor runtime artifacts | `IntegrationOperationServer.read`, `NodeManager.read` | `MonitoringDataRead`
-Read content protected by Access Policies |`AccessPoliciesArtifacts.AccessAll`|`AccessAllAccessPoliciesArtifacts`
+Read content protected by Access Policies (Optional) |`AccessPoliciesArtifacts.AccessAll`|`AccessAllAccessPoliciesArtifacts`
 
 ## OAuth Client setup
 - [OAuth Client on Cloud Foundry](#CF)
