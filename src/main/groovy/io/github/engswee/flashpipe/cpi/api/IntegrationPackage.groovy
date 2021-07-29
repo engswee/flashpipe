@@ -57,7 +57,7 @@ class IntegrationPackage {
         if (code == 200) {
             return true
         } else {
-            def responseBody = this.httpExecuter.getResponseBody().getText('UTF8')
+            def responseBody = this.httpExecuter.getResponseBody().getText('UTF-8')
             if (code == 404) {
                 def root = new JsonSlurper().parseText(responseBody)
                 if (root.error.message.value == 'Requested entity could not be found.') {
