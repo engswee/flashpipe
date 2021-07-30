@@ -20,6 +20,9 @@ automating time-consuming manual tasks.
 
 For details on using _FlashPipe_, visit the [GitHub Pages documentation site](https://engswee.github.io/flashpipe/).
 
+### Versioning
+[SemVer](https://semver.org/) is used for versioning.
+
 ### Contributing
 
 Contributions from the community are welcome.
