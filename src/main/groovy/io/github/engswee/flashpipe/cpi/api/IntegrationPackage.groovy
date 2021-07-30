@@ -64,7 +64,7 @@ class IntegrationPackage {
                     return false
                 }
             }
-            this.httpExecuter.logError('Get IntegrationPackages')
+            this.httpExecuter.logError('Get IntegrationPackages by ID')
         }
     }
 
@@ -115,21 +115,19 @@ class IntegrationPackage {
         if (code == 200) {
             def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
             return (root.d.Mode.toString() == 'READ_ONLY')
-        } else {
-            logger.error("Error checking mode of Integration Package ${packageId}")
-            return false
-        }
+        } else
+            this.httpExecuter.logError('Get IntegrationPackages by ID')
     }
 
-    List getPackagesList(){
+    List getPackagesList() {
         // Get the list of packages of the current tenant
-        logger.info("Getting the list of packages of the current tenant")
+        logger.info("Getting the list of IntegrationPackages")
         this.httpExecuter.executeRequest("/api/v1/IntegrationPackages", ['Accept': 'application/json'])
         def code = this.httpExecuter.getResponseCode()
-        if (code == 200) { 
+        if (code == 200) {
             def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
             return root.d.results.collect { it }
         } else
-            this.httpExecuter.logError('Getting the list of packages of the current tenant')
+            this.httpExecuter.logError('Get IntegrationPackages list')
     }
 }
