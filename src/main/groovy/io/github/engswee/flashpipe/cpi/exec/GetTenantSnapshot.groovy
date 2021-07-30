@@ -25,6 +25,12 @@ class GetTenantSnapshot extends APIExecuter {
         validateInputContainsNoSecrets('GIT_BRANCH') //-TODO-: Add Git branch support
         validateInputContainsNoSecrets('COMMIT_MESSAGE')
 
+        String draftHandling = (System.getenv('DRAFT_HANDLING') ?: 'SKIP')
+        if (!['SKIP', 'ADD', 'ERROR'].contains(draftHandling.toUpperCase())) {
+            logger.error("🛑 Value ${draftHandling} for environment variable DRAFT_HANDLING not in list of accepted values: SKIP, ADD or ERROR")
+            System.exit(1)
+        }
+
         println '---------------------------------------------------------------------------------'
         logger.info("📢 Begin taking a snapshot of the tenant")
 
@@ -44,7 +50,7 @@ class GetTenantSnapshot extends APIExecuter {
             println '---------------------------------------------------------------------------------'
             logger.info("Processing package ${index}/${packages.size()} - ID: ${packageId}")
             try {
-                packageSynchroniser.sync(packageId, "${workDir}/${packageId}", "${gitSrcDir}/${packageId}", [], [], 'SKIP', 'ID')
+                packageSynchroniser.sync(packageId, "${workDir}/${packageId}", "${gitSrcDir}/${packageId}", [], [], draftHandling, 'ID')
             } catch (UtilException ignored) {
                 logger.error("🛑 Error occurred when processing package ${packageId}")
                 System.exit(1)
