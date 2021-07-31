@@ -17,6 +17,7 @@
 #
 # 3. Optional variables:
 # GIT_BRANCH - Branch name to be used for the snapshot -TODO-
+# DRAFT_HANDLING - Handling when IFlow is in draft version
 # COMMIT_MESSAGE - Message used in commit
 
 
@@ -83,7 +84,7 @@ if [ -z "$CLASSPATH_DIR" ]; then
 else
   echo "[INFO] Using $CLASSPATH_DIR as classpath base directory "
   echo "[INFO] Setting WORKING_CLASSPATH environment variable"
-  FLASHPIPE_VERSION=2.2.2
+  FLASHPIPE_VERSION=2.3.0
   export WORKING_CLASSPATH=$CLASSPATH_DIR/repository/io/github/engswee/flashpipe/$FLASHPIPE_VERSION/flashpipe-$FLASHPIPE_VERSION.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/codehaus/groovy/groovy-all/2.4.12/groovy-all-2.4.12.jar
   export WORKING_CLASSPATH=$WORKING_CLASSPATH:$CLASSPATH_DIR/repository/org/apache/httpcomponents/core5/httpcore5/5.0.4/httpcore5-5.0.4.jar
