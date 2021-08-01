@@ -32,7 +32,7 @@ ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 COPY src/main/docker/settings-docker.xml /usr/share/maven/ref/
 
 # ----------------------------------------
-# 3 - Copy Maven POM and download all dependencies & plugin for offline execution
+# 3 - Copy Maven POM and download all dependencies & plugin for faster execution
 # ----------------------------------------
 COPY pom.xml /tmp/pom.xml
 RUN mvn -B -f /tmp/pom.xml -s /usr/share/maven/ref/settings-docker.xml dependency:go-offline \

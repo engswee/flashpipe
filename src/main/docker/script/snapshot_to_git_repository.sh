@@ -13,9 +13,10 @@
 # OAUTH_CLIENTSECRET - OAuth Client Secret (required when using OAuth Authentication)
 #
 # 2. Mandatory variables:
-# GIT_SRC_DIR - Base directory containing contents of Integration Flow(s)
+# GIT_SRC_DIR - Base directory containing contents of artifacts (grouped into packages)
 #
 # 3. Optional variables:
+# WORK_DIR - Working directory for in-transit files (default is /tmp if not set)
 # GIT_BRANCH - Branch name to be used for the snapshot -TODO-
 # DRAFT_HANDLING - Handling when IFlow is in draft version
 # COMMIT_MESSAGE - Message used in commit

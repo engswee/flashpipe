@@ -17,7 +17,7 @@ Add the contents to a new or existing Git repository.
 ### 3. Add Maven POM for unit testing [Optional]
 If you intend to execute unit testing using Maven, add a Maven POM file (`pom.xml`) to the Git repository with the appropriate content.
 
-_FlashPipe_'s Maven repository comes loaded with the following libraries (and any dependencies), so you can gain advantage of faster execution time by running in offline mode `mvn test -o`.
+_FlashPipe_'s Maven repository comes loaded with the following libraries (and any dependencies), so you can gain advantage of faster execution time without downloading from Maven Central.
 - org.codehaus.groovy:groovy-all:2.4.21
 - org.spockframework:spock-core:1.3-groovy-2.4
 - org.apache.camel:camel-core:2.24.2
@@ -70,6 +70,7 @@ jobs:
           PARAM_FILE: <param_file> # Optional
           MANIFEST_FILE: <manifest_file> # Optional
           WORK_DIR: <working_directory> # Optional
+          VERSION_HANDLING: <version_no_handling_during_update> # Optional
       # Deploy runtime
       - bash: /usr/bin/deploy_runtime_artifact.sh
         env:
@@ -106,7 +107,7 @@ variables:
 resources:
   containers:
     - container: flashpipe
-      image: engswee/flashpipe:2.2.1-lite
+      image: engswee/flashpipe:2.x.x-lite
 
 jobs:
   - job: build

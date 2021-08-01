@@ -1,5 +1,17 @@
 # Release Notes
 
+## 2.3.0 (Released 2 August 2021)
+
+---
+
+- 🔥🔥 New feature 🔥🔥 - _FlashPipe_ now enables [snapshot of tenant's integration packages & flows](github-actions-snapshot.md) to Git repository - courtesy of contribution from [Ariel Bravo Ayala](https://github.com/ambravo)
+  - New script `snapshot_to_git_repository.sh` can be configured in a pipeline for periodic or adhoc sync
+- New optional parameters for `update_designtime_artifact.sh`
+  - `VERSION_HANDLING` - handling of version number when updating IFlow (automatic increment patch no, or based on MANIFEST.MF file)
+- Introducing new rolling tags for Docker images (for non-production usage) - another brilliant suggestion from [Ariel Bravo Ayala](https://github.com/ambravo)
+  - `2.x.x` & `2.x.x-lite` - rolling tag that always refer to the latest release of major version 2
+  - `2.3.x` & `2.3.x-lite` - rolling tag that always refer to the latest release of minor version 2.3
+
 ## 2.2.1 (Released 9 July 2021)
 
 ---

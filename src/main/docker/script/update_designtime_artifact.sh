@@ -23,7 +23,7 @@
 # PARAM_FILE - Use to a different parameters.prop file instead of the default in src/main/resources/
 # MANIFEST_FILE - Use to a different MANIFEST.MF file instead of the default in META-INF/
 # WORK_DIR - Working directory for in-transit files (default is /tmp if not set)
-# VERSION_HANDLING - AUTO_INCREMENT, MANIFEST
+# VERSION_HANDLING - Determination of version number during artifact update
 
 function check_mandatory_env_var() {
   local env_var_name=$1
