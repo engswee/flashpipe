@@ -1,0 +1,52 @@
+{
+  "statusCode": "TEST_EXECUTION_SUCCESS",
+  "statusMessage": "Test Execution Success",
+  "percentageComplete": "100",
+  "data": {
+    "headers": {
+      "breadcrumbId": "ID-vsa7697973-41657-1598017973612-87-2"
+    },
+    "properties": {
+      "CamelMessageHistory": "[DefaultMessageHistory[routeId\u003dProcess_1, node\u003dCallActivity_5_1598197356334], DefaultMessageHistory[routeId\u003dProcess_1, node\u003dsetHeader176], DefaultMessageHistory[routeId\u003dProcess_1, node\u003dbean99], DefaultMessageHistory[routeId\u003dProcess_1, node\u003dCallActivity_9910_1598197356342]]",
+      "SAP_SAPPASSPORT": "com.sap.jdsr.passport.DSRPassport@48b438ac",
+      "SAP_MessageProcessingLogConfiguration": "MplConfiguration [persistOnlyOnIntermediateError\u003dfalse, printStackTraces\u003d, mplActive\u003dtrue, logLevel\u003dNONE, isFinal\u003dfalse]",
+      "last-run-stepId": "CallActivity_9910",
+      "CamelToEndpoint": "direct://Process_1",
+      "CamelCreatedTimestamp": "Sun Aug 23 15:42:38 UTC 2020",
+      "simulation_trace_data": "[com.sap.it.iflow.simulation.camel.TraceMessage@62c4f2e3, com.sap.it.iflow.simulation.camel.TraceMessage@7cb3a416]"
+    },
+    "body": "{\n    \"PurchaseOrder\": {\n        \"Header\": {\n            \"ID\": \"ORD60001\",\n            \"DocumentDate\": \"2019-02-18\"\n        },\n        \"Items\": [\n            {\n                \"ItemNumber\": \"010\",\n                \"ProductCode\": \"MT70001\",\n                \"Quantity\": 57\n            }\n        ]\n    }\n}"
+  },
+  "traceData": {
+    "SequenceFlow_6": {
+      "tracePages": {
+        "1": {
+          "headers": {
+            "sapFunctionName": ""
+          },
+          "properties": {
+            "CamelMessageHistory": "[DefaultMessageHistory[routeId\u003dProcess_1, node\u003dCallActivity_5_1598197356334], DefaultMessageHistory[routeId\u003dProcess_1, node\u003dsetHeader176], DefaultMessageHistory[routeId\u003dProcess_1, node\u003dbean99], DefaultMessageHistory[routeId\u003dProcess_1, node\u003dCallActivity_9910_1598197356342]]",
+            "CamelToEndpoint": "direct://Process_1",
+            "CamelCreatedTimestamp": "Sun Aug 23 15:42:38 UTC 2020"
+          },
+          "body": "{\n    \"PurchaseOrder\": {\n        \"Header\": {\n            \"ID\": \"ORD60001\",\n            \"DocumentDate\": \"2019-02-18\"\n        },\n        \"Items\": [\n            {\n                \"ItemNumber\": \"010\",\n                \"ProductCode\": \"MT70001\",\n                \"Quantity\": 57\n            }\n        ]\n    }\n}"
+        }
+      },
+      "traceState": "TRACED"
+    },
+    "SequenceFlow_3": {
+      "tracePages": {
+        "1": {
+          "headers": {},
+          "properties": {
+            "CamelMessageHistory": "[DefaultMessageHistory[routeId\u003dProcess_1, node\u003dCallActivity_5_1598197356334]]",
+            "CamelToEndpoint": "direct://Process_1",
+            "CamelCreatedTimestamp": "Sun Aug 23 15:42:38 UTC 2020"
+          },
+          "body": "{\n  \"Order\": {\n    \"Header\": {\n      \"OrderNumber\": \"ORD60001\",\n      \"Date\": \"20190218\"\n    },\n    \"Items\": [\n      {\n        \"ItemNumber\": \"10\",\n        \"MaterialNumber\": \"MT70001\",\n        \"Quantity\": 57,\n        \"Valid\": true\n      },\n      {\n        \"ItemNumber\": \"20\",\n        \"MaterialNumber\": \"MT80001\",\n        \"Quantity\": 28,\n        \"Valid\": false\n      }\n    ]\n  }\n}"
+        }
+      },
+      "traceState": "TRACED"
+    }
+  }
+}

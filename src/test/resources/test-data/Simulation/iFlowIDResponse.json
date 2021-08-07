@@ -1,0 +1,85 @@
+{
+  "d": {
+    "__metadata": {
+      "id": "https://p700034-tmn.hci.eu2.hana.ondemand.com:443/itspaces/odata/1.0/workspace.svc/Artifacts(Name='JSONToJSONTransformation',Type='IFlow')",
+      "uri": "https://p700034-tmn.hci.eu2.hana.ondemand.com:443/itspaces/odata/1.0/workspace.svc/Artifacts(Name='JSONToJSONTransformation',Type='IFlow')",
+      "type": "ContentPackageModel.Artifact",
+      "content_type": "application/octet-stream",
+      "media_src": "https://p700034-tmn.hci.eu2.hana.ondemand.com:443/itspaces/odata/1.0/workspace.svc/Artifacts(Name='JSONToJSONTransformation',Type='IFlow')/$value",
+      "edit_media": "https://p700034-tmn.hci.eu2.hana.ondemand.com:443/itspaces/odata/1.0/workspace.svc/Artifacts(Name='JSONToJSONTransformation',Type='IFlow')/$value"
+    },
+    "Name": "JSONToJSONTransformation",
+    "Type": "IFlow",
+    "DisplayName": "JSON To JSON Transformation",
+    "SubType": null,
+    "reg_id": "19030a788e3f4efd94beea9217d6804a",
+    "Version": "1.0.0",
+    "Description": " ",
+    "CreatedAt": "/Date(1591347131543)/",
+    "CreatedBy": "S0021003498",
+    "ModifiedAt": "/Date(1591347131543)/",
+    "ModifiedBy": "S0021003498",
+    "ContentType": null,
+    "URI": null,
+    "State": null,
+    "ContentPackages": {
+      "results": [
+        {
+          "__metadata": {
+            "id": "https://p700034-tmn.hci.eu2.hana.ondemand.com:443/itspaces/odata/1.0/workspace.svc/ContentPackages('DevelopingGroovyScriptsForSAPCPI')",
+            "uri": "https://p700034-tmn.hci.eu2.hana.ondemand.com:443/itspaces/odata/1.0/workspace.svc/ContentPackages('DevelopingGroovyScriptsForSAPCPI')",
+            "type": "ContentPackageModel.ContentPackage"
+          },
+          "TechnicalName": "DevelopingGroovyScriptsForSAPCPI",
+          "DisplayName": "Developing Groovy Scripts for SAP CPI",
+          "ShortText": "Developing Groovy Scripts for SAP Cloud Platform Integration",
+          "reg_id": "6dbcfdfc969749f581bb5ee89b15f1a2",
+          "Featured": null,
+          "Scope": null,
+          "Description": "<p></p>\n<p></p>\n<p>Developing Groovy Scripts for SAP Cloud Platform Integration</p>\n<p></p>\n<p></p>",
+          "Version": "1.0.0",
+          "Category": "Integration",
+          "Mode": "EDIT_ALLOWED",
+          "Vendor": "SAP PRESS",
+          "OrgName": null,
+          "SupportedPlatforms": "SAP HANA Cloud Integration",
+          "Products": null,
+          "Industries": null,
+          "LineOfBusiness": null,
+          "Keywords": null,
+          "Countries": null,
+          "AvgRating": "0.0",
+          "RatingCount": "0",
+          "PublishedAt": null,
+          "PublishedBy": null,
+          "CreatedAt": "/Date(1591347131696)/",
+          "CreatedBy": "S0021003498",
+          "ModifiedAt": "/Date(1591347131706)/",
+          "ModifiedBy": "S0021003498",
+          "PartnerContent": null,
+          "CertifiedBySap": null,
+          "Artifacts": {
+            "__deferred": {
+              "uri": "https://p700034-tmn.hci.eu2.hana.ondemand.com:443/itspaces/odata/1.0/workspace.svc/ContentPackages('DevelopingGroovyScriptsForSAPCPI')/Artifacts"
+            }
+          },
+          "Files": {
+            "__deferred": {
+              "uri": "https://p700034-tmn.hci.eu2.hana.ondemand.com:443/itspaces/odata/1.0/workspace.svc/ContentPackages('DevelopingGroovyScriptsForSAPCPI')/Files"
+            }
+          },
+          "Urls": {
+            "__deferred": {
+              "uri": "https://p700034-tmn.hci.eu2.hana.ondemand.com:443/itspaces/odata/1.0/workspace.svc/ContentPackages('DevelopingGroovyScriptsForSAPCPI')/Urls"
+            }
+          },
+          "MediaLinks": {
+            "__deferred": {
+              "uri": "https://p700034-tmn.hci.eu2.hana.ondemand.com:443/itspaces/odata/1.0/workspace.svc/ContentPackages('DevelopingGroovyScriptsForSAPCPI')/MediaLinks"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

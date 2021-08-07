@@ -1,0 +1,5 @@
+{
+  "statusCode": "STEP_TEST_EXECUTION_STARTED",
+  "statusMessage": "Step Test Task Execution Started",
+  "percentageComplete": "10"
+}

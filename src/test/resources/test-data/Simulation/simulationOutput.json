@@ -1,0 +1,15 @@
+{
+    "PurchaseOrder": {
+        "Header": {
+            "ID": "ORD60001",
+            "DocumentDate": "2019-02-18"
+        },
+        "Items": [
+            {
+                "ItemNumber": "010",
+                "ProductCode": "MT70001",
+                "Quantity": 57
+            }
+        ]
+    }
+}

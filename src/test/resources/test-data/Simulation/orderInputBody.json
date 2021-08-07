@@ -1,0 +1,22 @@
+{
+  "Order": {
+    "Header": {
+      "OrderNumber": "ORD60001",
+      "Date": "20190218"
+    },
+    "Items": [
+      {
+        "ItemNumber": "10",
+        "MaterialNumber": "MT70001",
+        "Quantity": 57,
+        "Valid": true
+      },
+      {
+        "ItemNumber": "20",
+        "MaterialNumber": "MT80001",
+        "Quantity": 28,
+        "Valid": false
+      }
+    ]
+  }
+}
