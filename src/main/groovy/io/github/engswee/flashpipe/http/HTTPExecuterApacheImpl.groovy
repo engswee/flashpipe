@@ -119,6 +119,7 @@ class HTTPExecuterApacheImpl extends HTTPExecuter {
             builder.setEntity(requestBytes, ContentType.create(mimeType))
         ClassicHttpRequest request = builder.build()
 
+        // TODO - reevaluate availability of try-with-resources on higher level versions of Groovy
         HttpClients.createDefault().withCloseable { client ->
             client.execute(request, this.context).withCloseable { response ->
                 this.responseCode = response.getCode()

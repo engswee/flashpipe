@@ -41,7 +41,7 @@ class DeployDesignTimeArtifact extends APIExecuter {
             logger.info("Checking deployment status every ${delayLength} seconds up to ${maxCheckLimit} times")
             Boolean deploymentComplete = false
             int checkCounter = 0
-            while (!deploymentComplete) {
+            while (!deploymentComplete) { // TODO - Switch to do - while loop in Groovy 3.x
                 TimeUnit.SECONDS.sleep(delayLength)
                 def status = runtimeArtifact.getStatus(iFlowId)
                 logger.info("Check ${checkCounter} - Current IFlow status = ${status}")
