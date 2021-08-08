@@ -14,15 +14,43 @@ pool:
 
 variables:
   - group: cpi-dev
+  - group: cpi-neo
 
 steps:
 # https://docs.microsoft.com/azure/devops/pipelines/tasks/build/maven
 - task: Maven@3
+  displayName: 'Unit test'
   inputs:
     mavenOptions: '-Xmx3072m'
     jdkVersionOption: '1.8'
-    goals: 'verify'
-    options: '-Dcpi.host.tmn=$(dev-host-tmn) -Dcpi.basic.userid=$(dev-user) -Dcpi.basic.password=$(dev-password) -Dcpi.host.oauth=$(dev-oauth-host) -Dcpi.oauth.clientid=$(dev-client-id) -Dcpi.oauth.clientsecret=$(dev-client-secret)'
+    goals: 'test'
+- task: Maven@3
+  displayName: 'Integration test on CF'
+  inputs:
+    mavenOptions: '-Xmx3072m'
+    jdkVersionOption: '1.8'
+    goals: 'clean verify'
+    testResultsFiles: '**/failsafe-reports/TEST-*.xml'
+    options: '-Dskip.unit.tests -Dit.test=io.github.engswee.flashpipe.cpi.api.*IT'
+  env:
+    HOST_TMN: $(dev-host-tmn)
+    HOST_OAUTH: $(dev-oauth-host)
+    OAUTH_CLIENTID: $(dev-client-id)
+    OAUTH_CLIENTSECRET: $(dev-client-secret)
+    BASIC_USERID: $(dev-user)
+    BASIC_PASSWORD: $(dev-password)
+- task: Maven@3
+  displayName: 'Integration test on Neo - simulation'
+  inputs:
+    mavenOptions: '-Xmx3072m'
+    jdkVersionOption: '1.8'
+    goals: 'clean verify'
+    testResultsFiles: '**/failsafe-reports/TEST-*.xml'
+    options: '-Dskip.unit.tests -Dit.test=io.github.engswee.flashpipe.cpi.simulation.*IT'
+  env:
+    HOST_TMN: $(neo-host-tmn)
+    BASIC_USERID: $(neo-user)
+    BASIC_PASSWORD: $(neo-password)
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/build/docker
   # Lite version
 - task: Docker@2
@@ -34,8 +62,8 @@ steps:
     buildContext: '.'
     # FLASHPIPE_VERSION
     tags: |
-      2.3.0-lite
-      2.3.x-lite
+      2.4.0-lite
+      2.4.x-lite
       2.x.x-lite
 # Full version with Maven
 - task: Docker@2
@@ -47,6 +75,6 @@ steps:
     buildContext: '.'
     # FLASHPIPE_VERSION
     tags: |
-      2.3.0
-      2.3.x
+      2.4.0
+      2.4.x
       2.x.x
