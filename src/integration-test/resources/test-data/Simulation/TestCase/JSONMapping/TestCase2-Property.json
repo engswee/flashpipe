@@ -1,0 +1,21 @@
+{
+  "TestCase": {
+    "Name": "JSON Mapping - check property only",
+    "IFlowID": "FlashPipe_Simulation_JSON_Mapping",
+    "StartPoint": "SequenceFlow_3",
+    "EndPoint": "SequenceFlow_6",
+    "Process": "Process_1",
+    "Input": {
+      "Headers": {},
+      "Properties": {},
+      "Body": "/test-data/Simulation/TestCase/JSONMapping/input/order.json"
+    },
+    "ExpectedOutput": {
+      "Headers": {},
+      "Properties": {
+        "CamelToEndpoint": "direct://Process_1"
+      },
+      "Body": ""
+    }
+  }
+}

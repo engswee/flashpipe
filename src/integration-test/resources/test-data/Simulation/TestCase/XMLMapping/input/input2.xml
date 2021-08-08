@@ -1,0 +1,12 @@
+<Order>
+    <Header>
+        <OrderNumber>ORD80002</OrderNumber>
+        <Date>20200218</Date>
+    </Header>
+    <Item>
+        <ItemNumber>10</ItemNumber>
+        <MaterialNumber>MT90001</MaterialNumber>
+        <Quantity>55</Quantity>
+        <Valid>false</Valid>
+    </Item>
+</Order>
