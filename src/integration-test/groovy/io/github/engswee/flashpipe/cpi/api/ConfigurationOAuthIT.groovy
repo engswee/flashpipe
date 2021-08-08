@@ -7,23 +7,20 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class ConfigurationOAuthIT extends Specification {
-
-    @Shared
-    HTTPExecuter httpExecuter
     @Shared
     Configuration configuration
     @Shared
     CSRFToken csrfToken
 
     def setupSpec() {
-        def host = System.getProperty('cpi.host.tmn')
-        def clientid = System.getProperty('cpi.oauth.clientid')
-        def clientsecret = System.getProperty('cpi.oauth.clientsecret')
-        def oauthHost = System.getProperty('cpi.host.oauth')
-        def oauthTokenPath = System.getProperty('cpi.host.oauthpath')
+        def host = System.getenv('HOST_TMN')
+        def clientid = System.getenv('OAUTH_CLIENTID')
+        def clientsecret = System.getenv('OAUTH_CLIENTSECRET')
+        def oauthHost = System.getenv('HOST_OAUTH')
+        def oauthTokenPath = System.getenv('HOST_OAUTH_PATH')
         def token = OAuthToken.get('https', oauthHost, 443, clientid, clientsecret, oauthTokenPath)
 
-        httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, token)
+        HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, token)
         configuration = new Configuration(httpExecuter)
         csrfToken = new CSRFToken(httpExecuter)
     }

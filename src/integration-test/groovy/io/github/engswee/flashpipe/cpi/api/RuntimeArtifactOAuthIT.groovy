@@ -9,25 +9,25 @@ import spock.lang.Specification
 import java.util.concurrent.TimeUnit
 
 class RuntimeArtifactOAuthIT extends Specification {
-
-    @Shared
-    HTTPExecuter httpExecuter
     @Shared
     RuntimeArtifact runtimeArtifact
+    @Shared
+    DesignTimeArtifact designTimeArtifact
     @Shared
     CSRFToken csrfToken
 
     def setupSpec() {
-        def host = System.getProperty('cpi.host.tmn')
-        def clientid = System.getProperty('cpi.oauth.clientid')
-        def clientsecret = System.getProperty('cpi.oauth.clientsecret')
-        def oauthHost = System.getProperty('cpi.host.oauth')
-        def oauthTokenPath = System.getProperty('cpi.host.oauthpath')
+        def host = System.getenv('HOST_TMN')
+        def clientid = System.getenv('OAUTH_CLIENTID')
+        def clientsecret = System.getenv('OAUTH_CLIENTSECRET')
+        def oauthHost = System.getenv('HOST_OAUTH')
+        def oauthTokenPath = System.getenv('HOST_OAUTH_PATH')
         def token = OAuthToken.get('https', oauthHost, 443, clientid, clientsecret, oauthTokenPath)
 
-        httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, token)
+        HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, token)
         runtimeArtifact = new RuntimeArtifact(httpExecuter)
         csrfToken = new CSRFToken(httpExecuter)
+        designTimeArtifact = new DesignTimeArtifact(httpExecuter)
     }
 
     def 'Undeploy'() {
@@ -39,9 +39,6 @@ class RuntimeArtifactOAuthIT extends Specification {
     }
 
     def 'Deploy'() {
-        given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
         when:
         designTimeArtifact.deploy('FlashPipe_Update', csrfToken)
         TimeUnit.SECONDS.sleep(5)

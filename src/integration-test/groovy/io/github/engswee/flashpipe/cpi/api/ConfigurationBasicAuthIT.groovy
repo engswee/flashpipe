@@ -2,24 +2,20 @@ package io.github.engswee.flashpipe.cpi.api
 
 import io.github.engswee.flashpipe.http.HTTPExecuter
 import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
-import io.github.engswee.flashpipe.http.OAuthToken
 import spock.lang.Shared
 import spock.lang.Specification
 
-class ConfigurationBasicIT extends Specification {
-
-    @Shared
-    HTTPExecuter httpExecuter
+class ConfigurationBasicAuthIT extends Specification {
     @Shared
     Configuration configuration
     @Shared
     CSRFToken csrfToken
 
     def setupSpec() {
-        def host = System.getProperty('cpi.host.tmn')
-        def user = System.getProperty('cpi.basic.userid')
-        def password = System.getProperty('cpi.basic.password')
-        httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
+        def host = System.getenv('HOST_TMN')
+        def user = System.getenv('BASIC_USERID')
+        def password = System.getenv('BASIC_PASSWORD')
+        HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
         configuration = new Configuration(httpExecuter)
         csrfToken = new CSRFToken(httpExecuter)
     }

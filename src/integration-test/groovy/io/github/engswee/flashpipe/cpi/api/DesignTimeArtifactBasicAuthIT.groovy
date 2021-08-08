@@ -8,19 +8,16 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class DesignTimeArtifactBasicAuthIT extends Specification {
-
-    @Shared
-    HTTPExecuter httpExecuter
     @Shared
     DesignTimeArtifact designTimeArtifact
     @Shared
     CSRFToken csrfToken
 
     def setupSpec() {
-        def host = System.getProperty('cpi.host.tmn')
-        def user = System.getProperty('cpi.basic.userid')
-        def password = System.getProperty('cpi.basic.password')
-        httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
+        def host = System.getenv('HOST_TMN')
+        def user = System.getenv('BASIC_USERID')
+        def password = System.getenv('BASIC_PASSWORD')
+        HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
         designTimeArtifact = new DesignTimeArtifact(httpExecuter)
         csrfToken = new CSRFToken(httpExecuter)
     }

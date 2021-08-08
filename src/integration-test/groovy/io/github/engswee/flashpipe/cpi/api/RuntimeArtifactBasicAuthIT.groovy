@@ -8,21 +8,21 @@ import spock.lang.Specification
 import java.util.concurrent.TimeUnit
 
 class RuntimeArtifactBasicAuthIT extends Specification {
-
-    @Shared
-    HTTPExecuter httpExecuter
     @Shared
     RuntimeArtifact runtimeArtifact
+    @Shared
+    DesignTimeArtifact designTimeArtifact
     @Shared
     CSRFToken csrfToken
 
     def setupSpec() {
-        def host = System.getProperty('cpi.host.tmn')
-        def user = System.getProperty('cpi.basic.userid')
-        def password = System.getProperty('cpi.basic.password')
-        httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
+        def host = System.getenv('HOST_TMN')
+        def user = System.getenv('BASIC_USERID')
+        def password = System.getenv('BASIC_PASSWORD')
+        HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
         runtimeArtifact = new RuntimeArtifact(httpExecuter)
         csrfToken = new CSRFToken(httpExecuter)
+        designTimeArtifact = new DesignTimeArtifact(httpExecuter)
     }
 
     def 'Undeploy'() {
@@ -34,9 +34,6 @@ class RuntimeArtifactBasicAuthIT extends Specification {
     }
 
     def 'Deploy'() {
-        given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
         when:
         designTimeArtifact.deploy('FlashPipe_Update', csrfToken)
         TimeUnit.SECONDS.sleep(5)

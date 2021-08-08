@@ -8,23 +8,20 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class IntegrationPackageOAuthIT extends Specification {
-
-    @Shared
-    HTTPExecuter httpExecuter
     @Shared
     IntegrationPackage integrationPackage
     @Shared
     CSRFToken csrfToken
 
     def setupSpec() {
-        def host = System.getProperty('cpi.host.tmn')
-        def clientid = System.getProperty('cpi.oauth.clientid')
-        def clientsecret = System.getProperty('cpi.oauth.clientsecret')
-        def oauthHost = System.getProperty('cpi.host.oauth')
-        def oauthTokenPath = System.getProperty('cpi.host.oauthpath')
+        def host = System.getenv('HOST_TMN')
+        def clientid = System.getenv('OAUTH_CLIENTID')
+        def clientsecret = System.getenv('OAUTH_CLIENTSECRET')
+        def oauthHost = System.getenv('HOST_OAUTH')
+        def oauthTokenPath = System.getenv('HOST_OAUTH_PATH')
         def token = OAuthToken.get('https', oauthHost, 443, clientid, clientsecret, oauthTokenPath)
 
-        httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, token)
+        HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, token)
         integrationPackage = new IntegrationPackage(httpExecuter)
         csrfToken = new CSRFToken(httpExecuter)
     }
@@ -72,11 +69,19 @@ class IntegrationPackageOAuthIT extends Specification {
         List flows = integrationPackage.getIFlowsWithDraftState('FlashPipeIntegrationTest')
 
         then:
+        def updateIFlow = flows.find {it.id == 'FlashPipe_Update'}
         verifyAll {
-            flows.size() == 1
-            flows[0].id == 'FlashPipe_Update'
-            flows[0].name == 'FlashPipe Update'
-            flows[0].isDraft == false
+            flows.size() == 4
+            updateIFlow.name == 'FlashPipe Update'
+            updateIFlow.isDraft == false
         }
+    }
+
+    def 'Get Packages List'() {
+        when:
+        List packages = integrationPackage.getPackagesList()
+
+        then:
+        packages.any { it.Id == 'FlashPipeIntegrationTest' } == true
     }
 }

@@ -7,19 +7,16 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class IntegrationPackageBasicAuthIT extends Specification {
-
-    @Shared
-    HTTPExecuter httpExecuter
     @Shared
     IntegrationPackage integrationPackage
     @Shared
     CSRFToken csrfToken
 
     def setupSpec() {
-        def host = System.getProperty('cpi.host.tmn')
-        def user = System.getProperty('cpi.basic.userid')
-        def password = System.getProperty('cpi.basic.password')
-        httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
+        def host = System.getenv('HOST_TMN')
+        def user = System.getenv('BASIC_USERID')
+        def password = System.getenv('BASIC_PASSWORD')
+        HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
         integrationPackage = new IntegrationPackage(httpExecuter)
         csrfToken = new CSRFToken(httpExecuter)
     }
@@ -67,11 +64,19 @@ class IntegrationPackageBasicAuthIT extends Specification {
         List flows = integrationPackage.getIFlowsWithDraftState('FlashPipeIntegrationTest')
 
         then:
+        def updateIFlow = flows.find {it.id == 'FlashPipe_Update'}
         verifyAll {
-            flows.size() == 1
-            flows[0].id == 'FlashPipe_Update'
-            flows[0].name == 'FlashPipe Update'
-            flows[0].isDraft == false
+            flows.size() == 4
+            updateIFlow.name == 'FlashPipe Update'
+            updateIFlow.isDraft == false
         }
+    }
+
+    def 'Get Packages List'() {
+        when:
+        List packages = integrationPackage.getPackagesList()
+
+        then:
+        packages.any { it.Id == 'FlashPipeIntegrationTest' } == true
     }
 }
