@@ -93,8 +93,13 @@ class Simulator {
         def code = this.httpExecuter.getResponseCode()
         if (code == 200) {
             def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
-            return root.stepTestTaskId
+            if (root.stepTestTaskId)
+                return root.stepTestTaskId
+            else {
+                this.httpExecuter.logError('Submit Simulation Request')
+            }
         } else {
+            logger.error('🛑 Simulation request may be incorrect. Please check that startPoint, endPoint and processName are configured correctly')
             this.httpExecuter.logError('Submit Simulation Request')
         }
     }
