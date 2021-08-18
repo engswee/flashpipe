@@ -117,7 +117,7 @@ Select the process which contains the steps, and get the `Process Name`.
 ![Simulation Process Name](images/simulation/02d_processname.png)
 
 ### 3. Create Simulation Tests using TestCaseRunner
-_FlashPipe_ provides class `io.github.engswee.flashpipe.cpi.simulation.TestCaseRunner` that enables easy creation of simulation test cases using configuration files, together with input and expected output files.
+_FlashPipe_ provides class [io.github.engswee.flashpipe.cpi.simulation.TestCaseRunner](https://github.com/engswee/flashpipe/blob/main/src/main/groovy/io/github/engswee/flashpipe/cpi/simulation/TestCaseRunner.groovy) that enables easy creation of simulation test cases using configuration files, together with input and expected output files.
 
 Firstly, we create the following files in the `src/test/resources` directory.
 ![Test Resources](images/simulation/03a_test_case_resources.png)
@@ -252,7 +252,7 @@ class XMLTransformationSimulationIT extends Specification {
 ```
 
 ### 4. Create Simulation Tests using Simulator
-_FlashPipe_ provides class `io.github.engswee.flashpipe.cpi.simulation.Simulator` that can be used to developed fine-grained simulation tests. These can be useful when the file-to-file comparison (used by `TestCaseRunner`) is not suitable, for example having to deal with the raw content of the simulation response output.
+_FlashPipe_ provides class [io.github.engswee.flashpipe.cpi.simulation.Simulator](https://github.com/engswee/flashpipe/blob/main/src/main/groovy/io/github/engswee/flashpipe/cpi/simulation/Simulator.groovy) that can be used to developed fine-grained simulation tests. These can be useful when the file-to-file comparison (used by `TestCaseRunner`) is not suitable, for example having to deal with the raw content of the simulation response output.
 
 `Simulator` provides the following **simulate** method to execute a simulation test.
 
