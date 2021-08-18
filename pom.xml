@@ -240,6 +240,7 @@
                         <tagNameFormat>@{project.version}</tagNameFormat>
                         <preparationGoals>clean verify -Dit.test=io.github.engswee.flashpipe.cpi.api.*IT</preparationGoals>
                         <scmDevelopmentCommitComment>@{prefix} prepare for next development iteration [skip ci]</scmDevelopmentCommitComment>
+                        <goals>deploy -Dit.test=io.github.engswee.flashpipe.cpi.api.*IT</goals>
                     </configuration>
                 </plugin>
             </plugins>
