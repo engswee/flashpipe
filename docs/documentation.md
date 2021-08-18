@@ -18,10 +18,10 @@ Technically, it should be possible to use _FlashPipe_ on any CI/CD platform that
 
 ## Docker image tags
 _FlashPipe_'s Docker images comes in two flavours. The difference between the full and lite tags for each version release is the inclusion of Maven capabilities in the image.
-- **Full** (e.g. tag `2.3.0`)
+- **Full** (e.g. tag `2.4.0`)
   - The full image includes Maven and selected local repositories of third-party libraries. This can be used for Maven-based testing and the cached libraries improves the execution time.
 
-- **Lite** (e.g. tag `2.3.0-lite`)
+- **Lite** (e.g. tag `2.4.0-lite`)
   - The lite image only contains the required third-party libraries (without the full-blown Maven) for execution of the Unix scripts. The smaller size reduces the time required to pull the image from Docker and is recommended when Maven is not used.
 
 ### Rolling tags
@@ -44,11 +44,12 @@ It is recommended to use OAuth so that the access is not linked to an individual
 For details on usage of the Unix scripts in pipeline steps, visit the [Unix scripts page](unix-scripts.md).
 
 ## Usage examples
-Following are different usage examples of _FlashPipe_ in different CI/CD platforms.
+Following are different usage examples of _FlashPipe_ on different CI/CD platforms.
 - [Upload/Deploy Integration Flows using Azure Pipelines](azure-pipelines-upload.md)
 - [Upload/Deploy Integration Flows using GitHub Actions](github-actions-upload.md)
 - [Sync Integration Flows from Tenant to GitHub using GitHub Actions](github-actions-sync.md)
 - [Snapshot Tenant Content to GitHub using GitHub Actions](github-actions-snapshot.md)
+- [Simulation Testing using Maven](simulation-testing.md)
 
 ## Reference
 The following repository on GitHub provides sample usage of _FlashPipe_.

@@ -20,6 +20,11 @@ automating time-consuming manual tasks.
 
 For details on using _FlashPipe_, visit the [GitHub Pages documentation site](https://engswee.github.io/flashpipe/).
 
+### Examples Repository
+The following repository on GitHub provides examples of different use cases of _FlashPipe_.
+
+[https://github.com/engswee/flashpipe-demo](https://github.com/engswee/flashpipe-demo)
+
 ### Versioning
 [SemVer](https://semver.org/) is used for versioning.
 

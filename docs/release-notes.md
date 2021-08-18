@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2.4.0 (Released 18 August 2021)
+
+---
+
+- 🔥🔥 New feature 🔥🔥 - _FlashPipe_ now supports [testing using simulation mode](simulation-testing.md) in Neo environments. While this is just a one-liner in this release notes, it is a power-packed feature! 😎
+
 ## 2.3.0 (Released 2 August 2021)
 
 ---

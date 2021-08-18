@@ -17,7 +17,7 @@ Read content protected by Access Policies (Optional) |`AccessPoliciesArtifacts.A
 - [OAuth Client on Neo](#Neo)
 
 ## <a name="CF"></a> (A) Creating an OAuth Client on Cloud Foundry
-For Cloud Foundry, the default Process Integration Runtime service instance (with Plan = `api`) created using the guided Booster do not have sufficient permissions required for _FlashPipe_ to operate correctly. Therefore it is necessary to create an additional one following the steps listed below.
+For Cloud Foundry, the default Process Integration Runtime service instance (with Plan = `api`) created using the guided Booster does not have sufficient permissions required for _FlashPipe_ to operate correctly. Therefore it is necessary to create an additional one following the steps listed below.
 
 ### 1. Logon to SAP BTP Cockpit
 Access the relevant Cloud Foundry space on SAP BTP Cockpit.
