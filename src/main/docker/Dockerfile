@@ -37,12 +37,13 @@ COPY src/main/docker/settings-docker.xml /usr/share/maven/ref/
 COPY pom.xml /tmp/pom.xml
 RUN mvn -B -f /tmp/pom.xml -s /usr/share/maven/ref/settings-docker.xml dependency:go-offline \
   && chmod -R 777 /usr/share/maven/ref/repository
+RUN mvn -B -f /tmp/pom.xml -s /usr/share/maven/ref/settings-docker.xml dependency:get -Dartifact=io.github.engswee:cpi-mock-message:1.0.0
 
 # ----------------------------------------
 # 4 - Copy JAR file used for accessing CPI APIs
 # ----------------------------------------
 # <FLASHPIPE_VERSION>
-ARG FLASHPIPE_VERSION=2.4.0
+ARG FLASHPIPE_VERSION=2.4.1-SNAPSHOT
 COPY target/flashpipe-${FLASHPIPE_VERSION}.jar /tmp/flashpipe-${FLASHPIPE_VERSION}.jar
 RUN mvn -s /usr/share/maven/ref/settings-docker.xml install:install-file -DgroupId=io.github.engswee -DartifactId=flashpipe -Dversion=${FLASHPIPE_VERSION} -Dpackaging=jar -Dfile=/tmp/flashpipe-${FLASHPIPE_VERSION}.jar \
   && chmod -R 777 /usr/share/maven/ref/repository/io/github
