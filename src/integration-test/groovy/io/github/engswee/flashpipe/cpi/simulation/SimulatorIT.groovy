@@ -1,6 +1,7 @@
 package io.github.engswee.flashpipe.cpi.simulation
 
 import groovy.json.JsonSlurper
+import io.github.engswee.flashpipe.cpi.util.TestHelper
 import io.github.engswee.flashpipe.http.HTTPExecuter
 import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
 import io.github.engswee.flashpipe.http.HTTPExecuterException
@@ -17,6 +18,7 @@ class SimulatorIT extends Specification {
         def password = System.getenv('BASIC_PASSWORD')
         HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
         simulator = new Simulator(httpExecuter)
+        new TestHelper(httpExecuter).setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Check_Groovy_Camel_Versions', 'FlashPipe Check Groovy Camel Versions', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Check Groovy Camel Versions')
     }
 
     def 'Check Groovy and Camel version'() {

@@ -61,12 +61,12 @@ class DesignTimeArtifact {
         deleteArtifact(iFlowId, token)
     }
 
-    String upload(String iFlowContent, String iFlowId, String iFlowName, String packageId, CSRFToken csrfToken) {
+    String upload(String base64EncodedIFlowContent, String iFlowId, String iFlowName, String packageId, CSRFToken csrfToken) {
         // 1 - Get CSRF token
         String token = csrfToken ? csrfToken.get() : ''
 
         // 3 - Upload IFlow
-        return uploadArtifact(iFlowName, iFlowId, packageId, iFlowContent, token)
+        return uploadArtifact(iFlowName, iFlowId, packageId, base64EncodedIFlowContent, token)
     }
 
     void deploy(String iFlowId, CSRFToken csrfToken) {

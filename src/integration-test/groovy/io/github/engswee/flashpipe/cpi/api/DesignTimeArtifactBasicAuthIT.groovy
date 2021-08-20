@@ -1,6 +1,7 @@
 package io.github.engswee.flashpipe.cpi.api
 
 import groovy.json.JsonSlurper
+import io.github.engswee.flashpipe.cpi.util.TestHelper
 import io.github.engswee.flashpipe.http.HTTPExecuter
 import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
 import org.zeroturnaround.zip.ZipUtil
@@ -20,6 +21,7 @@ class DesignTimeArtifactBasicAuthIT extends Specification {
         HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
         designTimeArtifact = new DesignTimeArtifact(httpExecuter)
         csrfToken = new CSRFToken(httpExecuter)
+        new TestHelper(httpExecuter).setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Update', 'FlashPipe Update', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update')
     }
 
     def 'Upload'() {

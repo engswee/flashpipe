@@ -1,6 +1,7 @@
 package io.github.engswee.flashpipe.cpi.api
 
 import groovy.json.JsonSlurper
+import io.github.engswee.flashpipe.cpi.util.TestHelper
 import io.github.engswee.flashpipe.http.HTTPExecuter
 import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
 import spock.lang.Shared
@@ -19,6 +20,7 @@ class IntegrationPackageBasicAuthIT extends Specification {
         HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
         integrationPackage = new IntegrationPackage(httpExecuter)
         csrfToken = new CSRFToken(httpExecuter)
+        new TestHelper(httpExecuter).setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Update', 'FlashPipe Update', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update')
     }
 
     def 'Create'() {
@@ -66,7 +68,6 @@ class IntegrationPackageBasicAuthIT extends Specification {
         then:
         def updateIFlow = flows.find {it.id == 'FlashPipe_Update'}
         verifyAll {
-            flows.size() == 4
             updateIFlow.name == 'FlashPipe Update'
             updateIFlow.isDraft == false
         }
