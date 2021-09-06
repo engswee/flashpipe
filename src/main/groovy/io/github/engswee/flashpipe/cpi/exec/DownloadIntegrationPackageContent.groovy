@@ -1,6 +1,7 @@
 package io.github.engswee.flashpipe.cpi.exec
 
 import io.github.engswee.flashpipe.cpi.util.PackageSynchroniser
+import io.github.engswee.flashpipe.cpi.util.StringUtility
 import io.github.engswee.flashpipe.cpi.util.UtilException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -34,15 +35,15 @@ class DownloadIntegrationPackageContent extends APIExecuter {
             logger.error("🛑 Value ${draftHandling} for environment variable DRAFT_HANDLING not in list of accepted values: SKIP, ADD or ERROR")
             System.exit(1)
         }
-        List includedIds = System.getenv('INCLUDE_IDS') ? System.getenv('INCLUDE_IDS').split(',').toList()*.trim() : []
-        List excludeIds = System.getenv('EXCLUDE_IDS') ? System.getenv('EXCLUDE_IDS').split(',').toList()*.trim() : []
-        if (includedIds && excludeIds) {
+        List includedIds = StringUtility.extractDelimitedValues(System.getenv('INCLUDE_IDS'), ',')
+        List excludedIds = StringUtility.extractDelimitedValues(System.getenv('EXCLUDE_IDS'), ',')
+        if (includedIds && excludedIds) {
             logger.error('🛑 INCLUDE_IDS and EXCLUDE_IDS are mutually exclusive - use only one of them')
             System.exit(1)
         }
 
         try {
-            new PackageSynchroniser(this.httpExecuter).sync(packageId, workDir, gitSrcDir, includedIds, excludeIds, draftHandling, dirNamingType)
+            new PackageSynchroniser(this.httpExecuter).sync(packageId, workDir, gitSrcDir, includedIds, excludedIds, draftHandling, dirNamingType)
         } catch (UtilException ignored) {
             logger.error("🛑 Error occurred when processing package ${packageId}")
             System.exit(1)
