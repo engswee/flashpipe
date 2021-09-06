@@ -16,7 +16,7 @@ class PackageSynchroniser {
         this.httpExecuter = httpExecuter
     }
 
-    void sync(String packageId, String workDir, String gitSrcDir, List<String> includedIds, List<String> excludeIds, String draftHandling, String dirNamingType) {
+    void sync(String packageId, String workDir, String gitSrcDir, List<String> includedIds, List<String> excludedIds, String draftHandling, String dirNamingType) {
         // Get all design time artifacts of package
         logger.info("Getting artifacts in integration package ${packageId}")
         IntegrationPackage integrationPackage = new IntegrationPackage(this.httpExecuter)
@@ -34,7 +34,7 @@ class PackageSynchroniser {
         new File("${workDir}/from_git").mkdirs()
         new File("${workDir}/from_tenant").mkdirs()
 
-        List filteredArtifacts = filterArtifacts(artifacts, includedIds, excludeIds)
+        List filteredArtifacts = filterArtifacts(artifacts, includedIds, excludedIds)
 
         // Process through the artifacts
         for (Map artifact : filteredArtifacts) {
@@ -119,10 +119,10 @@ class PackageSynchroniser {
         logger.info("🏆 Completed processing of integration package ${packageId}")
     }
 
-    private List filterArtifacts(List artifacts, List includeIds, List excludeIds) {
-        if (includeIds) {
+    private List filterArtifacts(List artifacts, List includedIds, List excludedIds) {
+        if (includedIds) {
             List outputList = []
-            includeIds.each { iFlowId ->
+            includedIds.each { iFlowId ->
                 Map artifactDetails = artifacts.find { it.id == iFlowId }
                 if (!artifactDetails) {
                     logger.error("🛑 IFlow ${iFlowId} in INCLUDE_IDS does not exist")
@@ -131,21 +131,21 @@ class PackageSynchroniser {
                     outputList.add(artifactDetails)
                 }
             }
-            logger.info("Include only IFlow with IDs - ${System.getenv('INCLUDE_IDS')}")
+            logger.info("Include only IFlow with IDs - ${includedIds.join(',')}")
             return outputList
-        } else if (excludeIds) {
+        } else if (excludedIds) {
             List outputList = []
             // Check if the Ids are valid
-            excludeIds.each { iFlowId ->
+            excludedIds.each { iFlowId ->
                 Map artifactDetails = artifacts.find { it.id == iFlowId }
                 if (!artifactDetails) {
                     logger.error("🛑 IFlow ${iFlowId} in EXCLUDE_IDS does not exist")
                     throw new UtilException('Invalid input in EXCLUDE_IDS')
                 }
             }
-            logger.info("Exclude IFlow with IDs - ${System.getenv('EXCLUDE_IDS')}")
+            logger.info("Exclude IFlow with IDs - ${excludedIds.join(',')}")
             artifacts.each { artifact ->
-                if (!excludeIds.contains(artifact.id)) {
+                if (!excludedIds.contains(artifact.id)) {
                     outputList.add(artifact)
                 }
             }
