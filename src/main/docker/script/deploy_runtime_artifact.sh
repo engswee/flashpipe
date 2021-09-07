@@ -13,7 +13,7 @@
 # OAUTH_CLIENTSECRET - OAuth Client Secret (required when using OAuth Authentication)
 #
 # 2. Mandatory variables:
-# IFLOW_ID - ID of Integration Flow
+# IFLOW_ID - Comma separated list of Integration Flow IDs
 #
 # 3. Optional variables:
 # DELAY_LENGTH - Delay (in seconds) between each check of IFlow deployment status (default to 30 if not set)
