@@ -80,7 +80,7 @@ Environment variables set before call:
 ```
 
 ### 2. deploy_runtime_artifact.sh
-This script is used to deploy a Cloud Integration designtime artifact to the runtime. It will compare the version of the designtime artifact against the runtime artifact before executing deployment if there are differences.
+This script is used to deploy Cloud Integration designtime artifact(s) to the runtime. It will compare the version of the designtime artifact against the runtime artifact before executing deployment if there are differences.
 
 
 #### Usage and environment variable list
@@ -94,7 +94,7 @@ Mandatory environment variables:
     HOST_OAUTH - Host name for OAuth authentication server (required when using OAuth Authentication, excluding the https:// prefix)
     OAUTH_CLIENTID - OAuth Client ID (required when using OAuth Authentication)
     OAUTH_CLIENTSECRET - OAuth Client Secret (required when using OAuth Authentication)
-    IFLOW_ID - ID of Integration Flow
+    IFLOW_ID - Comma separated list of Integration Flow IDs
 
 Optional environment variables:
     DELAY_LENGTH - Delay (in seconds) between each check of IFlow deployment status (default to 30 if not set)

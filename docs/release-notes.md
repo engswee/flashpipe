@@ -1,5 +1,12 @@
 # Release Notes
 
+## 2.4.1 (Released 7 September 2021)
+
+---
+
+- `deploy_runtime_artifact.sh` now supports deployment of multiple IFlows in a single step
+  - Parameter `IFLOW_ID` accepts a comma separated list of IFlow IDs
+
 ## 2.4.0 (Released 18 August 2021)
 
 ---
