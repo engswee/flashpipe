@@ -34,7 +34,6 @@ class HTTPExecuterApacheImpl extends HTTPExecuter {
             throw new HTTPExecuterException('Mandatory input scheme/host/port is missing')
         def httpExecuter = new HTTPExecuterApacheImpl()
         httpExecuter.setBaseURL(scheme, host, port)
-        logger.info("Using Basic Authentication for ${scheme}://${host}:${port}")
         httpExecuter.setBasicAuth(user, password)
         return httpExecuter
     }
@@ -44,7 +43,6 @@ class HTTPExecuterApacheImpl extends HTTPExecuter {
             throw new HTTPExecuterException('Mandatory input scheme/host/port is missing')
         def httpExecuter = new HTTPExecuterApacheImpl()
         httpExecuter.setBaseURL(scheme, host, port)
-        logger.info("Using OAuth 2.0 Authentication for ${scheme}://${host}:${port}")
         httpExecuter.setOAuthToken(token)
         return httpExecuter
     }
@@ -68,6 +66,7 @@ class HTTPExecuterApacheImpl extends HTTPExecuter {
     void setBasicAuth(String user, String password) {
         if (!user || !password)
             throw new HTTPExecuterException('Mandatory input user/password is missing')
+        logger.info("Using Basic Authentication for ${this.scheme}://${this.host}:${this.port}")
         final HttpHost targetHost = new HttpHost(this.scheme, this.host, this.port)
         final BasicScheme basicAuth = new BasicScheme()
         basicAuth.initPreemptive(new UsernamePasswordCredentials(user, password.toCharArray()))
@@ -79,6 +78,7 @@ class HTTPExecuterApacheImpl extends HTTPExecuter {
     void setOAuthToken(String token) {
         if (!token)
             throw new HTTPExecuterException('Mandatory input token is missing')
+        logger.info("Using OAuth 2.0 Authentication for ${this.scheme}://${this.host}:${this.port}")
         this.token = token
     }
 
