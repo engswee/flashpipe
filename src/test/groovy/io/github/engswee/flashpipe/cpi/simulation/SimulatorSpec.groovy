@@ -293,4 +293,16 @@ class SimulatorSpec extends Specification {
         then:
         JsonOutput.prettyPrint(simulationInput) == JsonOutput.prettyPrint(this.getClass().getResource('/test-data/Simulation/simulationInput.json').getText('UTF-8'))
     }
+
+    def 'SimulationException thrown when no iFlowId provided'() {
+        given:
+        Simulator simulator = new Simulator(httpExecuter)
+
+        when:
+        simulator.getIFlowGuid('')
+
+        then:
+        SimulationException e = thrown()
+        e.getMessage() == 'iFlowId is not populated'
+    }
 }
