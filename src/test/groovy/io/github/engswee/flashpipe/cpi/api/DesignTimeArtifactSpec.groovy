@@ -17,6 +17,8 @@ class DesignTimeArtifactSpec extends Specification {
     ClientAndServer mockServer
     @Shared
     HTTPExecuter httpExecuter
+    DesignTimeArtifact designTimeArtifact
+    MockServerClient mockServerClient
 
     final static String LOCALHOST = 'localhost'
 
@@ -27,40 +29,54 @@ class DesignTimeArtifactSpec extends Specification {
 
     def setup() {
         mockServer.reset()
+        this.designTimeArtifact = new DesignTimeArtifact(httpExecuter)
+        this.mockServerClient = new MockServerClient(LOCALHOST, 9443)
     }
 
     def cleanupSpec() {
         mockServer.stop()
     }
 
-    def setupCSRFTokenExpectation(MockServerClient mockServerClient, int httpResponseStatusCode) {
-        def request = HttpRequest.request()
-                .withMethod('GET')
-                .withPath('/api/v1/')
-                .withHeader('x-csrf-token', 'fetch')
-        def response = HttpResponse.response()
-                .withStatusCode(httpResponseStatusCode)
-                .withHeader('x-csrf-token', '50B5187CDE58A345C8A713959F9A4893')
-        mockServerClient.when(request).respond(response)
+    private void setMockExpectation(String method, String path, Integer responseCode, String responseBody) {
+        setMockExpectation(method, path, [:], [:], responseCode, responseBody, [:])
     }
 
-    def setupCSRFTokenExpectation(MockServerClient mockServerClient) {
-        setupCSRFTokenExpectation(mockServerClient, 200)
+    private void setMockExpectation(String method, String path, Map<String, String> requestHeaders, Integer responseCode, String responseBody) {
+        setMockExpectation(method, path, requestHeaders, [:], responseCode, responseBody, [:])
+    }
+
+    private void setMockExpectation(String method, String path, Map<String, String> requestHeaders, Map<String, String> requestQueryParameters, Integer responseCode, String responseBody, Map<String, String> responseHeaders) {
+        // Request
+        HttpRequest httpRequest = HttpRequest.request()
+                .withMethod(method)
+                .withPath(path)
+        requestHeaders.each { String key, String value ->
+            httpRequest.withHeader(key, value)
+        }
+        requestQueryParameters.each { String key, String value ->
+            httpRequest.withQueryStringParameter(key, value)
+        }
+        // Response    
+        HttpResponse httpResponse = HttpResponse.response()
+                .withStatusCode(responseCode)
+                .withBody(responseBody)
+        responseHeaders.each { String key, String value ->
+            httpResponse.withHeader(key, value)
+        }
+        this.mockServerClient.when(httpRequest).respond(httpResponse)
+    }
+
+    private void setupCSRFTokenExpectation(Integer httpResponseStatusCode) {
+        setMockExpectation('GET', '/api/v1/', ['x-csrf-token': 'fetch'], [:], httpResponseStatusCode, '', ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893'])
+    }
+
+    private void setupCSRFTokenExpectation() {
+        setupCSRFTokenExpectation(200)
     }
 
     def 'Query - IFlow exists'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
-        and:
-        MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
-        def httpRequest = HttpRequest.request()
-                .withMethod('GET')
-                .withPath("/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')")
-        def httpResponse = HttpResponse.response()
-                .withStatusCode(200)
-                .withBody('{"d": {"Version": "1.0.4"}}')
-        mockServerClient.when(httpRequest).respond(httpResponse)
+        setMockExpectation('GET', "/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')", 200, '{"d": {"Version": "1.0.4"}}')
 
         when:
         def iFlowExists = designTimeArtifact.getVersion('FlashPipe_IFlow', 'active', true)
@@ -71,17 +87,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Query - IFlow does not exist'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
-        and:
-        MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
-        def httpRequest = HttpRequest.request()
-                .withMethod('GET')
-                .withPath("/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')")
-        def httpResponse = HttpResponse.response()
-                .withStatusCode(404)
-                .withBody('{"error": {"message": {"value": "Integration design time artifact not found"}}}')
-        mockServerClient.when(httpRequest).respond(httpResponse)
+        setMockExpectation('GET', "/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')", 404, '{"error": {"message": {"value": "Integration design time artifact not found"}}}')
 
         when:
         def iFlowExists = designTimeArtifact.getVersion('FlashPipe_IFlow', 'active', true)
@@ -92,17 +98,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Failure during query call'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
-        and:
-        MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
-        def httpRequest = HttpRequest.request()
-                .withMethod('GET')
-                .withPath("/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')")
-        def httpResponse = HttpResponse.response()
-                .withStatusCode(500)
-                .withBody('Error')
-        mockServerClient.when(httpRequest).respond(httpResponse)
+        setMockExpectation('GET', "/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')", 500, 'Error')
 
         when:
         designTimeArtifact.getVersion('FlashPipe_IFlow', 'active', true)
@@ -114,17 +110,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Successful download'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
-        and:
-        MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
-        def httpRequest = HttpRequest.request()
-                .withMethod('GET')
-                .withPath("/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')/\$value")
-        def httpResponse = HttpResponse.response()
-                .withStatusCode(200)
-                .withBody('Success')
-        mockServerClient.when(httpRequest).respond(httpResponse)
+        setMockExpectation('GET', "/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')/\$value", 200, 'Success')
 
         when:
         byte[] responseBody = designTimeArtifact.download('FlashPipe_IFlow', 'active')
@@ -135,16 +121,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Failure during download'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
-        and:
-        MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
-        def httpRequest = HttpRequest.request()
-                .withMethod('GET')
-                .withPath("/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')/\$value")
-        def httpResponse = HttpResponse.response()
-                .withStatusCode(400)
-        mockServerClient.when(httpRequest).respond(httpResponse)
+        setMockExpectation('GET', "/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')/\$value", 400, '')
 
         when:
         designTimeArtifact.download('FlashPipe_IFlow', 'active')
@@ -156,21 +133,8 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Successful upload'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
-        and:
-        MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
-        setupCSRFTokenExpectation(mockServerClient)
-
-        def request = HttpRequest.request()
-                .withMethod('POST')
-                .withPath('/api/v1/IntegrationDesigntimeArtifacts')
-                .withHeader('x-csrf-token', '50B5187CDE58A345C8A713959F9A4893')
-                .withHeader('Accept', 'application/json')
-        def response = HttpResponse.response()
-                .withStatusCode(201)
-                .withBody('Success')
-        mockServerClient.when(request).respond(response)
+        setupCSRFTokenExpectation()
+        setMockExpectation('POST', '/api/v1/IntegrationDesigntimeArtifacts', ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], 201, 'Success')
 
         when:
         def uploadResponseBody = designTimeArtifact.upload('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
@@ -181,11 +145,7 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Failure during upload - CSRF step'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
-        and:
-        MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
-        setupCSRFTokenExpectation(mockServerClient, 400)
+        setupCSRFTokenExpectation(400)
 
         when:
         designTimeArtifact.upload('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
@@ -197,20 +157,8 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Failure during upload - upload step'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
-        and:
-        MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
-        setupCSRFTokenExpectation(mockServerClient)
-
-        def request = HttpRequest.request()
-                .withMethod('POST')
-                .withPath('/api/v1/IntegrationDesigntimeArtifacts')
-                .withHeader('x-csrf-token', '50B5187CDE58A345C8A713959F9A4893')
-                .withHeader('Accept', 'application/json')
-        def response = HttpResponse.response()
-                .withStatusCode(500)
-        mockServerClient.when(request).respond(response)
+        setupCSRFTokenExpectation()
+        setMockExpectation('POST', '/api/v1/IntegrationDesigntimeArtifacts', ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], 500, '')
 
         when:
         designTimeArtifact.upload('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
@@ -222,20 +170,8 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Successful update'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
-        and:
-        MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
-        setupCSRFTokenExpectation(mockServerClient)
-
-        def request = HttpRequest.request()
-                .withMethod('PUT')
-                .withPath("/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')")
-                .withHeader('x-csrf-token', '50B5187CDE58A345C8A713959F9A4893')
-                .withHeader('Accept', 'application/json')
-        def response = HttpResponse.response()
-                .withStatusCode(200)
-        mockServerClient.when(request).respond(response)
+        setupCSRFTokenExpectation()
+        setMockExpectation('PUT', "/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], 200, '')
 
         when:
         designTimeArtifact.update('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
@@ -246,20 +182,8 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Failure during update'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
-        and:
-        MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
-        setupCSRFTokenExpectation(mockServerClient)
-
-        def request = HttpRequest.request()
-                .withMethod('PUT')
-                .withPath("/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')")
-                .withHeader('x-csrf-token', '50B5187CDE58A345C8A713959F9A4893')
-                .withHeader('Accept', 'application/json')
-        def response = HttpResponse.response()
-                .withStatusCode(500)
-        mockServerClient.when(request).respond(response)
+        setupCSRFTokenExpectation()
+        setMockExpectation('PUT', "/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], 500, '')
 
         when:
         designTimeArtifact.update('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
@@ -272,19 +196,8 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Successful delete'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
-        and:
-        MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
-        setupCSRFTokenExpectation(mockServerClient)
-
-        def request = HttpRequest.request()
-                .withMethod('DELETE')
-                .withPath("/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')")
-                .withHeader('x-csrf-token', '50B5187CDE58A345C8A713959F9A4893')
-        def response = HttpResponse.response()
-                .withStatusCode(200)
-        mockServerClient.when(request).respond(response)
+        setupCSRFTokenExpectation()
+        setMockExpectation('DELETE', "/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893'], 200, '')
 
         when:
         designTimeArtifact.delete('FlashPipe_IFlow', new CSRFToken(httpExecuter))
@@ -295,19 +208,8 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Failure during delete'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
-        and:
-        MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
-        setupCSRFTokenExpectation(mockServerClient)
-
-        def request = HttpRequest.request()
-                .withMethod('DELETE')
-                .withPath("/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')")
-                .withHeader('x-csrf-token', '50B5187CDE58A345C8A713959F9A4893')
-        def response = HttpResponse.response()
-                .withStatusCode(500)
-        mockServerClient.when(request).respond(response)
+        setupCSRFTokenExpectation()
+        setMockExpectation('DELETE', "/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893'], 500, '')
 
         when:
         designTimeArtifact.delete('FlashPipe_IFlow', new CSRFToken(httpExecuter))
@@ -319,22 +221,8 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Successful deployment'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
-        and:
-        MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
-        setupCSRFTokenExpectation(mockServerClient)
-
-        def request = HttpRequest.request()
-                .withMethod('POST')
-                .withPath("/api/v1/DeployIntegrationDesigntimeArtifact")
-                .withHeader('x-csrf-token', '50B5187CDE58A345C8A713959F9A4893')
-                .withHeader('Accept', 'application/json')
-                .withQueryStringParameter('Id', "'FlashPipe_IFlow'")
-                .withQueryStringParameter('Version', "'active'")
-        def response = HttpResponse.response()
-                .withStatusCode(202)
-        mockServerClient.when(request).respond(response)
+        setupCSRFTokenExpectation()
+        setMockExpectation('POST', '/api/v1/DeployIntegrationDesigntimeArtifact', ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], ['Id': "'FlashPipe_IFlow'", 'Version': "'active'"], 202, '', [:])
 
         when:
         designTimeArtifact.deploy('FlashPipe_IFlow', new CSRFToken(httpExecuter))
@@ -345,22 +233,8 @@ class DesignTimeArtifactSpec extends Specification {
 
     def 'Failure during deployment'() {
         given:
-        DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-
-        and:
-        MockServerClient mockServerClient = new MockServerClient(LOCALHOST, 9443)
-        setupCSRFTokenExpectation(mockServerClient)
-
-        def request = HttpRequest.request()
-                .withMethod('POST')
-                .withPath("/api/v1/DeployIntegrationDesigntimeArtifact")
-                .withHeader('x-csrf-token', '50B5187CDE58A345C8A713959F9A4893')
-                .withHeader('Accept', 'application/json')
-                .withQueryStringParameter('Id', "'FlashPipe_IFlow'")
-                .withQueryStringParameter('Version', "'active'")
-        def response = HttpResponse.response()
-                .withStatusCode(500)
-        mockServerClient.when(request).respond(response)
+        setupCSRFTokenExpectation()
+        setMockExpectation('POST', '/api/v1/DeployIntegrationDesigntimeArtifact', ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], ['Id': "'FlashPipe_IFlow'", 'Version': "'active'"], 500, '', [:])
 
         when:
         designTimeArtifact.deploy('FlashPipe_IFlow', new CSRFToken(httpExecuter))
