@@ -38,7 +38,7 @@ class RuntimeArtifactBasicAuthIT extends Specification {
     def 'Deploy'() {
         when:
         designTimeArtifact.deploy('FlashPipe_Update', csrfToken)
-        TimeUnit.SECONDS.sleep(5)
+        TimeUnit.SECONDS.sleep(10)
 
         then:
         noExceptionThrown()
