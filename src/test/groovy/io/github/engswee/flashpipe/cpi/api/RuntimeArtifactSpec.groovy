@@ -16,6 +16,9 @@ class RuntimeArtifactSpec extends Specification {
     HTTPExecuter httpExecuter
     @Shared
     RuntimeArtifact runtimeArtifact
+    @Shared
+    CSRFToken csrfToken
+    
     MockExpectation mockExpectation
 
     final static String LOCALHOST = 'localhost'
@@ -24,6 +27,7 @@ class RuntimeArtifactSpec extends Specification {
         mockServer = ClientAndServer.startClientAndServer(9443)
         httpExecuter = HTTPExecuterApacheImpl.newInstance('http', LOCALHOST, 9443, 'dummy', 'dummy')
         runtimeArtifact = new RuntimeArtifact(httpExecuter)
+        csrfToken = new CSRFToken(httpExecuter)
     }
 
     def setup() {
@@ -100,7 +104,7 @@ class RuntimeArtifactSpec extends Specification {
         this.mockExpectation.set('DELETE', "/api/v1/IntegrationRuntimeArtifacts('IFlow1')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893'], 202, '')
 
         when:
-        runtimeArtifact.undeploy('IFlow1', new CSRFToken(httpExecuter))
+        runtimeArtifact.undeploy('IFlow1', csrfToken)
 
         then:
         noExceptionThrown()
@@ -112,7 +116,7 @@ class RuntimeArtifactSpec extends Specification {
         this.mockExpectation.set('DELETE', "/api/v1/IntegrationRuntimeArtifacts('IFlow1')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893'], 404, '')
 
         when:
-        runtimeArtifact.undeploy('IFlow1', new CSRFToken(httpExecuter))
+        runtimeArtifact.undeploy('IFlow1', csrfToken)
 
         then:
         noExceptionThrown()
@@ -124,7 +128,7 @@ class RuntimeArtifactSpec extends Specification {
         this.mockExpectation.set('DELETE', "/api/v1/IntegrationRuntimeArtifacts('IFlow1')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893'], 500, '')
 
         when:
-        runtimeArtifact.undeploy('IFlow1', new CSRFToken(httpExecuter))
+        runtimeArtifact.undeploy('IFlow1', csrfToken)
 
         then:
         HTTPExecuterException e = thrown()

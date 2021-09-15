@@ -31,7 +31,7 @@ class Configuration {
 
     void update(String iFlowId, String iFlowVersion, String parameterKey, String parameterValue, CSRFToken csrfToken) {
         // 1 - Get CSRF token
-        String token = csrfToken ? csrfToken.get() : ''
+        String token = csrfToken.get()
 
         logger.info("Update configuration parameter ${parameterKey}")
         def builder = new JsonBuilder()

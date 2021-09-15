@@ -47,7 +47,7 @@ class DesignTimeArtifact {
 
     void update(String iFlowContent, String iFlowId, String iFlowName, String packageId, CSRFToken csrfToken) {
         // 1 - Get CSRF token
-        String token = csrfToken ? csrfToken.get() : ''
+        String token = csrfToken.get()
 
         // 2 - Update IFlow
         updateArtifact(iFlowName, iFlowId, packageId, iFlowContent, token)
@@ -55,7 +55,7 @@ class DesignTimeArtifact {
 
     void delete(String iFlowId, CSRFToken csrfToken) {
         // 1 - Get CSRF token
-        String token = csrfToken ? csrfToken.get() : ''
+        String token = csrfToken.get()
 
         // 2 - Update IFlow
         deleteArtifact(iFlowId, token)
@@ -63,7 +63,7 @@ class DesignTimeArtifact {
 
     String upload(String base64EncodedIFlowContent, String iFlowId, String iFlowName, String packageId, CSRFToken csrfToken) {
         // 1 - Get CSRF token
-        String token = csrfToken ? csrfToken.get() : ''
+        String token = csrfToken.get()
 
         // 3 - Upload IFlow
         return uploadArtifact(iFlowName, iFlowId, packageId, base64EncodedIFlowContent, token)
@@ -71,7 +71,7 @@ class DesignTimeArtifact {
 
     void deploy(String iFlowId, CSRFToken csrfToken) {
         // 1 - Get CSRF token
-        String token = csrfToken ? csrfToken.get() : ''
+        String token = csrfToken.get()
 
         // 2 - Deploy IFlow
         logger.debug('Deploy design time artifact')

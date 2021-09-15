@@ -31,7 +31,7 @@ class RuntimeArtifact {
 
     void undeploy(String iFlowId, CSRFToken csrfToken) {
         // 1 - Get CSRF token
-        String token = csrfToken ? csrfToken.get() : ''
+        String token = csrfToken.get()
 
         logger.debug('Undeploy runtime artifact')
         this.httpExecuter.executeRequest('DELETE', "/api/v1/IntegrationRuntimeArtifacts('$iFlowId')", ['x-csrf-token': token], null)

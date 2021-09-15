@@ -70,7 +70,7 @@ class IntegrationPackage {
 
     String create(String packageId, String packageName, CSRFToken csrfToken) {
         // 1 - Get CSRF token
-        String token = csrfToken ? csrfToken.get() : ''
+        String token = csrfToken.get()
 
         // Create package
         return createPackage(packageId, packageName, token)
@@ -78,7 +78,7 @@ class IntegrationPackage {
 
     void delete(String packageId, CSRFToken csrfToken) {
         // 1 - Get CSRF token
-        String token = csrfToken ? csrfToken.get() : ''
+        String token = csrfToken.get()
 
         // Delete package
         this.httpExecuter.executeRequest('DELETE', "/api/v1/IntegrationPackages('${packageId}')", ['x-csrf-token': token], null)

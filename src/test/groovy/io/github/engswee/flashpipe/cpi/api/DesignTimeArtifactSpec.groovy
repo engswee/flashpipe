@@ -17,6 +17,9 @@ class DesignTimeArtifactSpec extends Specification {
     HTTPExecuter httpExecuter
     @Shared
     DesignTimeArtifact designTimeArtifact
+    @Shared
+    CSRFToken csrfToken
+    
     MockExpectation mockExpectation
 
     final static String LOCALHOST = 'localhost'
@@ -25,6 +28,7 @@ class DesignTimeArtifactSpec extends Specification {
         mockServer = ClientAndServer.startClientAndServer(9443)
         httpExecuter = HTTPExecuterApacheImpl.newInstance('http', LOCALHOST, 9443, 'dummy', 'dummy')
         designTimeArtifact = new DesignTimeArtifact(httpExecuter)
+        csrfToken = new CSRFToken(httpExecuter)
     }
 
     def setup() {
@@ -102,22 +106,10 @@ class DesignTimeArtifactSpec extends Specification {
         this.mockExpectation.set('POST', '/api/v1/IntegrationDesigntimeArtifacts', ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], 201, 'Success')
 
         when:
-        def uploadResponseBody = designTimeArtifact.upload('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
+        def uploadResponseBody = designTimeArtifact.upload('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', csrfToken)
 
         then:
         uploadResponseBody == 'Success'
-    }
-
-    def 'Failure during upload - CSRF step'() {
-        given:
-        this.mockExpectation.setCSRFTokenExpectation('/api/v1/', '50B5187CDE58A345C8A713959F9A4893', 400)
-
-        when:
-        designTimeArtifact.upload('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
-
-        then:
-        HTTPExecuterException e = thrown()
-        e.getMessage() == 'Get CSRF Token call failed with response code = 400'
     }
 
     def 'Failure during upload - upload step'() {
@@ -126,7 +118,7 @@ class DesignTimeArtifactSpec extends Specification {
         this.mockExpectation.set('POST', '/api/v1/IntegrationDesigntimeArtifacts', ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], 500, '')
 
         when:
-        designTimeArtifact.upload('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
+        designTimeArtifact.upload('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', csrfToken)
 
         then:
         HTTPExecuterException e = thrown()
@@ -139,7 +131,7 @@ class DesignTimeArtifactSpec extends Specification {
         this.mockExpectation.set('PUT', "/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], 200, '')
 
         when:
-        designTimeArtifact.update('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
+        designTimeArtifact.update('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', csrfToken)
 
         then:
         noExceptionThrown()
@@ -151,7 +143,7 @@ class DesignTimeArtifactSpec extends Specification {
         this.mockExpectation.set('PUT', "/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], 500, '')
 
         when:
-        designTimeArtifact.update('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', new CSRFToken(httpExecuter))
+        designTimeArtifact.update('dummy', 'FlashPipe_IFlow', 'dummy', 'dummy', csrfToken)
 
         then:
         HTTPExecuterException e = thrown()
@@ -165,7 +157,7 @@ class DesignTimeArtifactSpec extends Specification {
         this.mockExpectation.set('DELETE', "/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893'], 200, '')
 
         when:
-        designTimeArtifact.delete('FlashPipe_IFlow', new CSRFToken(httpExecuter))
+        designTimeArtifact.delete('FlashPipe_IFlow', csrfToken)
 
         then:
         noExceptionThrown()
@@ -177,7 +169,7 @@ class DesignTimeArtifactSpec extends Specification {
         this.mockExpectation.set('DELETE', "/api/v1/IntegrationDesigntimeArtifacts(Id='FlashPipe_IFlow',Version='active')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893'], 500, '')
 
         when:
-        designTimeArtifact.delete('FlashPipe_IFlow', new CSRFToken(httpExecuter))
+        designTimeArtifact.delete('FlashPipe_IFlow', csrfToken)
 
         then:
         HTTPExecuterException e = thrown()
@@ -190,7 +182,7 @@ class DesignTimeArtifactSpec extends Specification {
         this.mockExpectation.set('POST', '/api/v1/DeployIntegrationDesigntimeArtifact', ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], ['Id': "'FlashPipe_IFlow'", 'Version': "'active'"], 202, '', [:])
 
         when:
-        designTimeArtifact.deploy('FlashPipe_IFlow', new CSRFToken(httpExecuter))
+        designTimeArtifact.deploy('FlashPipe_IFlow', csrfToken)
 
         then:
         noExceptionThrown()
@@ -202,7 +194,7 @@ class DesignTimeArtifactSpec extends Specification {
         this.mockExpectation.set('POST', '/api/v1/DeployIntegrationDesigntimeArtifact', ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], ['Id': "'FlashPipe_IFlow'", 'Version': "'active'"], 500, '', [:])
 
         when:
-        designTimeArtifact.deploy('FlashPipe_IFlow', new CSRFToken(httpExecuter))
+        designTimeArtifact.deploy('FlashPipe_IFlow', csrfToken)
 
         then:
         HTTPExecuterException e = thrown()

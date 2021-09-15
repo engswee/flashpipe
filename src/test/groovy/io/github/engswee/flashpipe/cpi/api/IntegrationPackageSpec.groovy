@@ -16,6 +16,9 @@ class IntegrationPackageSpec extends Specification {
     HTTPExecuter httpExecuter
     @Shared
     IntegrationPackage integrationPackage
+    @Shared
+    CSRFToken csrfToken
+    
     MockExpectation mockExpectation
 
     final static String LOCALHOST = 'localhost'
@@ -24,6 +27,7 @@ class IntegrationPackageSpec extends Specification {
         mockServer = ClientAndServer.startClientAndServer(9443)
         httpExecuter = HTTPExecuterApacheImpl.newInstance('http', LOCALHOST, 9443, 'dummy', 'dummy')
         integrationPackage = new IntegrationPackage(httpExecuter)
+        csrfToken = new CSRFToken(httpExecuter)
     }
 
     def setup() {
@@ -152,7 +156,7 @@ class IntegrationPackageSpec extends Specification {
         this.mockExpectation.set('POST', "/api/v1/IntegrationPackages", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], 201, 'Success')
 
         when:
-        def response = integrationPackage.create('FlashPipeUnitTest', 'FlashPipe Unit Test', new CSRFToken(httpExecuter))
+        def response = integrationPackage.create('FlashPipeUnitTest', 'FlashPipe Unit Test', csrfToken)
 
         then:
         response == 'Success'
@@ -164,7 +168,7 @@ class IntegrationPackageSpec extends Specification {
         this.mockExpectation.set('POST', "/api/v1/IntegrationPackages", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], 500, '')
 
         when:
-        integrationPackage.create('FlashPipeUnitTest', 'FlashPipe Unit Test', new CSRFToken(httpExecuter))
+        integrationPackage.create('FlashPipeUnitTest', 'FlashPipe Unit Test', csrfToken)
 
         then:
         HTTPExecuterException e = thrown()
@@ -177,7 +181,7 @@ class IntegrationPackageSpec extends Specification {
         this.mockExpectation.set('DELETE', "/api/v1/IntegrationPackages('FlashPipeUnitTest')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893'], 202, 'Success')
 
         when:
-        integrationPackage.delete('FlashPipeUnitTest', new CSRFToken(httpExecuter))
+        integrationPackage.delete('FlashPipeUnitTest', csrfToken)
 
         then:
         noExceptionThrown()
@@ -189,7 +193,7 @@ class IntegrationPackageSpec extends Specification {
         this.mockExpectation.set('DELETE', "/api/v1/IntegrationPackages('FlashPipeUnitTest')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893'], 500, '')
 
         when:
-        integrationPackage.delete('FlashPipeUnitTest', new CSRFToken(httpExecuter))
+        integrationPackage.delete('FlashPipeUnitTest', csrfToken)
 
         then:
         HTTPExecuterException e = thrown()
