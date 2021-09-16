@@ -5,7 +5,6 @@ import groovy.json.JsonException
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import io.github.engswee.flashpipe.http.HTTPExecuter
-import io.github.engswee.flashpipe.http.HTTPExecuterException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -96,7 +95,7 @@ class Simulator {
             if (root.stepTestTaskId)
                 return root.stepTestTaskId
             else {
-                this.httpExecuter.logError('Submit Simulation Request')
+                throw new SimulationException('Missing stepTestTaskId in simulation response. Please check that startPoint, endPoint and processName are configured correctly')
             }
         } else {
             logger.error('🛑 Simulation request may be incorrect. Please check that startPoint, endPoint and processName are configured correctly')
@@ -114,7 +113,7 @@ class Simulator {
             int percentage = root.percentageComplete as int
             if (percentage == 100) {
                 if (root.statusCode == 'TEST_EXECUTION_FAILED')
-                    throw new HTTPExecuterException("🛑 Simulation failed. Error message = ${root.statusMessage}")
+                    throw new SimulationException("🛑 Simulation failed. Error message = ${root.statusMessage}")
                 return root.traceData.get(endPoint).tracePages.'1' // Map containing headers, properties and body
             } else
                 return percentage
@@ -123,13 +122,11 @@ class Simulator {
     }
 
     Map getSimulationOutput(String packageGuid, String iFlowGuid, String taskId, String endPoint, long delay) {
-        Boolean complete
-        while (!complete) { // TODO - Switch to do - while loop in Groovy 3.x
+        while (true) { // TODO - Switch to do - while loop in Groovy 3.x
             TimeUnit.SECONDS.sleep(delay)
             def result = this.querySimulationResult(packageGuid, iFlowGuid, taskId, endPoint)
             switch (result) {
                 case Integer:
-                    complete = false
                     break
                 default:
                     logger.debug("Simulation Message Body Output = ${new String(result.body as byte[], 'UTF-8')}")

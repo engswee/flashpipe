@@ -89,6 +89,54 @@ class SimulatorSpec extends Specification {
         e.getMessage() == 'Get IFlow GUID call failed with response code = 403'
     }
 
+    def 'SimulationException thrown when no iFlowId provided'() {
+        given:
+        Simulator simulator = new Simulator(httpExecuter)
+
+        when:
+        simulator.getIFlowGuid('')
+
+        then:
+        SimulationException e = thrown()
+        e.getMessage() == 'iFlowId is not populated'
+    }
+
+    def 'SimulationException thrown when iFlowGuid not in response'() {
+        given:
+        this.mockExpectation.set('GET', "/itspaces/odata/1.0/workspace.svc/Artifacts(Name='JSONToJSONTransformation',Type='IFlow')", [:], ['$expand': 'ContentPackages'], 200, '{"d": {"Name": "JSONToJSONTransformation"}}', [:])
+
+        when:
+        simulator.getIFlowGuid('JSONToJSONTransformation')
+
+        then:
+        SimulationException e = thrown()
+        e.getMessage() == 'iFlowGuid not found in response'
+    }
+
+    def 'SimulationException thrown when packageGuid not in response'() {
+        given:
+        this.mockExpectation.set('GET', "/itspaces/odata/1.0/workspace.svc/Artifacts(Name='JSONToJSONTransformation',Type='IFlow')", [:], ['$expand': 'ContentPackages'], 200, '{"d": {"Name": "JSONToJSONTransformation", "reg_id": "19030a788e3f4efd94beea9217d6804a", "ContentPackages": {"results": [{"TechnicalName": "DevelopingGroovyScriptsForSAPCPI"}]}}}', [:])
+
+        when:
+        simulator.getIFlowGuid('JSONToJSONTransformation')
+
+        then:
+        SimulationException e = thrown()
+        e.getMessage() == 'packageGuid not found in response'
+    }
+
+    def 'SimulationException thrown when response is not in JSON'() {
+        given:
+        this.mockExpectation.set('GET', "/itspaces/odata/1.0/workspace.svc/Artifacts(Name='JSONToJSONTransformation',Type='IFlow')", [:], ['$expand': 'ContentPackages'], 200, '<html>', [:])
+
+        when:
+        simulator.getIFlowGuid('JSONToJSONTransformation')
+
+        then:
+        SimulationException e = thrown()
+        e.getMessage().take(41) == 'Unable to determine the current character'
+    }
+
     def 'Test iFlow Model in GET iFlow Model call'() {
         given: 'JSON response is provided in body of successful call'
         this.mockExpectation.set('GET', "/itspaces/api/1.0/workspace/6dbcfdfc969749f581bb5ee89b15f1a2/artifacts/19030a788e3f4efd94beea9217d6804a/entities/19030a788e3f4efd94beea9217d6804a/iflows/dummy", 200, this.getClass().getResource('/test-data/Simulation/iFlowModelResponse.json').getText('UTF-8'))
@@ -129,6 +177,23 @@ class SimulatorSpec extends Specification {
         taskId == 'f52b4c67-befb-41df-82d7-89d7771bfbb5'
     }
 
+    def 'Submit simulation request call failed due to missing stepTestTaskId'() {
+        given:
+        HTTPExecuter stubbedHTTPExecuter = Stub(HTTPExecuter)
+        stubbedHTTPExecuter.getResponseCode() >> 200
+        stubbedHTTPExecuter.getResponseBody() >> new ByteArrayInputStream('{}'.getBytes('UTF-8'))
+
+        and:
+        Simulator simulator = new Simulator(stubbedHTTPExecuter)
+
+        when:
+        simulator.submitSimulationRequest('6dbcfdfc969749f581bb5ee89b15f1a2', '19030a788e3f4efd94beea9217d6804a', '50B5187CDE58A345C8A713959F9A4893', 'dummy')
+
+        then:
+        SimulationException e = thrown()
+        e.getMessage() == 'Missing stepTestTaskId in simulation response. Please check that startPoint, endPoint and processName are configured correctly'
+    }
+
     def 'Submit simulation request call failed'() {
         given:
         HTTPExecuter stubbedHTTPExecuter = Stub(HTTPExecuter)
@@ -155,6 +220,18 @@ class SimulatorSpec extends Specification {
 
         then: 'Percentage is returned correctly from JSON response'
         result == 10
+    }
+
+    def 'Test execution failed in GET simulation results call'() {
+        given: 'JSON response is provided in body of failed simulation'
+        this.mockExpectation.set('GET', "/itspaces/api/1.0/workspace/6dbcfdfc969749f581bb5ee89b15f1a2/artifacts/19030a788e3f4efd94beea9217d6804a/entities/19030a788e3f4efd94beea9217d6804a/iflows/dummy/simulations/f52b4c67-befb-41df-82d7-89d7771bfbb5", [:], ['id': 'dummy'], 200, this.getClass().getResource('/test-data/Simulation/getTestFailedResponse.json').getText('UTF-8'), [:])
+
+        when: 'Simulation result is queried'
+        simulator.querySimulationResult('6dbcfdfc969749f581bb5ee89b15f1a2', '19030a788e3f4efd94beea9217d6804a', 'f52b4c67-befb-41df-82d7-89d7771bfbb5', 'SequenceFlow_6')
+
+        then:
+        SimulationException e = thrown()
+        e.getMessage() == '🛑 Simulation failed. Error message = Test execution has failed; please try again'
     }
 
     def 'Test completed execution in GET simulation results call'() {
@@ -204,15 +281,20 @@ class SimulatorSpec extends Specification {
         JsonOutput.prettyPrint(simulationInput) == JsonOutput.prettyPrint(this.getClass().getResource('/test-data/Simulation/simulationInput.json').getText('UTF-8'))
     }
 
-    def 'SimulationException thrown when no iFlowId provided'() {
+    def 'Successful clean test IFlow'() {
         given:
-        Simulator simulator = new Simulator(httpExecuter)
+        // CLEAN method not supported by Mock Server
+        HTTPExecuter stubbedHTTPExecuter = Stub(HTTPExecuter)
+        stubbedHTTPExecuter.getResponseCode() >> 200
+        stubbedHTTPExecuter.getResponseBody() >> new ByteArrayInputStream('{"statusMessage":"Cleanup of Simulation is Successful."}'.getBytes('UTF-8'))
+
+        and: 'Simulator is instantiated with stubbed HTTPExecuter'
+        Simulator simulator = new Simulator(stubbedHTTPExecuter)
 
         when:
-        simulator.getIFlowGuid('')
+        simulator.undeployTestIFlow('6dbcfdfc969749f581bb5ee89b15f1a2', '19030a788e3f4efd94beea9217d6804a', '50B5187CDE58A345C8A713959F9A4893')
 
         then:
-        SimulationException e = thrown()
-        e.getMessage() == 'iFlowId is not populated'
+        noExceptionThrown()
     }
 }

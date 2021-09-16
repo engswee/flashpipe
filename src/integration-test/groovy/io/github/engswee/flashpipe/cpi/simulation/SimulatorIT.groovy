@@ -47,8 +47,8 @@ class SimulatorIT extends Specification {
         simulator.simulate(''.getBytes('UTF-8'), 'FlashPipe_Check_Groovy_Camel_Versions', 'SequenceFlow_3', 'dummy', 'Process_1', [:], [:])
 
         then:
-        HTTPExecuterException e = thrown()
-        e.getMessage() == 'Submit Simulation Request call failed with response code = 200'
+        SimulationException e = thrown()
+        e.getMessage() == 'Missing stepTestTaskId in simulation response. Please check that startPoint, endPoint and processName are configured correctly'
     }
 
     def 'Incorrect processName triggers exception'() {
@@ -56,7 +56,7 @@ class SimulatorIT extends Specification {
         simulator.simulate(''.getBytes('UTF-8'), 'FlashPipe_Check_Groovy_Camel_Versions', 'SequenceFlow_3', 'SequenceFlow_6', 'dummy', [:], [:])
 
         then:
-        HTTPExecuterException e = thrown()
+        SimulationException e = thrown()
         e.getMessage() == '🛑 Simulation failed. Error message = Test execution has failed; please try again'
     }
 }
