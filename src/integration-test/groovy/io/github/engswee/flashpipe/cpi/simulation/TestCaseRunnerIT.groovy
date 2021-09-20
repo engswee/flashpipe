@@ -56,4 +56,13 @@ class TestCaseRunnerIT extends Specification {
 
         testCaseName = new JsonSlurper().parse(this.getClass().getResource(TestCaseContentFile)).TestCase.Name
     }
+
+    def 'Exception thrown when output file not available'() {
+        when:
+        testCaseRunner.run('/test-data/Simulation/TestCase/Exception/TestCase5-Exception.json')
+
+        then:
+        SimulationException e = thrown()
+        e.getMessage() == 'File at resources directory /test-data/Simulation/TestCase/Exception/output/purchaseOrder.json cannot be found'
+    }
 }
