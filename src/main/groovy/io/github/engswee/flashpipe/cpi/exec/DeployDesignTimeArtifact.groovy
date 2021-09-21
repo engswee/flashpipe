@@ -36,6 +36,9 @@ class DeployDesignTimeArtifact extends APIExecuter {
             deploySingleIFlow(designTimeArtifact, id, runtimeArtifact)
         }
 
+        // Delay to allow deployment to start before checking the status
+        TimeUnit.SECONDS.sleep(delayLength)
+
         // Check deployment status of IFlows
         try {
             iFlows.eachWithIndex { id, index ->
