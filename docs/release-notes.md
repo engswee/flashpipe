@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2.4.2 (Released 21 September 2021)
+
+---
+
+- Bug fix - add delay before checking deployment status of IFlow to allow time for the deployment to kick in
+
 ## 2.4.1 (Released 7 September 2021)
 
 ---
