@@ -62,7 +62,7 @@ steps:
     buildContext: '.'
     # FLASHPIPE_VERSION
     tags: |
-      2.4.2-lite
+      2.4.3-lite
       2.4.x-lite
       2.x.x-lite
 # Full version with Maven
@@ -75,6 +75,6 @@ steps:
     buildContext: '.'
     # FLASHPIPE_VERSION
     tags: |
-      2.4.2
+      2.4.3
       2.4.x
       2.x.x
