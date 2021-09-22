@@ -13,7 +13,12 @@ class UploadDesignTimeArtifact extends APIExecuter {
     
     static void main(String[] args) {
         UploadDesignTimeArtifact uploadDesignTimeArtifact = new UploadDesignTimeArtifact()
+        uploadDesignTimeArtifact.getEnvironmentVariables()
         uploadDesignTimeArtifact.execute()
+    }
+
+    @Override
+    void getEnvironmentVariables() {
     }
 
     @Override

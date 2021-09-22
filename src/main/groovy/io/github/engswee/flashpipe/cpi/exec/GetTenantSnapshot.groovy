@@ -11,8 +11,13 @@ class GetTenantSnapshot extends APIExecuter {
     static Logger logger = LoggerFactory.getLogger(GetTenantSnapshot)
 
     static void main(String[] args) {
-        GetTenantSnapshot GetTenantSnapshot = new GetTenantSnapshot()
-        GetTenantSnapshot.execute()
+        GetTenantSnapshot getTenantSnapshot = new GetTenantSnapshot()
+        getTenantSnapshot.getEnvironmentVariables()
+        getTenantSnapshot.execute()
+    }
+
+    @Override
+    void getEnvironmentVariables() {
     }
 
     @Override

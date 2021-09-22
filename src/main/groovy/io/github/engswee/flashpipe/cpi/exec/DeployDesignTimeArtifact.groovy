@@ -19,6 +19,10 @@ class DeployDesignTimeArtifact extends APIExecuter {
     }
 
     @Override
+    void getEnvironmentVariables() {
+    }
+
+    @Override
     void execute() {
         // Get list of IFlow IDs to be processed
         def iFlowId = getMandatoryEnvVar('IFLOW_ID')

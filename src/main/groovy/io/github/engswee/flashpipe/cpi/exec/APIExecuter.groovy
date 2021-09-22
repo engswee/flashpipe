@@ -57,5 +57,7 @@ abstract class APIExecuter {
         }
     }
 
+    abstract void getEnvironmentVariables()
+
     abstract void execute()
 }

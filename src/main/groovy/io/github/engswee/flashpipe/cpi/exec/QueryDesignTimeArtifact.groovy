@@ -8,30 +8,45 @@ import org.slf4j.LoggerFactory
 class QueryDesignTimeArtifact extends APIExecuter {
 
     static Logger logger = LoggerFactory.getLogger(QueryDesignTimeArtifact)
-    
+
+    String iFlowId
+    String packageId
+
     static void main(String[] args) {
         QueryDesignTimeArtifact queryDesignTimeArtifact = new QueryDesignTimeArtifact()
-        queryDesignTimeArtifact.execute()
+        queryDesignTimeArtifact.getEnvironmentVariables()
+        try {
+            queryDesignTimeArtifact.execute()
+        } catch (ExecutionException e) {
+            if (e.getMessage() == 'Active version of IFlow does not exist') {
+                System.exit(99)
+            } else {
+                System.exit(1)
+            }
+        }
+    }
+
+    @Override
+    void getEnvironmentVariables() {
+        this.iFlowId = getMandatoryEnvVar('IFLOW_ID')
+        this.packageId = getMandatoryEnvVar('PACKAGE_ID')
     }
 
     @Override
     void execute() {
-        def iFlowId = getMandatoryEnvVar('IFLOW_ID')
-        def packageId = getMandatoryEnvVar('PACKAGE_ID')
-
         DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(this.httpExecuter)
-        logger.info("Checking if ${iFlowId} exists")
-        if (designTimeArtifact.getVersion(iFlowId, 'active', true)) {
-            logger.info("Active version of IFlow ${iFlowId} exists")
+        logger.info("Checking if ${this.iFlowId} exists")
+        if (designTimeArtifact.getVersion(this.iFlowId, 'active', true)) {
+            logger.info("Active version of IFlow ${this.iFlowId} exists")
             //  Check if version is in draft mode
             IntegrationPackage integrationPackage = new IntegrationPackage(this.httpExecuter)
-            if (integrationPackage.iFlowInDraftVersion(packageId, iFlowId)) {
-                logger.error("🛑 IFlow ${iFlowId} is in Draft state. Save Version of IFlow in Web UI first!")
-                System.exit(1)
+            if (integrationPackage.iFlowInDraftVersion(this.packageId, this.iFlowId)) {
+                logger.error("🛑 IFlow ${this.iFlowId} is in Draft state. Save Version of IFlow in Web UI first!")
+                throw new ExecutionException('IFlow is in Draft state')
             }
         } else {
-            logger.info("Active version of IFlow ${iFlowId} does not exist")
-            System.exit(99)
+            logger.info("Active version of IFlow ${this.iFlowId} does not exist")
+            throw new ExecutionException('Active version of IFlow does not exist')
         }
     }
 }

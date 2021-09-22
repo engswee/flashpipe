@@ -12,7 +12,12 @@ class UpdateConfiguration extends APIExecuter {
 
     static void main(String[] args) {
         UpdateConfiguration updateConfiguration = new UpdateConfiguration()
+        updateConfiguration.getEnvironmentVariables()
         updateConfiguration.execute()
+    }
+
+    @Override
+    void getEnvironmentVariables() {
     }
 
     @Override

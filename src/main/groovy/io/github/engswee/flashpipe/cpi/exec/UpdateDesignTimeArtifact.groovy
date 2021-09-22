@@ -13,7 +13,12 @@ class UpdateDesignTimeArtifact extends APIExecuter {
 
     static void main(String[] args) {
         UpdateDesignTimeArtifact updateDesignTimeArtifact = new UpdateDesignTimeArtifact()
+        updateDesignTimeArtifact.getEnvironmentVariables()
         updateDesignTimeArtifact.execute()
+    }
+
+    @Override
+    void getEnvironmentVariables() {
     }
 
     @Override

@@ -7,23 +7,31 @@ import org.slf4j.LoggerFactory
 class DownloadDesignTimeArtifact extends APIExecuter {
 
     static Logger logger = LoggerFactory.getLogger(DownloadDesignTimeArtifact)
-    
+
+    String iFlowId
+    String iFlowVersion
+    String outputFile
+
     static void main(String[] args) {
         DownloadDesignTimeArtifact downloadDesignTimeArtifact = new DownloadDesignTimeArtifact()
+        downloadDesignTimeArtifact.getEnvironmentVariables()
         downloadDesignTimeArtifact.execute()
     }
 
     @Override
-    void execute() {
-        def iFlowId = getMandatoryEnvVar('IFLOW_ID')
-        def iFlowVersion = getMandatoryEnvVar('IFLOW_VER')
-        def outputFile = getMandatoryEnvVar('OUTPUT_FILE')
+    void getEnvironmentVariables() {
+        this.iFlowId = getMandatoryEnvVar('IFLOW_ID')
+        this.iFlowVersion = getMandatoryEnvVar('IFLOW_VER')
+        this.outputFile = getMandatoryEnvVar('OUTPUT_FILE')
+    }
 
+    @Override
+    void execute() {
         DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(this.httpExecuter)
 
-        File outputZip = new File(outputFile)
-        logger.info("Downloading IFlow ${iFlowId}")
-        outputZip.bytes = designTimeArtifact.download(iFlowId, iFlowVersion)
-        logger.info("IFlow downloaded to ${outputFile}")
+        File outputZip = new File(this.outputFile)
+        logger.info("Downloading IFlow ${this.iFlowId}")
+        outputZip.bytes = designTimeArtifact.download(this.iFlowId, this.iFlowVersion)
+        logger.info("IFlow downloaded to ${this.outputFile}")
     }
 }

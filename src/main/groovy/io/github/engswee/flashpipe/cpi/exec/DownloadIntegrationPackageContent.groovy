@@ -12,7 +12,12 @@ class DownloadIntegrationPackageContent extends APIExecuter {
 
     static void main(String[] args) {
         DownloadIntegrationPackageContent downloadIntegrationPackageContent = new DownloadIntegrationPackageContent()
+        downloadIntegrationPackageContent.getEnvironmentVariables()
         downloadIntegrationPackageContent.execute()
+    }
+
+    @Override
+    void getEnvironmentVariables() {
     }
 
     @Override
