@@ -13,44 +13,48 @@ class DeployDesignTimeArtifact extends APIExecuter {
 
     static Logger logger = LoggerFactory.getLogger(DeployDesignTimeArtifact)
 
+    List<String> iFlows
+    int delayLength
+    int maxCheckLimit
+
     static void main(String[] args) {
         DeployDesignTimeArtifact deployDesignTimeArtifact = new DeployDesignTimeArtifact()
-        deployDesignTimeArtifact.execute()
+        deployDesignTimeArtifact.getEnvironmentVariables()
+        try {
+            deployDesignTimeArtifact.execute()
+        } catch (ExecutionException ignored) {
+            System.exit(1)
+        }
     }
 
     @Override
     void getEnvironmentVariables() {
+        // Get list of IFlow IDs to be processed
+        def iFlowId = getMandatoryEnvVar('IFLOW_ID')
+        this.iFlows = StringUtility.extractDelimitedValues(iFlowId, ',')
+
+        this.delayLength = (System.getenv('DELAY_LENGTH') ?: 30) as int
+        this.maxCheckLimit = (System.getenv('MAX_CHECK_LIMIT') ?: 10) as int
     }
 
     @Override
     void execute() {
-        // Get list of IFlow IDs to be processed
-        def iFlowId = getMandatoryEnvVar('IFLOW_ID')
-        List iFlows = StringUtility.extractDelimitedValues(iFlowId, ',')
-
-        int delayLength = (System.getenv('DELAY_LENGTH') ?: 30) as int
-        int maxCheckLimit = (System.getenv('MAX_CHECK_LIMIT') ?: 10) as int
-
         DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(this.httpExecuter)
         RuntimeArtifact runtimeArtifact = new RuntimeArtifact(this.httpExecuter)
 
         // Loop and deploy each IFlow
-        iFlows.eachWithIndex { id, index ->
-            logger.info("Processing IFlow ${index+1} - ${id}")
+        this.iFlows.eachWithIndex { String id, index ->
+            logger.info("Processing IFlow ${index + 1} - ${id}")
             deploySingleIFlow(designTimeArtifact, id, runtimeArtifact)
         }
 
         // Delay to allow deployment to start before checking the status
-        TimeUnit.SECONDS.sleep(delayLength)
+        TimeUnit.SECONDS.sleep(this.delayLength)
 
         // Check deployment status of IFlows
-        try {
-            iFlows.eachWithIndex { id, index ->
-                checkDeploymentStatus(delayLength, maxCheckLimit, runtimeArtifact, id)
-                logger.info("IFlow ${index+1} - ${id} deployed successfully")
-            }
-        } catch (ExecutionException ignored) {
-            System.exit(1)
+        this.iFlows.eachWithIndex { String id, index ->
+            checkDeploymentStatus(this.delayLength, this.maxCheckLimit, runtimeArtifact, id)
+            logger.info("IFlow ${index + 1} - ${id} deployed successfully")
         }
 
         logger.info('🏆 IFlow(s) deployment completed successfully')
