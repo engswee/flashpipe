@@ -1,7 +1,7 @@
 package io.github.engswee.flashpipe.cpi.api
 
 import groovy.json.JsonSlurper
-import io.github.engswee.flashpipe.cpi.util.TestHelper
+import io.github.engswee.flashpipe.cpi.util.IntegrationTestHelper
 import io.github.engswee.flashpipe.http.HTTPExecuter
 import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
 import io.github.engswee.flashpipe.http.OAuthToken
@@ -25,7 +25,7 @@ class IntegrationPackageOAuthIT extends Specification {
         HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, token)
         integrationPackage = new IntegrationPackage(httpExecuter)
         csrfToken = new CSRFToken(httpExecuter)
-        new TestHelper(httpExecuter).setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Update', 'FlashPipe Update', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update')
+        new IntegrationTestHelper(httpExecuter).setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Update', 'FlashPipe Update', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update')
     }
 
     def 'Create'() {
