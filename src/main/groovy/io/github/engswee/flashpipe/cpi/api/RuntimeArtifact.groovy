@@ -62,7 +62,7 @@ class RuntimeArtifact {
         String code = this.httpExecuter.getResponseCode()
         if (code.startsWith('2')) {
             def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
-            return root.parameter
+            return root.parameter ? root.parameter[0] : root.childInstances[0].parameter[0]
         } else
             this.httpExecuter.logError('Get runtime artifact error information')
     }

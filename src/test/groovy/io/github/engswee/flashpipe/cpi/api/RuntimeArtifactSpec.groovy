@@ -135,7 +135,7 @@ class RuntimeArtifactSpec extends Specification {
         e.getMessage() == 'Undeploy runtime artifact call failed with response code = 500'
     }
 
-    def 'Get IFlow deployment error'() {
+    def 'Get IFlow deployment error (CF)'() {
         given:
         this.mockExpectation.set('GET', "/api/v1/IntegrationRuntimeArtifacts('IFlow1')/ErrorInformation/\$value", 200, '{"parameter":["Error"]}')
 
@@ -143,7 +143,7 @@ class RuntimeArtifactSpec extends Specification {
         def iFlowError = runtimeArtifact.getErrorInfo('IFlow1')
 
         then:
-        iFlowError == '[Error]'
+        iFlowError == 'Error'
     }
 
     def 'Failure during get IFlow deployment error'() {
