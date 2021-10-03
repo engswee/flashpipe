@@ -17,9 +17,6 @@ class DeployDesignTimeArtifactIT extends Specification {
         def password = System.getenv('BASIC_PASSWORD')
         HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
         testHelper = new IntegrationTestHelper(httpExecuter)
-        // Clean up any existing IFlows left prior to this test
-        testHelper.cleanupIFlow('FlashPipe_Update')
-        testHelper.cleanupIFlow('FlashPipe_Update_Error')
         // Upload IFlows to design time
         testHelper.setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Update', 'FlashPipe Update', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update')
         testHelper.setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Update_Error', 'FlashPipe Update Error', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update Error')

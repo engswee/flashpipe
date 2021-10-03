@@ -16,6 +16,8 @@ class RuntimeArtifactOAuthIT extends Specification {
     DesignTimeArtifact designTimeArtifact
     @Shared
     CSRFToken csrfToken
+    @Shared
+    IntegrationTestHelper testHelper
 
     def setupSpec() {
         def host = System.getenv('HOST_TMN')
@@ -29,15 +31,12 @@ class RuntimeArtifactOAuthIT extends Specification {
         runtimeArtifact = new RuntimeArtifact(httpExecuter)
         csrfToken = new CSRFToken(httpExecuter)
         designTimeArtifact = new DesignTimeArtifact(httpExecuter)
-        new IntegrationTestHelper(httpExecuter).setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Update', 'FlashPipe Update', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update')
+        testHelper = new IntegrationTestHelper(httpExecuter)
+        testHelper.setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Update', 'FlashPipe Update', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update')
     }
 
-    def 'Undeploy'() {
-        when:
-        runtimeArtifact.undeploy('FlashPipe_Update', csrfToken)
-
-        then:
-        noExceptionThrown()
+    def cleanupSpec() {
+        testHelper.cleanupIFlow('FlashPipe_Update')
     }
 
     def 'Deploy'() {
@@ -52,6 +51,14 @@ class RuntimeArtifactOAuthIT extends Specification {
     def 'Query'() {
         when:
         runtimeArtifact.getStatus('FlashPipe_Update')
+
+        then:
+        noExceptionThrown()
+    }
+
+    def 'Undeploy'() {
+        when:
+        runtimeArtifact.undeploy('FlashPipe_Update', csrfToken)
 
         then:
         noExceptionThrown()

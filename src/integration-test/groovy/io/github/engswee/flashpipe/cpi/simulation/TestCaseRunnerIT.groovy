@@ -9,15 +9,22 @@ import spock.lang.Unroll
 class TestCaseRunnerIT extends Specification {
     @Shared
     TestCaseRunner testCaseRunner
+    @Shared
+    IntegrationTestHelper testHelper
 
     def setupSpec() {
         def host = System.getenv('HOST_TMN')
         def user = System.getenv('BASIC_USERID')
         def password = System.getenv('BASIC_PASSWORD')
         testCaseRunner = new TestCaseRunner(host, user, password)
-        IntegrationTestHelper testHelper = new IntegrationTestHelper(testCaseRunner.getHttpExecuter())
+        testHelper = new IntegrationTestHelper(testCaseRunner.getHttpExecuter())
         testHelper.setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Simulation_JSON_Mapping', 'FlashPipe Simulation JSON Mapping', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Simulation JSON Mapping')
         testHelper.setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Simulation_XML_Mapping', 'FlashPipe Simulation XML Mapping', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Simulation XML Mapping')
+    }
+
+    def cleanupSpec() {
+        testHelper.cleanupIFlow('FlashPipe_Simulation_JSON_Mapping')
+        testHelper.cleanupIFlow('FlashPipe_Simulation_XML_Mapping')
     }
 
     @Unroll

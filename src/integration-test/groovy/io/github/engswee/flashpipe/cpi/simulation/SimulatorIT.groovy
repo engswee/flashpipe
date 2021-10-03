@@ -11,6 +11,8 @@ import spock.lang.Specification
 class SimulatorIT extends Specification {
     @Shared
     Simulator simulator
+    @Shared
+    IntegrationTestHelper testHelper
 
     def setupSpec() {
         def host = System.getenv('HOST_TMN')
@@ -18,7 +20,12 @@ class SimulatorIT extends Specification {
         def password = System.getenv('BASIC_PASSWORD')
         HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
         simulator = new Simulator(httpExecuter)
-        new IntegrationTestHelper(httpExecuter).setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Check_Groovy_Camel_Versions', 'FlashPipe Check Groovy Camel Versions', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Check Groovy Camel Versions')
+        testHelper = new IntegrationTestHelper(httpExecuter)
+        testHelper.setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Check_Groovy_Camel_Versions', 'FlashPipe Check Groovy Camel Versions', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Check Groovy Camel Versions')
+    }
+
+    def cleanupSpec() {
+        testHelper.cleanupIFlow('FlashPipe_Check_Groovy_Camel_Versions')
     }
 
     def 'Check Groovy and Camel version'() {
