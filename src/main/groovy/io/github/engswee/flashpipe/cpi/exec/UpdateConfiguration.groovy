@@ -10,32 +10,38 @@ class UpdateConfiguration extends APIExecuter {
 
     static Logger logger = LoggerFactory.getLogger(UpdateConfiguration)
 
+    String iFlowId
+    String paramFilePath
+
     static void main(String[] args) {
         UpdateConfiguration updateConfiguration = new UpdateConfiguration()
         updateConfiguration.getEnvironmentVariables()
-        updateConfiguration.execute()
+        try {
+            updateConfiguration.execute()
+        } catch (ExecutionException ignored) {
+            System.exit(1)
+        }
     }
 
     @Override
     void getEnvironmentVariables() {
+        this.iFlowId = getMandatoryEnvVar('IFLOW_ID')
+        this.paramFilePath = getMandatoryEnvVar('PARAM_FILE')
     }
 
     @Override
     void execute() {
-        def iFlowId = getMandatoryEnvVar('IFLOW_ID')
-        def paramFilePath = getMandatoryEnvVar('PARAM_FILE')
-
         Configuration configuration = new Configuration(this.httpExecuter)
         CSRFToken csrfToken = new CSRFToken(this.httpExecuter)
 
         // Get configured parameters from tenant
         logger.info('Getting current configured parameters of IFlow')
-        List tenantParameters = configuration.getParameters(iFlowId, 'active')
+        List tenantParameters = configuration.getParameters(this.iFlowId, 'active')
 
         // Get parameters from parameters.prop file
-        logger.info("Getting parameters from ${paramFilePath} file")
+        logger.info("Getting parameters from ${this.paramFilePath} file")
         Properties fileParameters = new Properties()
-        fileParameters.load(new FileInputStream(paramFilePath))
+        fileParameters.load(new FileInputStream(this.paramFilePath))
 
         logger.info('Comparing parameters and updating where necessary')
         def atLeastOneUpdated = false
@@ -49,10 +55,10 @@ class UpdateConfiguration extends APIExecuter {
                 if (fileValue != null && fileValue != tenantValue) {
                     if (parameterKey.contains('/')) {
                         logger.error("🛑 Parameter name with / character is not possible to be updated via API. Please rename parameter ${parameterKey}")
-                        System.exit(1)
+                        throw new ExecutionException('Parameter not possible to be updated via API')
                     }
                     logger.info("Parameter ${parameterKey} to be updated from ${tenantValue} to ${fileValue}")
-                    configuration.update(iFlowId, 'active', parameterKey, fileValue, csrfToken)
+                    configuration.update(this.iFlowId, 'active', parameterKey, fileValue, csrfToken)
                     atLeastOneUpdated = true
                 }
             }
@@ -60,7 +66,7 @@ class UpdateConfiguration extends APIExecuter {
         if (atLeastOneUpdated) {
             logger.info('🏆 Undeploying existing runtime artifact due to changes in configured parameters')
             RuntimeArtifact runtimeArtifact = new RuntimeArtifact(this.httpExecuter)
-            runtimeArtifact.undeploy(iFlowId, csrfToken)
+            runtimeArtifact.undeploy(this.iFlowId, csrfToken)
         } else
             logger.info('🏆 No updates required for configured parameters')
     }
