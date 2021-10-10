@@ -33,27 +33,25 @@ abstract class APIExecuter {
         def envVar = System.getenv(envVarName)
         if (!envVar) {
             logger.error("🛑 Mandatory environment variable ${envVarName} not populated")
-            System.exit(1)
+            throw new ExecutionException('Mandatory environment variable not populated')
         }
         return envVar
     }
     
-    protected void validateInputContainsNoSecrets(String envVarName) {
-        String envVar = System.getenv(envVarName)
-        if (envVar) {
-            checkSecretNotInVariable(envVarName, 'OAUTH_CLIENTID')
-            checkSecretNotInVariable(envVarName, 'OAUTH_CLIENTSECRET')
-            checkSecretNotInVariable(envVarName, 'BASIC_USERID')
-            checkSecretNotInVariable(envVarName, 'BASIC_PASSWORD')
+    protected void validateInputContainsNoSecrets(String envVarName, String envVarValue) {
+        if (envVarValue) {
+            checkSecretNotInVariable(envVarName, envVarValue, 'OAUTH_CLIENTID')
+            checkSecretNotInVariable(envVarName, envVarValue, 'OAUTH_CLIENTSECRET')
+            checkSecretNotInVariable(envVarName, envVarValue, 'BASIC_USERID')
+            checkSecretNotInVariable(envVarName, envVarValue, 'BASIC_PASSWORD')
         }
     }
     
-    protected void checkSecretNotInVariable(String inputVarName, String secretVarName) {
-        String inputValue = System.getenv(inputVarName)
+    protected void checkSecretNotInVariable(String inputVarName, String inputVarValue, String secretVarName) {
         String secretValue = System.getenv(secretVarName)
-        if (secretValue && inputValue.contains(secretValue)) {
+        if (secretValue && inputVarValue.contains(secretValue)) {
             logger.error("🛑 Security risk! Environment variable ${inputVarName} contains value of secret variable ${secretVarName}")
-            System.exit(1)
+            throw new ExecutionException('Environment variable contains value of secret variable')
         }
     }
 

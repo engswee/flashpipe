@@ -7,6 +7,8 @@ import io.github.engswee.flashpipe.cpi.api.RuntimeArtifact
 import io.github.engswee.flashpipe.http.HTTPExecuter
 import org.zeroturnaround.zip.ZipUtil
 
+import java.util.concurrent.TimeUnit
+
 class IntegrationTestHelper {
     final CSRFToken csrfToken
     final DesignTimeArtifact designTimeArtifact
@@ -39,6 +41,23 @@ class IntegrationTestHelper {
 
     void undeployIFlow(String iFlowId) {
         this.runtimeArtifact.undeploy(iFlowId, this.csrfToken)
+    }
+    
+    void deployIFlow(String iFlowId, boolean waitForCompletion) {
+        this.designTimeArtifact.deploy(iFlowId, this.csrfToken)
+        if (waitForCompletion) {
+            while (true) {
+                TimeUnit.SECONDS.sleep(10)
+                def status = this.runtimeArtifact.getStatus(iFlowId)
+                if (status != 'STARTING') {
+                    if (status == 'STARTED') {
+                        break
+                    } else {
+                        throw new RuntimeException('IFlow deployment unsuccessful')
+                    }
+                }
+            }
+        }
     }
 
     private String generateBase64IFlowContent(String filePath) {
