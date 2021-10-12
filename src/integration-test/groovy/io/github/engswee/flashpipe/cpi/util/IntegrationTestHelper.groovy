@@ -43,6 +43,10 @@ class IntegrationTestHelper {
         this.runtimeArtifact.undeploy(iFlowId, this.csrfToken)
     }
     
+    void deletePackage(String packageId) {
+        this.integrationPackage.delete(packageId, this.csrfToken)
+    }
+    
     void deployIFlow(String iFlowId, boolean waitForCompletion) {
         this.designTimeArtifact.deploy(iFlowId, this.csrfToken)
         if (waitForCompletion) {
