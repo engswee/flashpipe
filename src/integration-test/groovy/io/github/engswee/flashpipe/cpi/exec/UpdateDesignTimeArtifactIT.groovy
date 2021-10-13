@@ -1,5 +1,6 @@
 package io.github.engswee.flashpipe.cpi.exec
 
+import io.github.engswee.flashpipe.cpi.api.DesignTimeArtifact
 import io.github.engswee.flashpipe.cpi.util.IntegrationTestHelper
 import io.github.engswee.flashpipe.http.HTTPExecuter
 import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
@@ -10,6 +11,8 @@ class UpdateDesignTimeArtifactIT extends Specification {
 
     @Shared
     IntegrationTestHelper testHelper
+    @Shared
+    DesignTimeArtifact designTimeArtifact
 
     def setupSpec() {
         def host = System.getenv('HOST_TMN')
@@ -19,6 +22,7 @@ class UpdateDesignTimeArtifactIT extends Specification {
         testHelper = new IntegrationTestHelper(httpExecuter)
         testHelper.setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Update', 'FlashPipe Update', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update')
         testHelper.deployIFlow('FlashPipe_Update', true)
+        designTimeArtifact = new DesignTimeArtifact(httpExecuter)
     }
 
     def cleanupSpec() {
@@ -39,7 +43,7 @@ class UpdateDesignTimeArtifactIT extends Specification {
         updateDesignTimeArtifact.execute()
 
         then:
-        noExceptionThrown()
+        designTimeArtifact.getVersion('FlashPipe_Update', 'active', false) == '1.0.1'
     }
 
     def 'Update using AUTO_INCREMENT version'() {
@@ -51,13 +55,19 @@ class UpdateDesignTimeArtifactIT extends Specification {
         updateDesignTimeArtifact.setiFlowDir('src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update')
         updateDesignTimeArtifact.setPackageId('FlashPipeIntegrationTest')
         updateDesignTimeArtifact.setVersionHandling('AUTO_INCREMENT')
-        updateDesignTimeArtifact.setCurrentiFlowVersion('1.0.0')
+        updateDesignTimeArtifact.setCurrentiFlowVersion('1.0.1')
 
         when:
         updateDesignTimeArtifact.execute()
 
         then:
-        noExceptionThrown()
+        designTimeArtifact.getVersion('FlashPipe_Update', 'active', false) == '1.0.2'
+
+        cleanup:
+        File manifestFile = new File("src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update/META-INF/MANIFEST.MF")
+        def manifestContent = manifestFile.getText('UTF-8')
+        def updatedContent = manifestContent.replaceFirst(/Bundle-Version: \S+/, "Bundle-Version: 1.0.1")
+        manifestFile.setText(updatedContent, 'UTF-8')
     }
 
     def 'Exception thrown for invalid VERSION_HANDLING'() {

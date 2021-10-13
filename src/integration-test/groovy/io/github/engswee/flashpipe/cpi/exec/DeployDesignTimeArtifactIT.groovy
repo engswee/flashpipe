@@ -1,5 +1,6 @@
 package io.github.engswee.flashpipe.cpi.exec
 
+import io.github.engswee.flashpipe.cpi.api.RuntimeArtifact
 import io.github.engswee.flashpipe.cpi.util.IntegrationTestHelper
 import io.github.engswee.flashpipe.http.HTTPExecuter
 import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
@@ -10,6 +11,8 @@ class DeployDesignTimeArtifactIT extends Specification {
 
     @Shared
     IntegrationTestHelper testHelper
+    @Shared
+    RuntimeArtifact runtimeArtifact
 
     def setupSpec() {
         def host = System.getenv('HOST_TMN')
@@ -20,6 +23,7 @@ class DeployDesignTimeArtifactIT extends Specification {
         // Upload IFlows to design time
         testHelper.setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Update', 'FlashPipe Update', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update')
         testHelper.setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Update_Error', 'FlashPipe Update Error', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update Error')
+        runtimeArtifact = new RuntimeArtifact(httpExecuter)
     }
 
     def cleanupSpec() {
@@ -38,7 +42,10 @@ class DeployDesignTimeArtifactIT extends Specification {
         deployDesignTimeArtifact.execute()
 
         then:
-        noExceptionThrown()
+        verifyAll {
+            runtimeArtifact.getVersion('FlashPipe_Update') == '1.0.1'
+            runtimeArtifact.getStatus('FlashPipe_Update') == 'STARTED'
+        }
     }
 
     def 'Deployment skipped as same version IFlow already deployed'() {
@@ -52,7 +59,10 @@ class DeployDesignTimeArtifactIT extends Specification {
         deployDesignTimeArtifact.execute()
 
         then:
-        noExceptionThrown()
+        verifyAll {
+            runtimeArtifact.getVersion('FlashPipe_Update') == '1.0.1'
+            runtimeArtifact.getStatus('FlashPipe_Update') == 'STARTED'
+        }
     }
 
     def 'Exception thrown if deployment unsuccessful'() {

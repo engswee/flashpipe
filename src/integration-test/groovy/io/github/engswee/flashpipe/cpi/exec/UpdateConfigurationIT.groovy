@@ -1,5 +1,6 @@
 package io.github.engswee.flashpipe.cpi.exec
 
+import io.github.engswee.flashpipe.cpi.api.Configuration
 import io.github.engswee.flashpipe.cpi.util.IntegrationTestHelper
 import io.github.engswee.flashpipe.http.HTTPExecuter
 import io.github.engswee.flashpipe.http.HTTPExecuterApacheImpl
@@ -10,6 +11,8 @@ class UpdateConfigurationIT extends Specification {
 
     @Shared
     IntegrationTestHelper testHelper
+    @Shared
+    Configuration configuration
 
     def setupSpec() {
         def host = System.getenv('HOST_TMN')
@@ -18,6 +21,7 @@ class UpdateConfigurationIT extends Specification {
         HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
         testHelper = new IntegrationTestHelper(httpExecuter)
         testHelper.setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Update', 'FlashPipe Update', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update')
+        configuration = new Configuration(httpExecuter)
     }
 
     def cleanupSpec() {
@@ -34,7 +38,10 @@ class UpdateConfigurationIT extends Specification {
         updateConfiguration.execute()
 
         then:
-        noExceptionThrown()
+        verifyAll {
+            configuration.getParameters('FlashPipe_Update', 'active')[0].ParameterKey == 'Sender Endpoint'
+            configuration.getParameters('FlashPipe_Update', 'active')[0].ParameterValue == '/flashpipe-update'
+        }
     }
 
     def 'Configuration updated'() {
@@ -47,6 +54,9 @@ class UpdateConfigurationIT extends Specification {
         updateConfiguration.execute()
 
         then:
-        noExceptionThrown()
+        verifyAll {
+            configuration.getParameters('FlashPipe_Update', 'active')[0].ParameterKey == 'Sender Endpoint'
+            configuration.getParameters('FlashPipe_Update', 'active')[0].ParameterValue == '/flashpipe-update-new'
+        }
     }
 }
