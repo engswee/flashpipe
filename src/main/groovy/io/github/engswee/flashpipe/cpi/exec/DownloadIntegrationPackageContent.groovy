@@ -10,48 +10,63 @@ class DownloadIntegrationPackageContent extends APIExecuter {
 
     static Logger logger = LoggerFactory.getLogger(DownloadIntegrationPackageContent)
 
+    String packageId
+    String workDir
+    String gitSrcDir
+    String commitMessage
+    String dirNamingType
+    String draftHandling
+    List includedIds
+    List excludedIds
+
     static void main(String[] args) {
         DownloadIntegrationPackageContent downloadIntegrationPackageContent = new DownloadIntegrationPackageContent()
         downloadIntegrationPackageContent.getEnvironmentVariables()
-        downloadIntegrationPackageContent.execute()
+        try {
+            downloadIntegrationPackageContent.execute()
+        } catch (ExecutionException ignored) {
+            System.exit(1)
+        }
     }
 
     @Override
     void getEnvironmentVariables() {
+        this.packageId = getMandatoryEnvVar('PACKAGE_ID')
+        this.workDir = getMandatoryEnvVar('WORK_DIR')
+        this.gitSrcDir = getMandatoryEnvVar('GIT_SRC_DIR')
+        this.commitMessage = System.getenv('COMMIT_MESSAGE')
+        this.dirNamingType = (System.getenv('DIR_NAMING_TYPE') ?: 'ID')
+        this.draftHandling = (System.getenv('DRAFT_HANDLING') ?: 'SKIP')
+        this.includedIds = StringUtility.extractDelimitedValues(System.getenv('INCLUDE_IDS'), ',')
+        this.excludedIds = StringUtility.extractDelimitedValues(System.getenv('EXCLUDE_IDS'), ',')
     }
 
     @Override
     void execute() {
-        def packageId = getMandatoryEnvVar('PACKAGE_ID')
-        def workDir = getMandatoryEnvVar('WORK_DIR')
-        def gitSrcDir = getMandatoryEnvVar('GIT_SRC_DIR')
-
         // Check that input environment variables do not have any of the secrets in their values
-        validateInputContainsNoSecrets('GIT_SRC_DIR')
-        validateInputContainsNoSecrets('COMMIT_MESSAGE')
+        validateInputContainsNoSecrets('GIT_SRC_DIR', this.gitSrcDir)
+        validateInputContainsNoSecrets('COMMIT_MESSAGE', this.commitMessage)
 
-        String dirNamingType = (System.getenv('DIR_NAMING_TYPE') ?: 'ID')
-        if (!['ID', 'NAME'].contains(dirNamingType.toUpperCase())) {
-            logger.error("🛑 Value ${dirNamingType} for environment variable DIR_NAMING_TYPE not in list of accepted values: ID or NAME")
-            System.exit(1)
+        if (!['ID', 'NAME'].contains(this.dirNamingType.toUpperCase())) {
+            logger.error("🛑 Value ${this.dirNamingType} for environment variable DIR_NAMING_TYPE not in list of accepted values: ID or NAME")
+            throw new ExecutionException('Invalid value for DIR_NAMING_TYPE')
         }
-        String draftHandling = (System.getenv('DRAFT_HANDLING') ?: 'SKIP')
-        if (!['SKIP', 'ADD', 'ERROR'].contains(draftHandling.toUpperCase())) {
-            logger.error("🛑 Value ${draftHandling} for environment variable DRAFT_HANDLING not in list of accepted values: SKIP, ADD or ERROR")
-            System.exit(1)
+
+        if (!['SKIP', 'ADD', 'ERROR'].contains(this.draftHandling.toUpperCase())) {
+            logger.error("🛑 Value ${this.draftHandling} for environment variable DRAFT_HANDLING not in list of accepted values: SKIP, ADD or ERROR")
+            throw new ExecutionException('Invalid value for DRAFT_HANDLING')
         }
-        List includedIds = StringUtility.extractDelimitedValues(System.getenv('INCLUDE_IDS'), ',')
-        List excludedIds = StringUtility.extractDelimitedValues(System.getenv('EXCLUDE_IDS'), ',')
-        if (includedIds && excludedIds) {
+
+        if (this.includedIds && this.excludedIds) {
             logger.error('🛑 INCLUDE_IDS and EXCLUDE_IDS are mutually exclusive - use only one of them')
-            System.exit(1)
+            throw new ExecutionException('INCLUDE_IDS and EXCLUDE_IDS are mutually exclusive')
         }
 
         try {
-            new PackageSynchroniser(this.httpExecuter).sync(packageId, workDir, gitSrcDir, includedIds, excludedIds, draftHandling, dirNamingType)
-        } catch (UtilException ignored) {
-            logger.error("🛑 Error occurred when processing package ${packageId}")
-            System.exit(1)
+            new PackageSynchroniser(this.httpExecuter).sync(this.packageId, this.workDir, this.gitSrcDir, this.includedIds, this.excludedIds, this.draftHandling, this.dirNamingType)
+        } catch (UtilException e) {
+            logger.error("🛑 Error occurred when processing package ${this.packageId}")
+            throw new ExecutionException(e.getMessage())
         }
     }
 }
