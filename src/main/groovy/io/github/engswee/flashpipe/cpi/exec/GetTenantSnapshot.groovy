@@ -10,41 +10,50 @@ class GetTenantSnapshot extends APIExecuter {
 
     static Logger logger = LoggerFactory.getLogger(GetTenantSnapshot)
 
+    String workDir
+    String gitSrcDir
+    String commitMessage
+    String draftHandling
+
     static void main(String[] args) {
         GetTenantSnapshot getTenantSnapshot = new GetTenantSnapshot()
         getTenantSnapshot.getEnvironmentVariables()
-        getTenantSnapshot.execute()
+        try {
+            getTenantSnapshot.execute()
+        } catch (ExecutionException ignored) {
+            System.exit(1)
+        }
     }
 
     @Override
     void getEnvironmentVariables() {
+        this.gitSrcDir = getMandatoryEnvVar('GIT_SRC_DIR')
+        this.workDir = getMandatoryEnvVar('WORK_DIR')
+        this.commitMessage = System.getenv('COMMIT_MESSAGE')
+        this.draftHandling = (System.getenv('DRAFT_HANDLING') ?: 'SKIP')
     }
 
     @Override
     void execute() {
-        def gitSrcDir = getMandatoryEnvVar('GIT_SRC_DIR')
-        def workDir = getMandatoryEnvVar('WORK_DIR')
-
         // Check that input environment variables do not have any of the secrets in their values
-        validateInputContainsNoSecrets('GIT_SRC_DIR')
-        validateInputContainsNoSecrets('GIT_BRANCH') //-TODO-: Add Git branch support
-        validateInputContainsNoSecrets('COMMIT_MESSAGE')
+        validateInputContainsNoSecrets('GIT_SRC_DIR', this.gitSrcDir)
+//        validateInputContainsNoSecrets('GIT_BRANCH', 'TODO') //-TODO-: Add Git branch support
+        validateInputContainsNoSecrets('COMMIT_MESSAGE', this.commitMessage)
 
-        String draftHandling = (System.getenv('DRAFT_HANDLING') ?: 'SKIP')
-        if (!['SKIP', 'ADD', 'ERROR'].contains(draftHandling.toUpperCase())) {
-            logger.error("🛑 Value ${draftHandling} for environment variable DRAFT_HANDLING not in list of accepted values: SKIP, ADD or ERROR")
-            System.exit(1)
+        if (!['SKIP', 'ADD', 'ERROR'].contains(this.draftHandling.toUpperCase())) {
+            logger.error("🛑 Value ${this.draftHandling} for environment variable DRAFT_HANDLING not in list of accepted values: SKIP, ADD or ERROR")
+            throw new ExecutionException('Invalid value for DRAFT_HANDLING')
         }
 
         println '---------------------------------------------------------------------------------'
         logger.info("📢 Begin taking a snapshot of the tenant")
 
-        // Get packages from the tentant
+        // Get packages from the tenant
         IntegrationPackage integrationPackage = new IntegrationPackage(this.httpExecuter)
         List packages = integrationPackage.getPackagesList()
         if (packages.size() == 0) {
             logger.error("🛑 No packages found in the tenant")
-            System.exit(1)
+            throw new ExecutionException('No packages found in the tenant')
         }
 
         logger.info("Processing ${packages.size()} packages")
@@ -55,10 +64,10 @@ class GetTenantSnapshot extends APIExecuter {
             println '---------------------------------------------------------------------------------'
             logger.info("Processing package ${index}/${packages.size()} - ID: ${packageId}")
             try {
-                packageSynchroniser.sync(packageId, "${workDir}/${packageId}", "${gitSrcDir}/${packageId}", [], [], draftHandling, 'ID')
-            } catch (UtilException ignored) {
+                packageSynchroniser.sync(packageId, "${this.workDir}/${packageId}", "${this.gitSrcDir}/${packageId}", [], [], this.draftHandling, 'ID')
+            } catch (UtilException e) {
                 logger.error("🛑 Error occurred when processing package ${packageId}")
-                System.exit(1)
+                throw new ExecutionException(e.getMessage())
             }
         }
         println '---------------------------------------------------------------------------------'
