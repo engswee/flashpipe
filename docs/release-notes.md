@@ -1,5 +1,12 @@
 # Release Notes
 
+## 2.4.3 (Released 20 October 2021)
+
+---
+
+- Stability release - no new features, but added lots of unit tests and integration tests to ensure good code coverage during testing
+
+
 ## 2.4.2 (Released 21 September 2021)
 
 ---
