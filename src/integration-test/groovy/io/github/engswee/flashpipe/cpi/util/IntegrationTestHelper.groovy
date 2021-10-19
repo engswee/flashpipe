@@ -22,6 +22,13 @@ class IntegrationTestHelper {
         this.integrationPackage = new IntegrationPackage(httpExecuter)
     }
 
+    IntegrationTestHelper(HTTPExecuter httpExecuter, CSRFToken csrfToken) {
+        this.csrfToken = csrfToken
+        this.designTimeArtifact = new DesignTimeArtifact(httpExecuter)
+        this.runtimeArtifact = new RuntimeArtifact(httpExecuter)
+        this.integrationPackage = new IntegrationPackage(httpExecuter)
+    }
+
     void setupIFlow(String packageId, String packageName, String iFlowId, String iFlowName, String filePath) {
         // Create integration package if it doesn't exist
         if (!this.integrationPackage.exists(packageId)) {

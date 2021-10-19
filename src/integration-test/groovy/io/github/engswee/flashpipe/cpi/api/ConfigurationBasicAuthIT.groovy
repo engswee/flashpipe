@@ -21,7 +21,7 @@ class ConfigurationBasicAuthIT extends Specification {
         HTTPExecuter httpExecuter = HTTPExecuterApacheImpl.newInstance('https', host, 443, user, password)
         configuration = new Configuration(httpExecuter)
         csrfToken = new CSRFToken(httpExecuter)
-        testHelper = new IntegrationTestHelper(httpExecuter)
+        testHelper = new IntegrationTestHelper(httpExecuter, csrfToken)
         testHelper.setupIFlow('FlashPipeIntegrationTest', 'FlashPipe Integration Test', 'FlashPipe_Update', 'FlashPipe Update', 'src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update')
     }
 
