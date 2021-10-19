@@ -31,7 +31,7 @@ steps:
     jdkVersionOption: '1.8'
     goals: 'clean verify'
     testResultsFiles: '**/failsafe-reports/TEST-*.xml'
-    options: '-Dskip.unit.tests -Dit.test=io.github.engswee.flashpipe.cpi.api.*IT'
+    options: '-Dskip.unit.tests -Dit.test=io.github.engswee.flashpipe.cpi.api.*IT,io.github.engswee.flashpipe.cpi.exec.*IT'
   env:
     HOST_TMN: $(dev-host-tmn)
     HOST_OAUTH: $(dev-oauth-host)

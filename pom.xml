@@ -233,9 +233,9 @@
                     <version>3.0.0-M4</version>
                     <configuration>
                         <tagNameFormat>@{project.version}</tagNameFormat>
-                        <preparationGoals>clean verify -Dit.test=io.github.engswee.flashpipe.cpi.api.*IT</preparationGoals>
+                        <preparationGoals>clean verify -Dit.test=io.github.engswee.flashpipe.cpi.exec.*IT</preparationGoals>
                         <scmDevelopmentCommitComment>@{prefix} prepare for next development iteration [skip ci]</scmDevelopmentCommitComment>
-                        <goals>deploy -Dit.test=io.github.engswee.flashpipe.cpi.api.*IT</goals>
+                        <goals>deploy -DskipITs</goals>
                     </configuration>
                 </plugin>
             </plugins>
