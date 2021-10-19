@@ -77,7 +77,7 @@ class DeployDesignTimeArtifactIT extends Specification {
 
         then:
         ExecutionException e = thrown()
-        e.getMessage().reverse().take(88).reverse() == "Http Address '/flashpipe-update' already registered for another iflow 'FlashPipe_Update'"
+        e.getMessage().contains("Http Address '/flashpipe-update' already registered for another iflow 'FlashPipe_Update'") == true
     }
 
     def 'Exception thrown if max limit reached'() {
