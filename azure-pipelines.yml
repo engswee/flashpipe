@@ -16,65 +16,101 @@ variables:
   - group: cpi-dev
   - group: cpi-neo
 
-steps:
-# https://docs.microsoft.com/azure/devops/pipelines/tasks/build/maven
-- task: Maven@3
-  displayName: 'Unit test'
-  inputs:
-    mavenOptions: '-Xmx3072m'
-    jdkVersionOption: '1.8'
-    goals: 'test'
-- task: Maven@3
-  displayName: 'Integration test on CF'
-  inputs:
-    mavenOptions: '-Xmx3072m'
-    jdkVersionOption: '1.8'
-    goals: 'clean verify'
-    testResultsFiles: '**/failsafe-reports/TEST-*.xml'
-    options: '-Dskip.unit.tests -Dit.test=io.github.engswee.flashpipe.cpi.api.*IT,io.github.engswee.flashpipe.cpi.exec.*IT'
-  env:
-    HOST_TMN: $(dev-host-tmn)
-    HOST_OAUTH: $(dev-oauth-host)
-    OAUTH_CLIENTID: $(dev-client-id)
-    OAUTH_CLIENTSECRET: $(dev-client-secret)
-    BASIC_USERID: $(dev-user)
-    BASIC_PASSWORD: $(dev-password)
-- task: Maven@3
-  displayName: 'Integration test on Neo - simulation'
-  inputs:
-    mavenOptions: '-Xmx3072m'
-    jdkVersionOption: '1.8'
-    goals: 'clean verify'
-    testResultsFiles: '**/failsafe-reports/TEST-*.xml'
-    options: '-Dskip.unit.tests -Dit.test=io.github.engswee.flashpipe.cpi.simulation.*IT'
-  env:
-    HOST_TMN: $(neo-host-tmn)
-    BASIC_USERID: $(neo-user)
-    BASIC_PASSWORD: $(neo-password)
-# https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/build/docker
-  # Lite version
-- task: Docker@2
-  inputs:
-    containerRegistry: 'Docker Hub engswee'
-    repository: 'engswee/flashpipe'
-    command: 'buildAndPush'
-    Dockerfile: 'src/main/docker/lite.Dockerfile'
-    buildContext: '.'
-    # FLASHPIPE_VERSION
-    tags: |
-      2.4.3-lite
-      2.4.x-lite
-      2.x.x-lite
-# Full version with Maven
-- task: Docker@2
-  inputs:
-    containerRegistry: 'Docker Hub engswee'
-    repository: 'engswee/flashpipe'
-    command: 'buildAndPush'
-    Dockerfile: 'src/main/docker/Dockerfile'
-    buildContext: '.'
-    # FLASHPIPE_VERSION
-    tags: |
-      2.4.3
-      2.4.x
-      2.x.x
+jobs:
+# ----------------------------------------------------------------
+# Run tests with Maven - https://docs.microsoft.com/azure/devops/pipelines/tasks/build/maven
+# ----------------------------------------------------------------
+  - job: unit_test
+    steps:
+    - task: Maven@3
+      displayName: 'Unit test'
+      inputs:
+        testRunTitle: 'Unit test'
+        mavenOptions: '-Xmx3072m'
+        jdkVersionOption: '1.8'
+        goals: 'test'
+  - job: integration_test_cf
+    steps:
+    - task: Maven@3
+      displayName: 'Integration test on CF'
+      inputs:
+        testRunTitle: 'Integration test on CF'
+        mavenOptions: '-Xmx3072m'
+        jdkVersionOption: '1.8'
+        goals: 'clean verify'
+        testResultsFiles: '**/failsafe-reports/TEST-*.xml'
+        options: '-Dskip.unit.tests -Dit.test=io.github.engswee.flashpipe.cpi.api.*IT,io.github.engswee.flashpipe.cpi.exec.*IT'
+      env:
+        HOST_TMN: $(dev-host-tmn)
+        HOST_OAUTH: $(dev-oauth-host)
+        OAUTH_CLIENTID: $(dev-client-id)
+        OAUTH_CLIENTSECRET: $(dev-client-secret)
+        BASIC_USERID: $(dev-user)
+        BASIC_PASSWORD: $(dev-password)
+  - job: integration_test_neo
+    steps:
+    - task: Maven@3
+      displayName: 'Integration test on Neo - simulation'
+      inputs:
+        testRunTitle: 'Integration test on Neo - simulation'
+        mavenOptions: '-Xmx3072m'
+        jdkVersionOption: '1.8'
+        goals: 'clean verify'
+        testResultsFiles: '**/failsafe-reports/TEST-*.xml'
+        options: '-Dskip.unit.tests -Dit.test=io.github.engswee.flashpipe.cpi.simulation.*IT'
+      env:
+        HOST_TMN: $(neo-host-tmn)
+        BASIC_USERID: $(neo-user)
+        BASIC_PASSWORD: $(neo-password)
+    # Publish Pipeline artifact
+    - publish: $(System.DefaultWorkingDirectory)
+      artifact: GitRepo
+# ----------------------------------------------------------------
+# Build and push Docker images - https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/build/docker
+# ----------------------------------------------------------------
+  - job: build_image_lite
+    dependsOn:
+    - unit_test
+    - integration_test_cf
+    - integration_test_neo
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: GitRepo
+        path: $(Build.SourcesDirectory)/
+    # Lite version
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker Hub engswee'
+        repository: 'engswee/flashpipe'
+        command: 'buildAndPush'
+        Dockerfile: 'src/main/docker/lite.Dockerfile'
+        buildContext: '.'
+        # FLASHPIPE_VERSION
+        tags: |
+          2.4.3-lite
+          2.4.x-lite
+          2.x.x-lite
+  - job: build_image_full
+    dependsOn:
+      - unit_test
+      - integration_test_cf
+      - integration_test_neo
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: GitRepo
+        path: $(Build.SourcesDirectory)/
+    # Full version with Maven
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker Hub engswee'
+        repository: 'engswee/flashpipe'
+        command: 'buildAndPush'
+        Dockerfile: 'src/main/docker/Dockerfile'
+        buildContext: '.'
+        # FLASHPIPE_VERSION
+        tags: |
+          2.4.3
+          2.4.x
+          2.x.x
