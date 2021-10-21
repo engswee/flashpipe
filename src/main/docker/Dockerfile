@@ -14,9 +14,9 @@ RUN install_packages git unzip
 # Dockerfile reference:
 # https://github.com/carlossg/docker-maven/blob/master/openjdk-8/Dockerfile
 # ----------------------------------------
-ARG MAVEN_VERSION=3.8.1
+ARG MAVEN_VERSION=3.8.3
 ARG USER_HOME_DIR="/root"
-ARG SHA=0ec48eb515d93f8515d4abe465570dfded6fa13a3ceb9aab8031428442d9912ec20f066b2afbf56964ffe1ceb56f80321b50db73cf77a0e2445ad0211fb8e38d
+ARG SHA=1c12a5df43421795054874fd54bb8b37d242949133b5bf6052a063a13a93f13a20e6e9dae2b3d85b9c7034ec977bbc2b6e7f66832182b9c863711d78bfe60faa
 ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
 
 RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
