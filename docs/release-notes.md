@@ -1,11 +1,16 @@
 # Release Notes
 
+## 2.4.4 (Released 13 December 2021)
+
+---
+
+- Bug fix - bump log4j version to 2.15.0 due to security vulnerability
+
 ## 2.4.3 (Released 20 October 2021)
 
 ---
 
 - Stability release - no new features, but added lots of unit tests and integration tests to ensure good code coverage during testing
-
 
 ## 2.4.2 (Released 21 September 2021)
 
