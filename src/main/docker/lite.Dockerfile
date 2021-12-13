@@ -34,7 +34,7 @@ ARG SLF4J_VER=1.7.25
 RUN mkdir -p       ${MAVEN_REPO_DIR}/org/slf4j/slf4j-api/${SLF4J_VER} \
   && curl -fsSL -o ${MAVEN_REPO_DIR}/org/slf4j/slf4j-api/${SLF4J_VER}/slf4j-api-${SLF4J_VER}.jar \
                          ${BASE_URL}/org/slf4j/slf4j-api/${SLF4J_VER}/slf4j-api-${SLF4J_VER}.jar
-ARG LOG4J_VER=2.14.1
+ARG LOG4J_VER=2.15.0
 RUN mkdir -p       ${MAVEN_REPO_DIR}/org/apache/logging/log4j/log4j-slf4j-impl/${LOG4J_VER} \
   && curl -fsSL -o ${MAVEN_REPO_DIR}/org/apache/logging/log4j/log4j-slf4j-impl/${LOG4J_VER}/log4j-slf4j-impl-${LOG4J_VER}.jar \
                          ${BASE_URL}/org/apache/logging/log4j/log4j-slf4j-impl/${LOG4J_VER}/log4j-slf4j-impl-${LOG4J_VER}.jar
