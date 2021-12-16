@@ -1,10 +1,17 @@
 # Release Notes
 
+## 2.4.5 (Released 16 December 2021)
+
+---
+
+- Bug fix - bump log4j version to 2.16.0 due to security vulnerability as described in [CVE-2021-45046](https://nvd.nist.gov/vuln/detail/CVE-2021-45046)
+
+
 ## 2.4.4 (Released 13 December 2021)
 
 ---
 
-- Bug fix - bump log4j version to 2.15.0 due to security vulnerability
+- Bug fix - bump log4j version to 2.15.0 due to security vulnerability as described in [CVE-2021-44228](https://nvd.nist.gov/vuln/detail/CVE-2021-44228)
 
 ## 2.4.3 (Released 20 October 2021)
 
