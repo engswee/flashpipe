@@ -22,9 +22,9 @@ _FlashPipe_'s Maven repository comes loaded with the following libraries (and an
 - org.spockframework:spock-core:1.3-groovy-2.4
 - org.apache.camel:camel-core:2.24.2
 - org.apache.httpcomponents.client5:httpclient5:5.0.4
-- org.apache.logging.log4j:log4j-api:2.16.0
-- org.apache.logging.log4j:log4j-core:2.16.0
-- org.apache.logging.log4j:log4j-slf4j-impl:2.16.0
+- org.apache.logging.log4j:log4j-api:2.17.0
+- org.apache.logging.log4j:log4j-core:2.17.0
+- org.apache.logging.log4j:log4j-slf4j-impl:2.17.0
 - net.bytebuddy:byte-buddy:1.11.0
 
 For multiple integration packages/artifacts, the repository can be structured as a Maven multi-module project. An example can be found [here](https://github.com/engswee/flashpipe-demo/tree/azure-pipelines).
