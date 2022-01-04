@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2.4.7 (Released 5 January 2022)
+
+---
+
+- Bug fix - bump log4j version to 2.17.1 due to security vulnerability as described in [CVE-2021-44832](https://nvd.nist.gov/vuln/detail/CVE-2021-44832)
+
 ## 2.4.6 (Released 20 December 2021)
 
 ---
