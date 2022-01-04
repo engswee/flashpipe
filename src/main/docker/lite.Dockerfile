@@ -34,7 +34,7 @@ ARG SLF4J_VER=1.7.25
 RUN mkdir -p       ${MAVEN_REPO_DIR}/org/slf4j/slf4j-api/${SLF4J_VER} \
   && curl -fsSL -o ${MAVEN_REPO_DIR}/org/slf4j/slf4j-api/${SLF4J_VER}/slf4j-api-${SLF4J_VER}.jar \
                          ${BASE_URL}/org/slf4j/slf4j-api/${SLF4J_VER}/slf4j-api-${SLF4J_VER}.jar
-ARG LOG4J_VER=2.17.0
+ARG LOG4J_VER=2.17.1
 RUN mkdir -p       ${MAVEN_REPO_DIR}/org/apache/logging/log4j/log4j-slf4j-impl/${LOG4J_VER} \
   && curl -fsSL -o ${MAVEN_REPO_DIR}/org/apache/logging/log4j/log4j-slf4j-impl/${LOG4J_VER}/log4j-slf4j-impl-${LOG4J_VER}.jar \
                          ${BASE_URL}/org/apache/logging/log4j/log4j-slf4j-impl/${LOG4J_VER}/log4j-slf4j-impl-${LOG4J_VER}.jar
@@ -52,7 +52,7 @@ RUN mkdir -p       ${MAVEN_REPO_DIR}/org/zeroturnaround/zt-zip/${ZT_ZIP_VER} \
 # ----------------------------------------
 # 3 - Copy FlashPipe JAR file used for accessing CPI APIs
 # ----------------------------------------
-ARG FLASHPIPE_VERSION=2.4.6
+ARG FLASHPIPE_VERSION=2.4.7
 RUN mkdir -p ${MAVEN_REPO_DIR}/io/github/engswee/flashpipe/${FLASHPIPE_VERSION}
 COPY target/flashpipe-${FLASHPIPE_VERSION}.jar ${MAVEN_REPO_DIR}/io/github/engswee/flashpipe/${FLASHPIPE_VERSION}/flashpipe-${FLASHPIPE_VERSION}.jar
 
