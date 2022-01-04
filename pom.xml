@@ -12,7 +12,7 @@
         <jdk.version>8</jdk.version>
         <groovy.all.version>2.4.21</groovy.all.version>
         <httpclient5.version>5.0.4</httpclient5.version>
-        <log4j.version>2.17.0</log4j.version>
+        <log4j.version>2.17.1</log4j.version>
         <ztzip.version>1.14</ztzip.version>
         <spock.version>1.3-groovy-2.4</spock.version>
         <mockserver.version>5.11.2</mockserver.version>
