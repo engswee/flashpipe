@@ -5,7 +5,7 @@
     <groupId>io.github.engswee</groupId>
     <artifactId>flashpipe</artifactId>
     <!-- FLASHPIPE_VERSION -->
-    <version>2.4.7-SNAPSHOT</version>
+    <version>2.4.7</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -260,6 +260,6 @@
 
     <scm>
         <developerConnection>scm:git:https://github.com/engswee/flashpipe</developerConnection>
-        <tag>HEAD</tag>
+        <tag>2.4.7</tag>
     </scm>
 </project>
