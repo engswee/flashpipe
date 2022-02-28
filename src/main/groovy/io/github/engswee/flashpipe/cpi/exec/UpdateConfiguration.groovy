@@ -66,7 +66,8 @@ class UpdateConfiguration extends APIExecuter {
         if (atLeastOneUpdated) {
             logger.info('🏆 Undeploying existing runtime artifact due to changes in configured parameters')
             RuntimeArtifact runtimeArtifact = new RuntimeArtifact(this.httpExecuter)
-            runtimeArtifact.undeploy(this.iFlowId, csrfToken)
+            if (runtimeArtifact.getStatus(this.iFlowId, true))
+                runtimeArtifact.undeploy(this.iFlowId, csrfToken)
         } else
             logger.info('🏆 No updates required for configured parameters')
     }

@@ -122,6 +122,9 @@ class DownloadIntegrationPackageContentIT extends Specification {
 
         then:
         fileToDelete.exists() == true
+
+        cleanup:
+        new File('target/DownloadIntegrationPackageContentIT/TempGitSrcDir/FlashPipe Update').deleteDir()
     }
 
     def 'Exception thrown for invalid DIR_NAMING_TYPE'() {

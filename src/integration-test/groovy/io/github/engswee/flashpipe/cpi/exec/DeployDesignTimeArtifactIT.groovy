@@ -31,6 +31,21 @@ class DeployDesignTimeArtifactIT extends Specification {
         testHelper.cleanupIFlow('FlashPipe_Update_Error')
     }
 
+    def 'Exception thrown if max limit reached'() {
+        given:
+        DeployDesignTimeArtifact deployDesignTimeArtifact = new DeployDesignTimeArtifact()
+        deployDesignTimeArtifact.setiFlows(['FlashPipe_Update'])
+        deployDesignTimeArtifact.setDelayLength(10)
+        deployDesignTimeArtifact.setMaxCheckLimit(1)
+
+        when:
+        deployDesignTimeArtifact.execute()
+
+        then:
+        ExecutionException e = thrown()
+        e.getMessage() == 'Max check limit reached'
+    }
+
     def 'Deploy new IFlow'() {
         given:
         DeployDesignTimeArtifact deployDesignTimeArtifact = new DeployDesignTimeArtifact()
@@ -78,23 +93,5 @@ class DeployDesignTimeArtifactIT extends Specification {
         then:
         ExecutionException e = thrown()
         e.getMessage().contains("Http Address '/flashpipe-update' already registered for another iflow 'FlashPipe_Update'") == true
-    }
-
-    def 'Exception thrown if max limit reached'() {
-        given:
-        DeployDesignTimeArtifact deployDesignTimeArtifact = new DeployDesignTimeArtifact()
-        deployDesignTimeArtifact.setiFlows(['FlashPipe_Update'])
-        deployDesignTimeArtifact.setDelayLength(5)
-        deployDesignTimeArtifact.setMaxCheckLimit(1)
-
-        // Undeploy existing runtime artifact
-        testHelper.undeployIFlow('FlashPipe_Update')
-
-        when:
-        deployDesignTimeArtifact.execute()
-
-        then:
-        ExecutionException e = thrown()
-        e.getMessage() == 'Max check limit reached'
     }
 }

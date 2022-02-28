@@ -16,8 +16,12 @@ class RuntimeArtifact {
     }
 
     String getStatus(String iFlowId) {
-        Map responseRoot = getDetails(iFlowId, false)
-        return responseRoot.d.Status
+        return getStatus(iFlowId, false)
+    }
+
+    String getStatus(String iFlowId, boolean skipNotFoundException) {
+        Map responseRoot = getDetails(iFlowId, skipNotFoundException)
+        return responseRoot?.d?.Status
     }
 
     String getVersion(String iFlowId) {

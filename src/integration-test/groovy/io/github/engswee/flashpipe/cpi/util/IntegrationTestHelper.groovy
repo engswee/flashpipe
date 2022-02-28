@@ -43,7 +43,8 @@ class IntegrationTestHelper {
 
     void cleanupIFlow(String iFlowId) {
         this.designTimeArtifact.delete(iFlowId, this.csrfToken)
-        this.runtimeArtifact.undeploy(iFlowId, this.csrfToken)
+        if (this.runtimeArtifact.getStatus(iFlowId, true))
+            this.runtimeArtifact.undeploy(iFlowId, this.csrfToken)
     }
 
     void undeployIFlow(String iFlowId) {
