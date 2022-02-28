@@ -71,6 +71,7 @@ jobs:
           MANIFEST_FILE: <manifest_file> # Optional
           WORK_DIR: <working_directory> # Optional
           VERSION_HANDLING: <version_no_handling_during_update> # Optional
+          SCRIPT_COLLECTION_MAP: <comma_separated_source/target_pairs> # Optional
       # Deploy runtime
       - bash: /usr/bin/deploy_runtime_artifact.sh
         env:

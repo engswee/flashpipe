@@ -1,5 +1,15 @@
 # Release Notes
 
+## 2.5.0 (Released 28 February 2022)
+
+---
+
+- New functionalities during upload or update of Integration Flows
+  - Automatic update of following attributes in MANIFEST.MF from environment variables
+    - `Bundle-SymbolicName` - from `IFLOW_ID`
+    - `Bundle-Name` - from `IFLOW_NAME`
+  - New optional parameter `SCRIPT_COLLECTION_MAP` to handle conversion of script collection references in MANIFEST.MF and IFlow BPMN XML files
+
 ## 2.4.7 (Released 5 January 2022)
 
 ---

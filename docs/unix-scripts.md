@@ -42,6 +42,7 @@ Optional environment variables:
     WORK_DIR - Working directory for in-transit files (default is /tmp if not set)
     HOST_OAUTH_PATH - Specific path for OAuth token server, e.g. example /oauth2/api/v1/token for Neo environments (default is /oauth/token if not set for CF environments)
     VERSION_HANDLING - Determination of version number during artifact update. Allowed values: AUTO_INCREMENT (default), MANIFEST
+    SCRIPT_COLLECTION_MAP - Comma-separated source-target ID pairs for converting script collection references during upload/update
 
 NOTE: Encapsulate values in double quotes ("") if there are space characters in them
 ```
@@ -60,6 +61,7 @@ Environment variables set before call:
     PACKAGE_ID: FlashPipeDemo
     PACKAGE_NAME: "FlashPipe Demo"
     GIT_SRC_DIR: "FlashPipe Demo/Groovy XML Transformation"
+    SCRIPT_COLLECTION_MAP: "DEV_Common_Scripts=Common_Scripts"
 ```
 
 #### Example (OAuth for Neo)
