@@ -18,6 +18,7 @@ class UpdateDesignTimeArtifact extends APIExecuter {
     String packageId
     String versionHandling
     String currentiFlowVersion
+    String scriptCollectionMap
 
     static void main(String[] args) {
         UpdateDesignTimeArtifact updateDesignTimeArtifact = new UpdateDesignTimeArtifact()
@@ -37,6 +38,7 @@ class UpdateDesignTimeArtifact extends APIExecuter {
         this.packageId = getMandatoryEnvVar('PACKAGE_ID')
         this.versionHandling = (System.getenv('VERSION_HANDLING') ?: 'AUTO_INCREMENT')
         this.currentiFlowVersion = System.getenv('CURR_IFLOW_VER')
+        this.scriptCollectionMap = System.getenv('SCRIPT_COLLECTION_MAP')
     }
 
     @Override
@@ -49,10 +51,9 @@ class UpdateDesignTimeArtifact extends APIExecuter {
         validateInputContainsNoSecrets('IFLOW_ID', this.iFlowId)
         validateInputContainsNoSecrets('IFLOW_NAME', this.iFlowName)
         validateInputContainsNoSecrets('PACKAGE_ID', this.packageId)
+        validateInputContainsNoSecrets('SCRIPT_COLLECTION_MAP', this.scriptCollectionMap)
 
-        String scriptCollectionMap = System.getenv('SCRIPT_COLLECTION_MAP')
-        validateInputContainsNoSecrets('SCRIPT_COLLECTION_MAP', scriptCollectionMap)
-        Map collections = scriptCollectionMap?.split(',')?.toList()?.collectEntries {
+        Map collections = this.scriptCollectionMap?.split(',')?.toList()?.collectEntries {
             String[] pair = it.split('=')
             [(pair[0]): pair[1]]
         }

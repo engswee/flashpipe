@@ -17,6 +17,7 @@ class UploadDesignTimeArtifact extends APIExecuter {
     String iFlowDir
     String packageId
     String packageName
+    String scriptCollectionMap
 
     static void main(String[] args) {
         UploadDesignTimeArtifact uploadDesignTimeArtifact = new UploadDesignTimeArtifact()
@@ -31,6 +32,7 @@ class UploadDesignTimeArtifact extends APIExecuter {
         this.iFlowDir = getMandatoryEnvVar('IFLOW_DIR')
         this.packageId = getMandatoryEnvVar('PACKAGE_ID')
         this.packageName = getMandatoryEnvVar('PACKAGE_NAME')
+        this.scriptCollectionMap = System.getenv('SCRIPT_COLLECTION_MAP')
     }
 
     @Override
@@ -40,10 +42,9 @@ class UploadDesignTimeArtifact extends APIExecuter {
         validateInputContainsNoSecrets('IFLOW_NAME', this.iFlowName)
         validateInputContainsNoSecrets('PACKAGE_ID', this.packageId)
         validateInputContainsNoSecrets('PACKAGE_NAME', this.packageName)
+        validateInputContainsNoSecrets('SCRIPT_COLLECTION_MAP', this.scriptCollectionMap)
 
-        String scriptCollectionMap = System.getenv('SCRIPT_COLLECTION_MAP')
-        validateInputContainsNoSecrets('SCRIPT_COLLECTION_MAP', scriptCollectionMap)
-        Map collections = scriptCollectionMap?.split(',')?.toList()?.collectEntries {
+        Map collections = this.scriptCollectionMap?.split(',')?.toList()?.collectEntries {
             String[] pair = it.split('=')
             [(pair[0]): pair[1]]
         }

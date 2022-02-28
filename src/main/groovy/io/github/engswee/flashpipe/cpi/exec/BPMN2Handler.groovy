@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 class BPMN2Handler extends APIExecuter {
     static Logger logger = LoggerFactory.getLogger(BPMN2Handler)
 
-    Map collections
+    String scriptCollectionMap
     String iFlowDir
 
     static void main(String[] args) {
@@ -22,26 +22,27 @@ class BPMN2Handler extends APIExecuter {
 
     @Override
     void getEnvironmentVariables() {
-        String scriptCollectionMap = System.getenv('SCRIPT_COLLECTION_MAP')
-
-        this.collections = scriptCollectionMap?.split(',')?.toList()?.collectEntries {
-            String[] pair = it.split('=')
-            [(pair[0]): pair[1]]
-        }
-        if (this.collections?.size()) {
-            // Check that input environment variables do not have any of the secrets in their values
-            validateInputContainsNoSecrets('SCRIPT_COLLECTION_MAP', scriptCollectionMap)
-
-            this.iFlowDir = getMandatoryEnvVar('GIT_SRC_DIR')
-        } else {
-            logger.info('No update required for BPMN2 file as there are no script collections')
-        }
+        this.scriptCollectionMap = System.getenv('SCRIPT_COLLECTION_MAP')
+        this.iFlowDir = System.getenv('GIT_SRC_DIR')
     }
 
     @Override
     void execute() {
-        if (this.collections?.size()) {
-            updateFiles(this.collections, this.iFlowDir)
+        Map collections = scriptCollectionMap?.split(',')?.toList()?.collectEntries {
+            String[] pair = it.split('=')
+            [(pair[0]): pair[1]]
+        }
+        if (collections?.size()) {
+            // Check that input environment variables do not have any of the secrets in their values
+            validateInputContainsNoSecrets('SCRIPT_COLLECTION_MAP', scriptCollectionMap)
+
+            if (!this.iFlowDir) {
+                logger.error('🛑 Mandatory environment variable GIT_SRC_DIR not populated')
+                throw new ExecutionException('Mandatory environment variable not populated')
+            }
+            updateFiles(collections, this.iFlowDir)
+        } else {
+            logger.info('No update required for BPMN2 file as there are no script collections')
         }
     }
 
