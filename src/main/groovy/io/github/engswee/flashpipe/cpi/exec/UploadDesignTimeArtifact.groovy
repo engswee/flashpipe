@@ -3,6 +3,7 @@ package io.github.engswee.flashpipe.cpi.exec
 import io.github.engswee.flashpipe.cpi.api.CSRFToken
 import io.github.engswee.flashpipe.cpi.api.DesignTimeArtifact
 import io.github.engswee.flashpipe.cpi.api.IntegrationPackage
+import io.github.engswee.flashpipe.cpi.util.ManifestHandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.zeroturnaround.zip.ZipUtil
@@ -40,6 +41,13 @@ class UploadDesignTimeArtifact extends APIExecuter {
         validateInputContainsNoSecrets('PACKAGE_ID', this.packageId)
         validateInputContainsNoSecrets('PACKAGE_NAME', this.packageName)
 
+        String scriptCollectionMap = System.getenv('SCRIPT_COLLECTION_MAP')
+        validateInputContainsNoSecrets('SCRIPT_COLLECTION_MAP', scriptCollectionMap)
+        Map collections = scriptCollectionMap?.split(',')?.toList()?.collectEntries {
+            String[] pair = it.split('=')
+            [(pair[0]): pair[1]]
+        }
+
         CSRFToken csrfToken = new CSRFToken(this.httpExecuter)
 
         IntegrationPackage integrationPackage = new IntegrationPackage(this.httpExecuter)
@@ -49,6 +57,10 @@ class UploadDesignTimeArtifact extends APIExecuter {
             logger.info("Package ${this.packageId} created")
             logger.debug("${result}")
         }
+
+        ManifestHandler manifestHandler = new ManifestHandler("${this.iFlowDir}/META-INF/MANIFEST.MF")
+        manifestHandler.updateAttributes(this.iFlowId, this.iFlowName, collections.collect { it.value })
+        manifestHandler.updateFile()
 
         // Zip iFlow directory and encode to Base 64
         ByteArrayOutputStream baos = new ByteArrayOutputStream()

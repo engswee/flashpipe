@@ -132,16 +132,19 @@ if [[ "$check_iflow_status" == "0" ]]; then
   echo "[INFO] Executing command: - /usr/bin/unzip -d $WORK_DIR/download $zip_file"
   /usr/bin/unzip -d "$WORK_DIR/download" "$zip_file"
 
+  # Update the script collection in IFlow BPMN2 XML before diff comparison
+  exec_java_command io.github.engswee.flashpipe.cpi.exec.BPMN2Handler
+
   # Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
   # Therefore diff of parameters.prop may come up with false differences
   echo "[INFO] Checking for changes in src/main/resources directory"
-  echo "[INFO] Executing command: - diff --strip-trailing-cr -qr $WORK_DIR/download/src/main/resources/ $GIT_SRC_DIR/src/main/resources/"
-  diffoutput="$(diff --strip-trailing-cr -qr -x 'parameters.prop' "$WORK_DIR/download/src/main/resources/" "$GIT_SRC_DIR/src/main/resources/")"
+  echo "[INFO] Executing command: - diff --strip-trailing-cr -qr -w -B $WORK_DIR/download/src/main/resources/ $GIT_SRC_DIR/src/main/resources/"
+  diffoutput="$(diff --strip-trailing-cr -qr -w -B -x 'parameters.prop' "$WORK_DIR/download/src/main/resources/" "$GIT_SRC_DIR/src/main/resources/")"
   if [ -z "$diffoutput" ]; then
     echo '[INFO] 🏆 No changes detected. IFlow design does not need to be updated'
   else
     echo "[INFO] Changes found in src/main/resources directory"
-    diff --strip-trailing-cr -r -x 'parameters.prop' "$WORK_DIR/download/src/main/resources/" "$GIT_SRC_DIR/src/main/resources/"
+    diff --strip-trailing-cr -r -w -B -x 'parameters.prop' "$WORK_DIR/download/src/main/resources/" "$GIT_SRC_DIR/src/main/resources/"
     echo '[INFO] IFlow design will be updated in CPI tenant'
     # Clean up previous uploads
     rm -rf "$WORK_DIR/upload"

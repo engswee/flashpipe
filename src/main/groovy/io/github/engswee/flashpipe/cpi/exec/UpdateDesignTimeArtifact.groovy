@@ -3,6 +3,7 @@ package io.github.engswee.flashpipe.cpi.exec
 import io.github.engswee.flashpipe.cpi.api.CSRFToken
 import io.github.engswee.flashpipe.cpi.api.DesignTimeArtifact
 import io.github.engswee.flashpipe.cpi.api.RuntimeArtifact
+import io.github.engswee.flashpipe.cpi.util.ManifestHandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.zeroturnaround.zip.ZipUtil
@@ -49,6 +50,14 @@ class UpdateDesignTimeArtifact extends APIExecuter {
         validateInputContainsNoSecrets('IFLOW_NAME', this.iFlowName)
         validateInputContainsNoSecrets('PACKAGE_ID', this.packageId)
 
+        String scriptCollectionMap = System.getenv('SCRIPT_COLLECTION_MAP')
+        validateInputContainsNoSecrets('SCRIPT_COLLECTION_MAP', scriptCollectionMap)
+        Map collections = scriptCollectionMap?.split(',')?.toList()?.collectEntries {
+            String[] pair = it.split('=')
+            [(pair[0]): pair[1]]
+        }
+
+        // TODO - Move this into ManifestHandler - or it may no longer be needed
         if (this.versionHandling == 'AUTO_INCREMENT') {
             // Get current iFlow Version and bump up the number before upload
             logger.info("Current IFlow Version in Tenant - ${this.currentiFlowVersion}")
@@ -67,6 +76,10 @@ class UpdateDesignTimeArtifact extends APIExecuter {
             manifestFile.setText(updatedContent, 'UTF-8')
         }
 
+        ManifestHandler manifestHandler = new ManifestHandler("${this.iFlowDir}/META-INF/MANIFEST.MF")
+        manifestHandler.updateAttributes(this.iFlowId, this.iFlowName, collections.collect { it.value })
+        manifestHandler.updateFile()
+
         // Zip iFlow directory and encode to Base 64
         ByteArrayOutputStream baos = new ByteArrayOutputStream()
         ZipUtil.pack(new File(this.iFlowDir), baos)
@@ -78,7 +91,7 @@ class UpdateDesignTimeArtifact extends APIExecuter {
         logger.info("IFlow ${this.iFlowId} updated")
 
         // If runtime has the same version no, then undeploy it, otherwise it gets skipped during deployment
-        if (this.versionHandling == 'MANIFEST') {
+        if (this.versionHandling == 'MANIFEST') { // TODO - no longer need versionhandling?
             def designtimeVersion = designTimeArtifact.getVersion(this.iFlowId, 'active', false)
             RuntimeArtifact runtimeArtifact = new RuntimeArtifact(this.httpExecuter)
             def runtimeVersion = runtimeArtifact.getVersion(this.iFlowId)
