@@ -62,6 +62,12 @@ class UploadDesignTimeArtifact extends APIExecuter {
         manifestHandler.updateAttributes(this.iFlowId, this.iFlowName, collections.collect { it.value })
         manifestHandler.updateFile()
 
+        // Update the script collection in IFlow BPMN2 XML before upload
+        if (collections?.size()) {
+            BPMN2Handler bpmn2Handler = new BPMN2Handler()
+            bpmn2Handler.updateFiles(collections, this.iFlowDir)
+        }
+
         // Zip iFlow directory and encode to Base 64
         ByteArrayOutputStream baos = new ByteArrayOutputStream()
         ZipUtil.pack(new File(this.iFlowDir), baos)
