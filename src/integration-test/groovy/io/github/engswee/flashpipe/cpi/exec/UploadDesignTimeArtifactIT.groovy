@@ -29,6 +29,7 @@ class UploadDesignTimeArtifactIT extends Specification {
 
     def cleanupSpec() {
         testHelper.cleanupIFlow('FlashPipe_Upload')
+        testHelper.cleanupIFlow('FlashPipe_Use_Script_Collection')
         testHelper.deletePackage('FlashPipeIntegrationTestUpload')
     }
 
@@ -68,5 +69,22 @@ class UploadDesignTimeArtifactIT extends Specification {
 
         then:
         designTimeArtifact.getVersion('FlashPipe_Upload', 'active', false) == '1.0.0'
+    }
+
+    def 'Upload IFlow with script collection handling'() {
+        given:
+        UploadDesignTimeArtifact uploadDesignTimeArtifact = new UploadDesignTimeArtifact()
+        uploadDesignTimeArtifact.setiFlowId('FlashPipe_Use_Script_Collection')
+        uploadDesignTimeArtifact.setiFlowName('FlashPipe Use Script Collection')
+        uploadDesignTimeArtifact.setiFlowDir('src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/DEV FlashPipe Use Script Collection')
+        uploadDesignTimeArtifact.setPackageId('FlashPipeIntegrationTest')
+        uploadDesignTimeArtifact.setPackageName('FlashPipe Integration Test')
+        uploadDesignTimeArtifact.setScriptCollectionMap('DEV_Common_Scripts=Common_Scripts')
+
+        when:
+        uploadDesignTimeArtifact.execute()
+
+        then:
+        designTimeArtifact.getVersion('FlashPipe_Use_Script_Collection', 'active', false) == '1.0.0'
     }
 }
