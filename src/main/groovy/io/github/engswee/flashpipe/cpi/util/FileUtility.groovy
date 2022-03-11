@@ -20,6 +20,7 @@ class FileUtility {
 
     static void copyDirectory(String sourceDirectoryLocation, String destinationDirectoryLocation) throws IOException {
         logger.debug("Copying directory from ${sourceDirectoryLocation} to ${destinationDirectoryLocation}")
+        new File(destinationDirectoryLocation).mkdirs()
         Path sourceDirPath = Paths.get(sourceDirectoryLocation)
         Files.walk(sourceDirPath).forEach({ source ->
             Path destination = Paths.get(destinationDirectoryLocation, source.toString().substring(sourceDirPath.toString().length()))

@@ -69,12 +69,14 @@ class PackageSynchroniser {
             if (new File("${gitSrcDir}/${directoryName}").exists()) {
                 logger.info("Comparing content from tenant against Git")
                 // Copy to temp directory for diff comparison
-                FileUtility.copyDirectory("${workDir}/download/${directoryName}/src/main/resources", "${workDir}/from_tenant/${directoryName}")
-                FileUtility.copyDirectory("${gitSrcDir}/${directoryName}/src/main/resources", "${workDir}/from_git/${directoryName}")
+                FileUtility.copyDirectory("${workDir}/download/${directoryName}/src/main/resources", "${workDir}/from_tenant/${directoryName}/src/main/resources")
+                FileUtility.copyDirectory("${workDir}/download/${directoryName}/META-INF", "${workDir}/from_tenant/${directoryName}/META-INF")
+                FileUtility.copyDirectory("${gitSrcDir}/${directoryName}/src/main/resources", "${workDir}/from_git/${directoryName}/src/main/resources")
+                FileUtility.copyDirectory("${gitSrcDir}/${directoryName}/META-INF", "${workDir}/from_git/${directoryName}/META-INF")
 
                 // Remove comments from parameters.prop before comparison only if it exists
-                File tenantParamFile = new File("${workDir}/from_tenant/${directoryName}/parameters.prop")
-                File gitParamFile = new File("${workDir}/from_git/${directoryName}/parameters.prop")
+                File tenantParamFile = new File("${workDir}/from_tenant/${directoryName}/src/main/resources/parameters.prop")
+                File gitParamFile = new File("${workDir}/from_git/${directoryName}/src/main/resources/parameters.prop")
                 if (tenantParamFile.exists() && gitParamFile.exists()) {
                     FileUtility.removeCommentsFromFile(tenantParamFile)
                     FileUtility.removeCommentsFromFile(gitParamFile)
@@ -109,7 +111,6 @@ class PackageSynchroniser {
                 logger.info("🏆 Artifact ${artifact.id} does not exist, and will be added to Git")
                 FileUtility.copyDirectory("${workDir}/download/${directoryName}", "${gitSrcDir}/${directoryName}")
             }
-
         }
         // Clean up working directory
         new File("${workDir}/download").deleteDir()
