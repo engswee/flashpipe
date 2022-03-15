@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2.5.1 (Released 15 March 2022)
+
+---
+
+- Include META-INF/MANIFEST.MF file for diff comparison during sync to Git, and update to tenant
+
 ## 2.5.0 (Released 28 February 2022)
 
 ---
