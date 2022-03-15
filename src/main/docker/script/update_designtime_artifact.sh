@@ -86,6 +86,7 @@ if [ -n "$PARAM_FILE" ] && [ "$PARAM_FILE" != "$GIT_SRC_DIR/src/main/resources/p
   echo "[INFO] Using $PARAM_FILE as parameters.prop file"
   cp "$PARAM_FILE" "$GIT_SRC_DIR/src/main/resources/parameters.prop" || exit 1
 fi
+# TODO - deprecate MANIFEST_FILE ?
 if [ -n "$MANIFEST_FILE" ] && [ "$MANIFEST_FILE" != "$GIT_SRC_DIR/META-INF/MANIFEST.MF" ]; then
   echo "[INFO] Using $MANIFEST_FILE as MANIFEST.MF file"
   cp "$MANIFEST_FILE" "$GIT_SRC_DIR/META-INF/MANIFEST.MF" || exit 1
@@ -136,15 +137,24 @@ if [[ "$check_iflow_status" == "0" ]]; then
   # Update the script collection in IFlow BPMN2 XML before diff comparison
   exec_java_command io.github.engswee.flashpipe.cpi.exec.BPMN2Handler
 
+  # TODO - if manifest handling is not Auto - then compare version from tenant against git to see if update is required
+
+  # Compare META-INF directory for any differences in the manifest file
+  exec_java_command io.github.engswee.flashpipe.cpi.util.ManifestHandler "$GIT_SRC_DIR/META-INF/MANIFEST.MF" "$IFLOW_ID" "$IFLOW_NAME" "$SCRIPT_COLLECTION_MAP"
+  echo "[INFO] Checking for changes in META-INF directory"
+  echo "[INFO] Executing command: - diff --strip-trailing-cr -qr -w -B $WORK_DIR/download/META-INF/ $GIT_SRC_DIR/META-INF/"
+  manifest_diff_result="$(diff --strip-trailing-cr -qr -w -B "$WORK_DIR/download/META-INF/" "$GIT_SRC_DIR/META-INF/")"
+
   # Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
   # Therefore diff of parameters.prop may come up with false differences
   echo "[INFO] Checking for changes in src/main/resources directory"
   echo "[INFO] Executing command: - diff --strip-trailing-cr -qr -w -B $WORK_DIR/download/src/main/resources/ $GIT_SRC_DIR/src/main/resources/"
-  diffoutput="$(diff --strip-trailing-cr -qr -w -B -x 'parameters.prop' "$WORK_DIR/download/src/main/resources/" "$GIT_SRC_DIR/src/main/resources/")"
-  if [ -z "$diffoutput" ]; then
+  src_diff_result="$(diff --strip-trailing-cr -qr -w -B -x 'parameters.prop' "$WORK_DIR/download/src/main/resources/" "$GIT_SRC_DIR/src/main/resources/")"
+  if [ -z "$src_diff_result" ] && [ -z "$manifest_diff_result" ]; then
     echo '[INFO] 🏆 No changes detected. IFlow design does not need to be updated'
   else
-    echo "[INFO] Changes found in src/main/resources directory"
+    echo "[INFO] Changes found in IFlow"
+    diff --strip-trailing-cr -r -w -B "$WORK_DIR/download/META-INF/" "$GIT_SRC_DIR/META-INF/"
     diff --strip-trailing-cr -r -w -B -x 'parameters.prop' "$WORK_DIR/download/src/main/resources/" "$GIT_SRC_DIR/src/main/resources/"
     echo '[INFO] IFlow design will be updated in CPI tenant'
     # Clean up previous uploads

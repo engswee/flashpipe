@@ -13,6 +13,20 @@ class ManifestHandler {
     final File file
     boolean attributesUpdated = false
 
+    static void main(String[] args) {
+        String filePath = args[0]
+        String iFlowId = args[1]
+        String iFlowName = args[2]
+        String scriptCollectionMap = args[3]
+        Map collections = scriptCollectionMap?.split(',')?.toList()?.collectEntries {
+            String[] pair = it.split('=')
+            [(pair[0]): pair[1]]
+        }
+        ManifestHandler manifestHandler = new ManifestHandler(filePath)
+        manifestHandler.updateAttributes(iFlowId, iFlowName, collections.collect { it.value })
+        manifestHandler.updateFile()
+    }
+
     ManifestHandler(String filePath) {
         this.file = new File(filePath)
         this.manifest = new Manifest(this.file.newInputStream())
