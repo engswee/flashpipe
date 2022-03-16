@@ -18,7 +18,7 @@ class ManifestHandler {
         String iFlowId = args[1]
         String iFlowName = args[2]
         Map collections = [:]
-        if (args.size() > 3) {
+        if (args.size() > 3 && args[3].trim()) {
             String scriptCollectionMap = args[3]
             collections = scriptCollectionMap?.split(',')?.toList()?.collectEntries {
                 String[] pair = it.split('=')
