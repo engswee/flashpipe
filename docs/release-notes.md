@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2.5.3 (Released 16 March 2022)
+
+---
+
+- Further bug fix in 2.5.2 when `SCRIPT_COLLECTION_MAP` is empty during IFlow update
+
 ## 2.5.2 (Released 16 March 2022)
 
 ---
