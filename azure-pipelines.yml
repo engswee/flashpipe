@@ -88,8 +88,8 @@ jobs:
         buildContext: '.'
         # FLASHPIPE_VERSION
         tags: |
-          2.5.3-lite
-          2.5.x-lite
+          2.6.0-lite
+          2.6.x-lite
           2.x.x-lite
   - job: build_image_full
     dependsOn:
@@ -111,6 +111,6 @@ jobs:
         buildContext: '.'
         # FLASHPIPE_VERSION
         tags: |
-          2.5.3
-          2.5.x
+          2.6.0
+          2.6.x
           2.x.x
