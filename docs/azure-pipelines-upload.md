@@ -68,9 +68,9 @@ jobs:
           PACKAGE_NAME: <package_name>
           GIT_SRC_DIR: <git_src_dir>
           PARAM_FILE: <param_file> # Optional
-          MANIFEST_FILE: <manifest_file> # Optional
+          MANIFEST_FILE: <manifest_file> # Deprecated
           WORK_DIR: <working_directory> # Optional
-          VERSION_HANDLING: <version_no_handling_during_update> # Optional
+          VERSION_HANDLING: <version_no_handling_during_update> # Deprecated
           SCRIPT_COLLECTION_MAP: <comma_separated_source/target_pairs> # Optional
       # Deploy runtime
       - bash: /usr/bin/deploy_runtime_artifact.sh

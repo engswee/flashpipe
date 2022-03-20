@@ -29,7 +29,7 @@ class UpdateDesignTimeArtifactIT extends Specification {
         testHelper.cleanupIFlow('FlashPipe_Update')
     }
 
-    def 'Update using MANIFEST version'() {
+    def 'Update IFlow'() {
         given:
         
         UpdateDesignTimeArtifact updateDesignTimeArtifact = new UpdateDesignTimeArtifact()
@@ -37,49 +37,11 @@ class UpdateDesignTimeArtifactIT extends Specification {
         updateDesignTimeArtifact.setiFlowName('FlashPipe Update')
         updateDesignTimeArtifact.setiFlowDir('src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update')
         updateDesignTimeArtifact.setPackageId('FlashPipeIntegrationTest')
-        updateDesignTimeArtifact.setVersionHandling('MANIFEST')
 
         when:
         updateDesignTimeArtifact.execute()
 
         then:
         designTimeArtifact.getVersion('FlashPipe_Update', 'active', false) == '1.0.1'
-    }
-
-    def 'Update using AUTO_INCREMENT version'() {
-        given:
-        
-        UpdateDesignTimeArtifact updateDesignTimeArtifact = new UpdateDesignTimeArtifact()
-        updateDesignTimeArtifact.setiFlowId('FlashPipe_Update')
-        updateDesignTimeArtifact.setiFlowName('FlashPipe Update')
-        updateDesignTimeArtifact.setiFlowDir('src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update')
-        updateDesignTimeArtifact.setPackageId('FlashPipeIntegrationTest')
-        updateDesignTimeArtifact.setVersionHandling('AUTO_INCREMENT')
-        updateDesignTimeArtifact.setCurrentiFlowVersion('1.0.1')
-
-        when:
-        updateDesignTimeArtifact.execute()
-
-        then:
-        designTimeArtifact.getVersion('FlashPipe_Update', 'active', false) == '1.0.2'
-
-        cleanup:
-        File manifestFile = new File("src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipe Update/META-INF/MANIFEST.MF")
-        def manifestContent = manifestFile.getText('UTF-8')
-        def updatedContent = manifestContent.replaceFirst(/Bundle-Version: \S+/, "Bundle-Version: 1.0.1")
-        manifestFile.setText(updatedContent, 'UTF-8')
-    }
-
-    def 'Exception thrown for invalid VERSION_HANDLING'() {
-        given:
-        UpdateDesignTimeArtifact updateDesignTimeArtifact = new UpdateDesignTimeArtifact()
-        updateDesignTimeArtifact.setVersionHandling('INVALID')
-
-        when:
-        updateDesignTimeArtifact.execute()
-
-        then:
-        ExecutionException e = thrown()
-        e.getMessage() == 'Invalid entry for VERSION_HANDLING'
     }
 }

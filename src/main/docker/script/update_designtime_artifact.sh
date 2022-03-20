@@ -21,9 +21,9 @@
 #
 # 3. Optional variables:
 # PARAM_FILE - Use to a different parameters.prop file instead of the default in src/main/resources/
-# MANIFEST_FILE - Use to a different MANIFEST.MF file instead of the default in META-INF/
+# MANIFEST_FILE - [DEPRECATED] Use to a different MANIFEST.MF file instead of the default in META-INF/
 # WORK_DIR - Working directory for in-transit files (default is /tmp if not set)
-# VERSION_HANDLING - Determination of version number during artifact update
+# VERSION_HANDLING - [DEPRECATED] Determination of version number during artifact update
 # SCRIPT_COLLECTION_MAP - Comma-separated source-target ID pairs for converting script collection references during upload/update
 
 function check_mandatory_env_var() {
@@ -86,10 +86,9 @@ if [ -n "$PARAM_FILE" ] && [ "$PARAM_FILE" != "$GIT_SRC_DIR/src/main/resources/p
   echo "[INFO] Using $PARAM_FILE as parameters.prop file"
   cp "$PARAM_FILE" "$GIT_SRC_DIR/src/main/resources/parameters.prop" || exit 1
 fi
-# TODO - deprecate MANIFEST_FILE ?
-if [ -n "$MANIFEST_FILE" ] && [ "$MANIFEST_FILE" != "$GIT_SRC_DIR/META-INF/MANIFEST.MF" ]; then
-  echo "[INFO] Using $MANIFEST_FILE as MANIFEST.MF file"
-  cp "$MANIFEST_FILE" "$GIT_SRC_DIR/META-INF/MANIFEST.MF" || exit 1
+if [ -n "$MANIFEST_FILE" ]; then
+  echo "[WARNING] ⚠️ MANIFEST_FILE is deprecated and will be removed in a future release!"
+  echo "[INFO] META-INF/MANIFEST.MF will be used for IFlow upload/update"
 fi
 
 # Set debug log4j config
@@ -137,8 +136,6 @@ if [[ "$check_iflow_status" == "0" ]]; then
   # Update the script collection in IFlow BPMN2 XML before diff comparison
   exec_java_command io.github.engswee.flashpipe.cpi.exec.BPMN2Handler
 
-  # TODO - if manifest handling is not Auto - then compare version from tenant against git to see if update is required
-
   # Compare META-INF directory for any differences in the manifest file
   exec_java_command io.github.engswee.flashpipe.cpi.util.ManifestHandler "$GIT_SRC_DIR/META-INF/MANIFEST.MF" "$IFLOW_ID" "$IFLOW_NAME" "$SCRIPT_COLLECTION_MAP"
   echo "[INFO] Checking for changes in META-INF directory"
@@ -162,9 +159,7 @@ if [[ "$check_iflow_status" == "0" ]]; then
     mkdir -p "$WORK_DIR/upload/src/main"
     cp -r "$GIT_SRC_DIR/META-INF" "$WORK_DIR/upload"
     cp -r "$GIT_SRC_DIR/src/main/resources" "$WORK_DIR/upload/src/main"
-    tenant_iflow_version=$(awk '/Bundle-Version/ {print $2}' "$WORK_DIR/download/META-INF/MANIFEST.MF")
     export IFLOW_DIR="$WORK_DIR/upload"
-    export CURR_IFLOW_VER=$tenant_iflow_version
     exec_java_command io.github.engswee.flashpipe.cpi.exec.UpdateDesignTimeArtifact
     echo '[INFO] 🏆 IFlow design updated successfully'
   fi

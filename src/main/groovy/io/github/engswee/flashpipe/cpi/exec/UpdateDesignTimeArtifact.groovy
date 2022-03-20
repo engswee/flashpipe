@@ -17,7 +17,6 @@ class UpdateDesignTimeArtifact extends APIExecuter {
     String iFlowDir
     String packageId
     String versionHandling
-    String currentiFlowVersion
     String scriptCollectionMap
 
     static void main(String[] args) {
@@ -36,16 +35,15 @@ class UpdateDesignTimeArtifact extends APIExecuter {
         this.iFlowName = getMandatoryEnvVar('IFLOW_NAME')
         this.iFlowDir = getMandatoryEnvVar('IFLOW_DIR')
         this.packageId = getMandatoryEnvVar('PACKAGE_ID')
-        this.versionHandling = (System.getenv('VERSION_HANDLING') ?: 'AUTO_INCREMENT')
-        this.currentiFlowVersion = System.getenv('CURR_IFLOW_VER')
+        this.versionHandling = System.getenv('VERSION_HANDLING')
         this.scriptCollectionMap = System.getenv('SCRIPT_COLLECTION_MAP')
     }
 
     @Override
     void execute() {
-        if (!['AUTO_INCREMENT', 'MANIFEST'].contains(this.versionHandling.toUpperCase())) {
-            logger.error("🛑 Value ${this.versionHandling} for environment variable VERSION_HANDLING not in list of accepted values: AUTO_INCREMENT or MANIFEST")
-            throw new ExecutionException('Invalid entry for VERSION_HANDLING')
+        if (this.versionHandling) {
+            logger.warn('⚠️ VERSION_HANDLING is deprecated and will be removed in a future release!')
+            logger.info('The current behavior will be as though VERSION_HANDLING = MANIFEST, meaning version number will depend on Bundle-Version set in META-INF/MANIFEST.MF file')
         }
         // Check that input environment variables do not have any of the secrets in their values
         validateInputContainsNoSecrets('IFLOW_ID', this.iFlowId)
@@ -56,25 +54,6 @@ class UpdateDesignTimeArtifact extends APIExecuter {
         Map collections = this.scriptCollectionMap?.split(',')?.toList()?.collectEntries {
             String[] pair = it.split('=')
             [(pair[0]): pair[1]]
-        }
-
-        // TODO - Move this into ManifestHandler - or it may no longer be needed
-        if (this.versionHandling == 'AUTO_INCREMENT') {
-            // Get current iFlow Version and bump up the number before upload
-            logger.info("Current IFlow Version in Tenant - ${this.currentiFlowVersion}")
-            def matcher = (this.currentiFlowVersion =~ /(\S+\.)(\d+)\s*/)
-            if (matcher.size()) {
-                def patchNo = matcher[0][2] as int
-                this.currentiFlowVersion = "${matcher[0][1]}${patchNo + 1}"
-            }
-            logger.info("New IFlow Version to be updated - ${this.currentiFlowVersion}")
-
-            // Update the manifest file with new version number
-            logger.debug('Updating MANIFEST.MF')
-            File manifestFile = new File("${this.iFlowDir}/META-INF/MANIFEST.MF")
-            def manifestContent = manifestFile.getText('UTF-8')
-            def updatedContent = manifestContent.replaceFirst(/Bundle-Version: \S+/, "Bundle-Version: ${this.currentiFlowVersion}")
-            manifestFile.setText(updatedContent, 'UTF-8')
         }
 
         ManifestHandler manifestHandler = new ManifestHandler("${this.iFlowDir}/META-INF/MANIFEST.MF")
@@ -92,15 +71,13 @@ class UpdateDesignTimeArtifact extends APIExecuter {
         logger.info("IFlow ${this.iFlowId} updated")
 
         // If runtime has the same version no, then undeploy it, otherwise it gets skipped during deployment
-        if (this.versionHandling == 'MANIFEST') { // TODO - no longer need versionhandling?
-            def designtimeVersion = designTimeArtifact.getVersion(this.iFlowId, 'active', false)
-            RuntimeArtifact runtimeArtifact = new RuntimeArtifact(this.httpExecuter)
-            def runtimeVersion = runtimeArtifact.getVersion(this.iFlowId)
+        def designtimeVersion = designTimeArtifact.getVersion(this.iFlowId, 'active', false)
+        RuntimeArtifact runtimeArtifact = new RuntimeArtifact(this.httpExecuter)
+        def runtimeVersion = runtimeArtifact.getVersion(this.iFlowId)
 
-            if (runtimeVersion == designtimeVersion) {
-                logger.info('Undeploying existing runtime artifact with same version number due to changes in design')
-                runtimeArtifact.undeploy(this.iFlowId, csrfToken)
-            }
+        if (runtimeVersion == designtimeVersion) {
+            logger.info('Undeploying existing runtime artifact with same version number due to changes in design')
+            runtimeArtifact.undeploy(this.iFlowId, csrfToken)
         }
     }
 }
