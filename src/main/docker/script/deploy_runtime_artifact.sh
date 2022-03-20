@@ -18,6 +18,7 @@
 # 3. Optional variables:
 # DELAY_LENGTH - Delay (in seconds) between each check of IFlow deployment status (default to 30 if not set)
 # MAX_CHECK_LIMIT - Max number of times to check for IFlow deployment status (default to 10 if not set)
+# COMPARE_VERSIONS - Perform version comparison of design time against runtime before deployment. Allowed values: true (default), false
 
 function check_mandatory_env_var() {
   local env_var_name=$1

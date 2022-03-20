@@ -16,6 +16,7 @@ class DeployDesignTimeArtifact extends APIExecuter {
     List<String> iFlows
     int delayLength
     int maxCheckLimit
+    boolean compareVersions
 
     static void main(String[] args) {
         DeployDesignTimeArtifact deployDesignTimeArtifact = new DeployDesignTimeArtifact()
@@ -35,6 +36,7 @@ class DeployDesignTimeArtifact extends APIExecuter {
 
         this.delayLength = (System.getenv('DELAY_LENGTH') ?: 30) as int
         this.maxCheckLimit = (System.getenv('MAX_CHECK_LIMIT') ?: 10) as int
+        this.compareVersions = (System.getenv('COMPARE_VERSIONS') ?: true)
     }
 
     @Override
@@ -49,7 +51,9 @@ class DeployDesignTimeArtifact extends APIExecuter {
         }
 
         // Delay to allow deployment to start before checking the status
-        TimeUnit.SECONDS.sleep(this.delayLength)
+        // Only applicable if there is only 1 IFlow, because if there are many, then there is an inherent delay already
+        if (this.iFlows.size() == 1)
+            TimeUnit.SECONDS.sleep(this.delayLength)
 
         // Check deployment status of IFlows
         this.iFlows.eachWithIndex { String id, index ->
@@ -61,16 +65,23 @@ class DeployDesignTimeArtifact extends APIExecuter {
     }
 
     private void deploySingleIFlow(DesignTimeArtifact designTimeArtifact, String iFlowId, RuntimeArtifact runtimeArtifact) {
-        // Compare designtime version with runtime version to determine if deployment is needed
-        logger.info('Comparing designtime version with runtime version')
         def designtimeVersion = designTimeArtifact.getVersion(iFlowId, 'active', false)
-        def runtimeVersion = runtimeArtifact.getVersion(iFlowId)
+        if (this.compareVersions) {
+            // Compare designtime version with runtime version to determine if deployment is needed
+            logger.info('Comparing designtime version with runtime version')
+            def runtimeVersion = runtimeArtifact.getVersion(iFlowId)
 
-        if (runtimeVersion == designtimeVersion) {
-            logger.info("IFlow ${iFlowId} with version ${runtimeVersion} already deployed. Skipping runtime deployment")
+            if (runtimeVersion == designtimeVersion) {
+                logger.info("IFlow ${iFlowId} with version ${runtimeVersion} already deployed. Skipping runtime deployment")
+            } else {
+                CSRFToken csrfToken = new CSRFToken(this.httpExecuter)
+                logger.info("🚀 IFlow previously not deployed, or versions differ. Proceeding to deploy IFlow ${iFlowId} with version ${designtimeVersion}")
+                designTimeArtifact.deploy(iFlowId, csrfToken)
+                logger.info("IFlow ${iFlowId} deployment triggered")
+            }
         } else {
             CSRFToken csrfToken = new CSRFToken(this.httpExecuter)
-            logger.info("🚀 IFlow previously not deployed, or versions differ. Proceeding to deploy IFlow ${iFlowId} with version ${designtimeVersion}")
+            logger.info("🚀 Proceeding to deploy IFlow ${iFlowId} with version ${designtimeVersion}")
             designTimeArtifact.deploy(iFlowId, csrfToken)
             logger.info("IFlow ${iFlowId} deployment triggered")
         }

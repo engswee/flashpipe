@@ -85,6 +85,7 @@ jobs:
           IFLOW_ID: <iflow_id>
           DELAY_LENGTH: <delay_in_seconds> # Optional
           MAX_CHECK_LIMIT: <max_check_limit> # Optional
+          COMPARE_VERSIONS: <compare_versions> # Optional
 ```
 Where:
 - `<branch_name>` - branch name of Git repository that will automatically trigger pipeline

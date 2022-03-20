@@ -101,6 +101,7 @@ Mandatory environment variables:
 Optional environment variables:
     DELAY_LENGTH - Delay (in seconds) between each check of IFlow deployment status (default to 30 if not set)
     MAX_CHECK_LIMIT - Max number of times to check for IFlow deployment status (default to 10 if not set)
+    COMPARE_VERSIONS - Perform version comparison of design time against runtime before deployment. Allowed values: true (default), false
     HOST_OAUTH_PATH - Specific path for OAuth token server, e.g. example /oauth2/api/v1/token for Neo environments (default is /oauth/token if not set for CF environments)
 ```
 
