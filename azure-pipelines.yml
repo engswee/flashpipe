@@ -2,6 +2,8 @@ trigger:
   branches:
     include:
       - main
+      - release
+      - develop
   paths:
     exclude:
       - docs
@@ -68,7 +70,57 @@ jobs:
 # ----------------------------------------------------------------
 # Build and push Docker images - https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/build/docker
 # ----------------------------------------------------------------
+# Private image for QA testing
+# ----------------------------------------------------------------
+  - job: build_image_lite_qa
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
+    dependsOn:
+    - unit_test
+    - integration_test_cf
+    - integration_test_neo
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: GitRepo
+        path: $(Build.SourcesDirectory)/
+    # Lite version
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker Hub engswee'
+        repository: 'engswee/cpi-cicd'
+        command: 'buildAndPush'
+        Dockerfile: 'src/main/docker/lite.Dockerfile'
+        buildContext: '.'
+        # FLASHPIPE_VERSION
+        tags: |
+          2.x.x-lite
+  - job: build_image_full_qa
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
+    dependsOn:
+      - unit_test
+      - integration_test_cf
+      - integration_test_neo
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: GitRepo
+        path: $(Build.SourcesDirectory)/
+    # Full version with Maven
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker Hub engswee'
+        repository: 'engswee/cpi-cicd'
+        command: 'buildAndPush'
+        Dockerfile: 'src/main/docker/Dockerfile'
+        buildContext: '.'
+        # FLASHPIPE_VERSION
+        tags: |
+          2.x.x
+# ----------------------------------------------------------------
+# Public image for public consumption
+# ----------------------------------------------------------------
   - job: build_image_lite
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     dependsOn:
     - unit_test
     - integration_test_cf
@@ -92,6 +144,7 @@ jobs:
           2.6.x-lite
           2.x.x-lite
   - job: build_image_full
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     dependsOn:
       - unit_test
       - integration_test_cf
