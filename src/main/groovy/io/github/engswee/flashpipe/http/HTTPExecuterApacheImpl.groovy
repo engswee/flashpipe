@@ -124,7 +124,7 @@ class HTTPExecuterApacheImpl extends HTTPExecuter {
             client.execute(request, this.context).withCloseable { response ->
                 this.responseCode = response.getCode()
                 this.headers = response.getHeaders()
-                this.responseBytes = response.getEntity().getContent().getBytes()
+                this.responseBytes = response.getEntity()?.getContent()?.getBytes() ?: new byte[0]
             }
         }
     }

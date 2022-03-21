@@ -65,8 +65,12 @@ class RuntimeArtifact {
         this.httpExecuter.executeRequest("/api/v1/IntegrationRuntimeArtifacts('${iFlowId}')/ErrorInformation/\$value", ['Accept': 'application/json'])
         String code = this.httpExecuter.getResponseCode()
         if (code.startsWith('2')) {
-            def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
-            return root.parameter ? root.parameter[0] : root.childInstances[0].parameter[0]
+            try {
+                def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
+                return root.parameter ? root.parameter[0] : root.childInstances[0].parameter[0]
+            } catch (ignored) {
+                return ''
+            }
         } else
             this.httpExecuter.logError('Get runtime artifact error information')
     }
