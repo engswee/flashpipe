@@ -35,6 +35,9 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setWorkDir('target/DownloadIntegrationPackageContentIT/FlashPipeIntegrationTest')
         downloadIntegrationPackageContent.setDirNamingType('NAME')
         downloadIntegrationPackageContent.setDraftHandling('SKIP')
+        downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
+        downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
+        downloadIntegrationPackageContent.setScriptCollectionMap('')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -52,6 +55,9 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setDirNamingType('NAME')
         downloadIntegrationPackageContent.setDraftHandling('SKIP')
         downloadIntegrationPackageContent.setExcludedIds(['FlashPipe_Upload'])
+        downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
+        downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
+        downloadIntegrationPackageContent.setScriptCollectionMap('')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -69,6 +75,9 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setDirNamingType('ID')
         downloadIntegrationPackageContent.setDraftHandling('SKIP')
         downloadIntegrationPackageContent.setIncludedIds(['FlashPipe_Update'])
+        downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
+        downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
+        downloadIntegrationPackageContent.setScriptCollectionMap('')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -89,6 +98,9 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setDirNamingType('ID')
         downloadIntegrationPackageContent.setDraftHandling('SKIP')
         downloadIntegrationPackageContent.setIncludedIds(['FlashPipe_Update'])
+        downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
+        downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
+        downloadIntegrationPackageContent.setScriptCollectionMap('')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -113,6 +125,9 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setDirNamingType('NAME')
         downloadIntegrationPackageContent.setDraftHandling('SKIP')
         downloadIntegrationPackageContent.setIncludedIds(['FlashPipe_Update'])
+        downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
+        downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
+        downloadIntegrationPackageContent.setScriptCollectionMap('')
 
         File fileToDelete = new File('target/DownloadIntegrationPackageContentIT/TempGitSrcDir/FlashPipe Update/src/main/resources/scenarioflows/integrationflow/FlashPipe Update.iflw')
         fileToDelete.delete()
@@ -135,6 +150,9 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setWorkDir('target/DownloadIntegrationPackageContentIT/FlashPipeIntegrationTest')
         downloadIntegrationPackageContent.setDirNamingType('DUMMY')
         downloadIntegrationPackageContent.setDraftHandling('SKIP')
+        downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
+        downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
+        downloadIntegrationPackageContent.setScriptCollectionMap('')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -152,6 +170,9 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setWorkDir('target/DownloadIntegrationPackageContentIT/FlashPipeIntegrationTest')
         downloadIntegrationPackageContent.setDirNamingType('NAME')
         downloadIntegrationPackageContent.setDraftHandling('DUMMY')
+        downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
+        downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
+        downloadIntegrationPackageContent.setScriptCollectionMap('')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -171,6 +192,9 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setDraftHandling('SKIP')
         downloadIntegrationPackageContent.setIncludedIds(['ABC'])
         downloadIntegrationPackageContent.setExcludedIds(['XYZ'])
+        downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
+        downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
+        downloadIntegrationPackageContent.setScriptCollectionMap('')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -189,6 +213,9 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setDirNamingType('NAME')
         downloadIntegrationPackageContent.setDraftHandling('SKIP')
         downloadIntegrationPackageContent.setIncludedIds(['DUMMY'])
+        downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
+        downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
+        downloadIntegrationPackageContent.setScriptCollectionMap('')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -207,6 +234,9 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setDirNamingType('NAME')
         downloadIntegrationPackageContent.setDraftHandling('SKIP')
         downloadIntegrationPackageContent.setExcludedIds(['DUMMY'])
+        downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
+        downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
+        downloadIntegrationPackageContent.setScriptCollectionMap('')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -220,6 +250,9 @@ class DownloadIntegrationPackageContentIT extends Specification {
         given:
         DownloadIntegrationPackageContent downloadIntegrationPackageContent = new DownloadIntegrationPackageContent()
         downloadIntegrationPackageContent.setCommitMessage(System.getenv('OAUTH_CLIENTID'))
+        downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
+        downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
+        downloadIntegrationPackageContent.setScriptCollectionMap('')
 
         when:
         downloadIntegrationPackageContent.execute()
