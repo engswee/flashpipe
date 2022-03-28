@@ -23,6 +23,7 @@
 # INCLUDE_IDS - List of included IFlow IDs
 # EXCLUDE_IDS - List of excluded IFlow IDs
 # COMMIT_MESSAGE - Message used in commit
+# SCRIPT_COLLECTION_MAP - Comma-separated source-target ID pairs for converting script collection references during sync
 
 function check_mandatory_env_var() {
   local env_var_name=$1

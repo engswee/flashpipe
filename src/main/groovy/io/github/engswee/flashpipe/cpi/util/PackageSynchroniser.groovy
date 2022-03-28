@@ -2,6 +2,7 @@ package io.github.engswee.flashpipe.cpi.util
 
 import io.github.engswee.flashpipe.cpi.api.DesignTimeArtifact
 import io.github.engswee.flashpipe.cpi.api.IntegrationPackage
+import io.github.engswee.flashpipe.cpi.exec.BPMN2Handler
 import io.github.engswee.flashpipe.http.HTTPExecuter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -16,7 +17,7 @@ class PackageSynchroniser {
         this.httpExecuter = httpExecuter
     }
 
-    void sync(String packageId, String workDir, String gitSrcDir, List<String> includedIds, List<String> excludedIds, String draftHandling, String dirNamingType) {
+    void sync(String packageId, String workDir, String gitSrcDir, List<String> includedIds, List<String> excludedIds, String draftHandling, String dirNamingType, Map collections) {
         // Get all design time artifacts of package
         logger.info("Getting artifacts in integration package ${packageId}")
         IntegrationPackage integrationPackage = new IntegrationPackage(this.httpExecuter)
@@ -64,6 +65,17 @@ class PackageSynchroniser {
             def directoryName = (dirNamingType.toUpperCase() == 'NAME') ? artifact.name : artifact.id
             ZipUtil.unpack(outputZip, new File("${workDir}/download/${directoryName}"))
             logger.info("Downloaded IFlow artifact unzipped to ${workDir}/download/${directoryName}")
+
+            // Normalize MANIFEST.MF before sync to Git
+            ManifestHandler manifestHandler = new ManifestHandler("${workDir}/download/${directoryName}/META-INF/MANIFEST.MF")
+            manifestHandler.updateAttributes(artifact.id, artifact.name, collections.collect { it.value })
+            manifestHandler.updateFile()
+
+            // Normalize the script collection in IFlow BPMN2 XML before syncing to Git
+            if (collections?.size()) {
+                BPMN2Handler bpmn2Handler = new BPMN2Handler()
+                bpmn2Handler.updateFiles(collections, "${workDir}/download/${directoryName}")
+            }
 
             // (1) If IFlow already exists in Git, then compare and update
             if (new File("${gitSrcDir}/${directoryName}").exists()) {

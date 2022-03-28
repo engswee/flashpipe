@@ -18,6 +18,7 @@ class DownloadIntegrationPackageContent extends APIExecuter {
     String draftHandling
     List includedIds
     List excludedIds
+    String scriptCollectionMap
 
     static void main(String[] args) {
         DownloadIntegrationPackageContent downloadIntegrationPackageContent = new DownloadIntegrationPackageContent()
@@ -39,6 +40,7 @@ class DownloadIntegrationPackageContent extends APIExecuter {
         this.draftHandling = (System.getenv('DRAFT_HANDLING') ?: 'SKIP')
         this.includedIds = StringUtility.extractDelimitedValues(System.getenv('INCLUDE_IDS'), ',')
         this.excludedIds = StringUtility.extractDelimitedValues(System.getenv('EXCLUDE_IDS'), ',')
+        this.scriptCollectionMap = System.getenv('SCRIPT_COLLECTION_MAP')
     }
 
     @Override
@@ -46,6 +48,7 @@ class DownloadIntegrationPackageContent extends APIExecuter {
         // Check that input environment variables do not have any of the secrets in their values
         validateInputContainsNoSecrets('GIT_SRC_DIR', this.gitSrcDir)
         validateInputContainsNoSecrets('COMMIT_MESSAGE', this.commitMessage)
+        validateInputContainsNoSecrets('SCRIPT_COLLECTION_MAP', this.scriptCollectionMap)
 
         if (!['ID', 'NAME'].contains(this.dirNamingType.toUpperCase())) {
             logger.error("🛑 Value ${this.dirNamingType} for environment variable DIR_NAMING_TYPE not in list of accepted values: ID or NAME")
@@ -62,8 +65,13 @@ class DownloadIntegrationPackageContent extends APIExecuter {
             throw new ExecutionException('INCLUDE_IDS and EXCLUDE_IDS are mutually exclusive')
         }
 
+        Map collections = this.scriptCollectionMap?.split(',')?.toList()?.collectEntries {
+            String[] pair = it.split('=')
+            [(pair[0]): pair[1]]
+        }
+
         try {
-            new PackageSynchroniser(this.httpExecuter).sync(this.packageId, this.workDir, this.gitSrcDir, this.includedIds, this.excludedIds, this.draftHandling, this.dirNamingType)
+            new PackageSynchroniser(this.httpExecuter).sync(this.packageId, this.workDir, this.gitSrcDir, this.includedIds, this.excludedIds, this.draftHandling, this.dirNamingType, collections)
         } catch (UtilException e) {
             logger.error("🛑 Error occurred when processing package ${this.packageId}")
             throw new ExecutionException(e.getMessage())
