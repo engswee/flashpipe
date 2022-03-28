@@ -17,7 +17,7 @@ class PackageSynchroniser {
         this.httpExecuter = httpExecuter
     }
 
-    void sync(String packageId, String workDir, String gitSrcDir, List<String> includedIds, List<String> excludedIds, String draftHandling, String dirNamingType, Map collections) {
+    void sync(String packageId, String workDir, String gitSrcDir, List<String> includedIds, List<String> excludedIds, String draftHandling, String dirNamingType, Map collections, String normalizeManifestAction, String normalizeManifestPrefixOrSuffix) {
         // Get all design time artifacts of package
         logger.info("Getting artifacts in integration package ${packageId}")
         IntegrationPackage integrationPackage = new IntegrationPackage(this.httpExecuter)
@@ -61,14 +61,17 @@ class PackageSynchroniser {
             outputZip.bytes = designTimeArtifact.download(artifact.id, 'active')
             logger.info("IFlow ${artifact.id} downloaded to ${outputZip}")
 
+            String normalizedIFlowID = normalizeIFlowIDOrName(artifact.id, normalizeManifestAction, normalizeManifestPrefixOrSuffix)
+            String normalizedIFlowName = normalizeIFlowIDOrName(artifact.name, normalizeManifestAction, normalizeManifestPrefixOrSuffix)
+
             // Unzip IFlow contents
-            def directoryName = (dirNamingType.toUpperCase() == 'NAME') ? artifact.name : artifact.id
+            def directoryName = (dirNamingType.toUpperCase() == 'NAME') ? normalizedIFlowName : normalizedIFlowID
             ZipUtil.unpack(outputZip, new File("${workDir}/download/${directoryName}"))
             logger.info("Downloaded IFlow artifact unzipped to ${workDir}/download/${directoryName}")
 
             // Normalize MANIFEST.MF before sync to Git
             ManifestHandler manifestHandler = new ManifestHandler("${workDir}/download/${directoryName}/META-INF/MANIFEST.MF")
-            manifestHandler.updateAttributes(artifact.id, artifact.name, collections.collect { it.value })
+            manifestHandler.updateAttributes(normalizedIFlowID, normalizedIFlowName, collections.collect { it.value })
             manifestHandler.updateFile()
 
             // Normalize the script collection in IFlow BPMN2 XML before syncing to Git
@@ -165,6 +168,25 @@ class PackageSynchroniser {
             return outputList
         } else {
             return artifacts
+        }
+    }
+
+    private String normalizeIFlowIDOrName(String input, String normalizeManifestAction, String normalizeManifestPrefixOrSuffix) {
+        switch (normalizeManifestAction) {
+            case 'ADD_PREFIX':
+                return "${normalizeManifestPrefixOrSuffix}${input}"
+            case 'ADD_SUFFIX':
+                return "${input}${normalizeManifestPrefixOrSuffix}"
+            case 'DELETE_PREFIX':
+                return (input.startsWith(normalizeManifestPrefixOrSuffix)) ?: input.replaceFirst(normalizeManifestPrefixOrSuffix, '')
+            case 'DELETE_SUFFIX':
+                if ((input.endsWith(normalizeManifestPrefixOrSuffix)) ) {
+                    return input.substring(0, input.size() - normalizeManifestPrefixOrSuffix.size())
+                } else {
+                    return input
+                }
+            default:
+                return input
         }
     }
 }

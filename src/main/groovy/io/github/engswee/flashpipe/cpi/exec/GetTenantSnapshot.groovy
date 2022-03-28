@@ -64,7 +64,7 @@ class GetTenantSnapshot extends APIExecuter {
             println '---------------------------------------------------------------------------------'
             logger.info("Processing package ${index}/${packages.size()} - ID: ${packageId}")
             try {
-                packageSynchroniser.sync(packageId, "${this.workDir}/${packageId}", "${this.gitSrcDir}/${packageId}", [], [], this.draftHandling, 'ID', [:])
+                packageSynchroniser.sync(packageId, "${this.workDir}/${packageId}", "${this.gitSrcDir}/${packageId}", [], [], this.draftHandling, 'ID', [:], 'NONE', '')
             } catch (UtilException e) {
                 logger.error("🛑 Error occurred when processing package ${packageId}")
                 throw new ExecutionException(e.getMessage())

@@ -24,6 +24,8 @@
 # EXCLUDE_IDS - List of excluded IFlow IDs
 # COMMIT_MESSAGE - Message used in commit
 # SCRIPT_COLLECTION_MAP - Comma-separated source-target ID pairs for converting script collection references during sync
+# NORMALIZE_MANIFEST_ACTION - Action for normalizing IFlow ID & Name in MANIFEST.MF
+# NORMALIZE_MANIFEST_PREFIX_SUFFIX - Prefix/suffix used for normalizing IFlow ID & Name in MANIFEST.MF
 
 function check_mandatory_env_var() {
   local env_var_name=$1

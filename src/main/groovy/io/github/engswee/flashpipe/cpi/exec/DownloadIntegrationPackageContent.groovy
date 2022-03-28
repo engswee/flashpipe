@@ -19,6 +19,8 @@ class DownloadIntegrationPackageContent extends APIExecuter {
     List includedIds
     List excludedIds
     String scriptCollectionMap
+    String normalizeManifestAction
+    String normalizeManifestPrefixOrSuffix
 
     static void main(String[] args) {
         DownloadIntegrationPackageContent downloadIntegrationPackageContent = new DownloadIntegrationPackageContent()
@@ -41,6 +43,8 @@ class DownloadIntegrationPackageContent extends APIExecuter {
         this.includedIds = StringUtility.extractDelimitedValues(System.getenv('INCLUDE_IDS'), ',')
         this.excludedIds = StringUtility.extractDelimitedValues(System.getenv('EXCLUDE_IDS'), ',')
         this.scriptCollectionMap = System.getenv('SCRIPT_COLLECTION_MAP')
+        this.normalizeManifestAction = (System.getenv('NORMALIZE_MANIFEST_ACTION') ?: 'NONE')
+        this.normalizeManifestPrefixOrSuffix = (System.getenv('NORMALIZE_MANIFEST_PREFIX_SUFFIX') ?: '')
     }
 
     @Override
@@ -60,6 +64,11 @@ class DownloadIntegrationPackageContent extends APIExecuter {
             throw new ExecutionException('Invalid value for DRAFT_HANDLING')
         }
 
+        if (!['ADD_PREFIX', 'ADD_SUFFIX', 'DELETE_PREFIX', 'DELETE_SUFFIX'].contains(this.normalizeManifestAction.toUpperCase())) {
+            logger.error("🛑 Value ${this.normalizeManifestAction} for environment variable NORMALIZE_MANIFEST_ACTION not in list of accepted values: NONE, ADD_PREFIX, ADD_SUFFIX, DELETE_PREFIX or DELETE_SUFFIX")
+            throw new ExecutionException('Invalid value for NORMALIZE_MANIFEST_ACTION')
+        }
+
         if (this.includedIds && this.excludedIds) {
             logger.error('🛑 INCLUDE_IDS and EXCLUDE_IDS are mutually exclusive - use only one of them')
             throw new ExecutionException('INCLUDE_IDS and EXCLUDE_IDS are mutually exclusive')
@@ -71,7 +80,7 @@ class DownloadIntegrationPackageContent extends APIExecuter {
         }
 
         try {
-            new PackageSynchroniser(this.httpExecuter).sync(this.packageId, this.workDir, this.gitSrcDir, this.includedIds, this.excludedIds, this.draftHandling, this.dirNamingType, collections)
+            new PackageSynchroniser(this.httpExecuter).sync(this.packageId, this.workDir, this.gitSrcDir, this.includedIds, this.excludedIds, this.draftHandling, this.dirNamingType, collections, this.normalizeManifestAction, this.normalizeManifestPrefixOrSuffix)
         } catch (UtilException e) {
             logger.error("🛑 Error occurred when processing package ${this.packageId}")
             throw new ExecutionException(e.getMessage())
