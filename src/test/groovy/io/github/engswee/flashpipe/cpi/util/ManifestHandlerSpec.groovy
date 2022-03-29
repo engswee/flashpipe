@@ -8,7 +8,7 @@ class ManifestHandlerSpec extends Specification {
 
     def 'ID, Name and Capability attributes updated'() {
         given:
-        ManifestHandler manifestHandler = new ManifestHandler('src/test/resources/test-data/ManifestHandling/MANIFEST.MF')
+        ManifestHandler manifestHandler = ManifestHandler.newInstance('src/test/resources/test-data/ManifestHandling/MANIFEST.MF')
 
         when:
         manifestHandler.updateAttributes('FlashPipe_Use_Script_Collection', 'FlashPipe Use Script Collection', ['Common_Scripts'])
@@ -24,7 +24,7 @@ class ManifestHandlerSpec extends Specification {
 
     def 'No script collection'() {
         given:
-        ManifestHandler manifestHandler = new ManifestHandler('src/test/resources/test-data/ManifestHandling/MANIFEST_NoScriptCollection.MF')
+        ManifestHandler manifestHandler = ManifestHandler.newInstance('src/test/resources/test-data/ManifestHandling/MANIFEST_NoScriptCollection.MF')
 
         when:
         manifestHandler.updateAttributes('FlashPipe_Use_Script_Collection', 'FlashPipe Use Script Collection', [])

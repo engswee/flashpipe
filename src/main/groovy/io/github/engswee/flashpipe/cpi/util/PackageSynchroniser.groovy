@@ -72,10 +72,7 @@ class PackageSynchroniser {
             // Normalize MANIFEST.MF before sync to Git
             ScriptCollection scriptCollection = ScriptCollection.newInstance(scriptCollectionMap)
             Map collections = scriptCollection.getCollections()
-
-            ManifestHandler manifestHandler = new ManifestHandler("${workDir}/download/${directoryName}/META-INF/MANIFEST.MF")
-            manifestHandler.updateAttributes(normalizedIFlowID, normalizedIFlowName, scriptCollection.getTargetCollectionValues())
-            manifestHandler.updateFile()
+            ManifestHandler.newInstance("${workDir}/download/${directoryName}/META-INF/MANIFEST.MF").normalizeAttributesInFile(normalizedIFlowID, normalizedIFlowName, scriptCollection.getTargetCollectionValues())
 
             // Normalize the script collection in IFlow BPMN2 XML before syncing to Git
             if (collections.size()) {

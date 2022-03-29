@@ -52,9 +52,7 @@ class UpdateDesignTimeArtifact extends APIExecuter {
         validateInputContainsNoSecrets('PACKAGE_ID', this.packageId)
         validateInputContainsNoSecrets('SCRIPT_COLLECTION_MAP', this.scriptCollectionMap)
 
-        ManifestHandler manifestHandler = new ManifestHandler("${this.iFlowDir}/META-INF/MANIFEST.MF")
-        manifestHandler.updateAttributes(this.iFlowId, this.iFlowName, ScriptCollection.newInstance(this.scriptCollectionMap).getTargetCollectionValues())
-        manifestHandler.updateFile()
+        ManifestHandler.newInstance("${this.iFlowDir}/META-INF/MANIFEST.MF").normalizeAttributesInFile(this.iFlowId, this.iFlowName, ScriptCollection.newInstance(this.scriptCollectionMap).getTargetCollectionValues())
 
         // Zip iFlow directory and encode to Base 64
         ByteArrayOutputStream baos = new ByteArrayOutputStream()

@@ -18,14 +18,21 @@ class ManifestHandler {
         String iFlowId = args[1]
         String iFlowName = args[2]
         ScriptCollection scriptCollection = (args.size() > 3) ? ScriptCollection.newInstance(args[3]) : ScriptCollection.newInstance('')
-        ManifestHandler manifestHandler = new ManifestHandler(filePath)
-        manifestHandler.updateAttributes(iFlowId, iFlowName, scriptCollection.getTargetCollectionValues())
-        manifestHandler.updateFile()
+        newInstance(filePath).normalizeAttributesInFile(iFlowId, iFlowName, scriptCollection.getTargetCollectionValues())
     }
 
-    ManifestHandler(String filePath) {
+    static ManifestHandler newInstance(String filePath) {
+        return new ManifestHandler(filePath)
+    }
+
+    private ManifestHandler(String filePath) {
         this.file = new File(filePath)
         this.manifest = new Manifest(this.file.newInputStream())
+    }
+
+    void normalizeAttributesInFile(String iFlowId, String iFlowName, List collections) {
+        updateAttributes(iFlowId, iFlowName, collections)
+        updateFile()
     }
 
     void updateAttributes(String iFlowId, String iFlowName, List collections) {
@@ -50,7 +57,7 @@ class ManifestHandler {
         }
     }
 
-    void updateFile() {
+    private void updateFile() {
         if (this.attributesUpdated) {
             this.manifest.write(this.file.newOutputStream())
         }

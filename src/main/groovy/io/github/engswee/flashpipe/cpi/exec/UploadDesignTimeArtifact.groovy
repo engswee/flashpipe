@@ -58,9 +58,7 @@ class UploadDesignTimeArtifact extends APIExecuter {
             logger.debug("${result}")
         }
 
-        ManifestHandler manifestHandler = new ManifestHandler("${this.iFlowDir}/META-INF/MANIFEST.MF")
-        manifestHandler.updateAttributes(this.iFlowId, this.iFlowName, scriptCollection.getTargetCollectionValues())
-        manifestHandler.updateFile()
+        ManifestHandler.newInstance("${this.iFlowDir}/META-INF/MANIFEST.MF").normalizeAttributesInFile(this.iFlowId, this.iFlowName, scriptCollection.getTargetCollectionValues())
 
         // Update the script collection in IFlow BPMN2 XML before upload
         if (collections.size()) {
