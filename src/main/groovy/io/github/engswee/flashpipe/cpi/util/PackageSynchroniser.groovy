@@ -63,9 +63,12 @@ class PackageSynchroniser {
 
             String normalizedIFlowID = normalizeIFlowIDOrName(artifact.id, normalizeManifestAction, normalizeManifestPrefixOrSuffix)
             String normalizedIFlowName = normalizeIFlowIDOrName(artifact.name, normalizeManifestAction, normalizeManifestPrefixOrSuffix)
+            logger.debug("Normalized IFlow ID - ${normalizedIFlowID}")
+            logger.debug("Normalized IFlow Name - ${normalizedIFlowName}")
 
             // Unzip IFlow contents
             def directoryName = (dirNamingType.toUpperCase() == 'NAME') ? normalizedIFlowName : normalizedIFlowID
+            logger.debug("Target IFlow Directory Name - ${directoryName}")
             ZipUtil.unpack(outputZip, new File("${workDir}/download/${directoryName}"))
             logger.info("Downloaded IFlow artifact unzipped to ${workDir}/download/${directoryName}")
 
@@ -178,9 +181,9 @@ class PackageSynchroniser {
             case 'ADD_SUFFIX':
                 return "${input}${normalizeManifestPrefixOrSuffix}"
             case 'DELETE_PREFIX':
-                return (input.startsWith(normalizeManifestPrefixOrSuffix)) ?: input.replaceFirst(normalizeManifestPrefixOrSuffix, '')
+                return (input.startsWith(normalizeManifestPrefixOrSuffix)) ? input.replaceFirst(normalizeManifestPrefixOrSuffix, '') : input
             case 'DELETE_SUFFIX':
-                if ((input.endsWith(normalizeManifestPrefixOrSuffix)) ) {
+                if ((input.endsWith(normalizeManifestPrefixOrSuffix))) {
                     return input.substring(0, input.size() - normalizeManifestPrefixOrSuffix.size())
                 } else {
                     return input
