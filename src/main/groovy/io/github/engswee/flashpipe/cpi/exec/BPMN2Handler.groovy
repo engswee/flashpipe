@@ -1,6 +1,7 @@
 package io.github.engswee.flashpipe.cpi.exec
 
 import groovy.xml.XmlUtil
+import io.github.engswee.flashpipe.cpi.util.ScriptCollection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -28,13 +29,10 @@ class BPMN2Handler extends APIExecuter {
 
     @Override
     void execute() {
-        Map collections = scriptCollectionMap?.split(',')?.toList()?.collectEntries {
-            String[] pair = it.split('=')
-            [(pair[0]): pair[1]]
-        }
-        if (collections?.size()) {
+        Map collections = ScriptCollection.newInstance(this.scriptCollectionMap).getCollections()
+        if (collections.size()) {
             // Check that input environment variables do not have any of the secrets in their values
-            validateInputContainsNoSecrets('SCRIPT_COLLECTION_MAP', scriptCollectionMap)
+            validateInputContainsNoSecrets('SCRIPT_COLLECTION_MAP', this.scriptCollectionMap)
 
             if (!this.iFlowDir) {
                 logger.error('🛑 Mandatory environment variable GIT_SRC_DIR not populated')

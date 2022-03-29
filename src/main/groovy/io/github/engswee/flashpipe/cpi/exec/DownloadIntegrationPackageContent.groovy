@@ -64,7 +64,7 @@ class DownloadIntegrationPackageContent extends APIExecuter {
             throw new ExecutionException('Invalid value for DRAFT_HANDLING')
         }
 
-        if (!['ADD_PREFIX', 'ADD_SUFFIX', 'DELETE_PREFIX', 'DELETE_SUFFIX'].contains(this.normalizeManifestAction.toUpperCase())) {
+        if (!['NONE', 'ADD_PREFIX', 'ADD_SUFFIX', 'DELETE_PREFIX', 'DELETE_SUFFIX'].contains(this.normalizeManifestAction.toUpperCase())) {
             logger.error("🛑 Value ${this.normalizeManifestAction} for environment variable NORMALIZE_MANIFEST_ACTION not in list of accepted values: NONE, ADD_PREFIX, ADD_SUFFIX, DELETE_PREFIX or DELETE_SUFFIX")
             throw new ExecutionException('Invalid value for NORMALIZE_MANIFEST_ACTION')
         }
@@ -74,13 +74,8 @@ class DownloadIntegrationPackageContent extends APIExecuter {
             throw new ExecutionException('INCLUDE_IDS and EXCLUDE_IDS are mutually exclusive')
         }
 
-        Map collections = this.scriptCollectionMap?.split(',')?.toList()?.collectEntries {
-            String[] pair = it.split('=')
-            [(pair[0]): pair[1]]
-        }
-
         try {
-            new PackageSynchroniser(this.httpExecuter).sync(this.packageId, this.workDir, this.gitSrcDir, this.includedIds, this.excludedIds, this.draftHandling, this.dirNamingType, collections, this.normalizeManifestAction, this.normalizeManifestPrefixOrSuffix)
+            new PackageSynchroniser(this.httpExecuter).sync(this.packageId, this.workDir, this.gitSrcDir, this.includedIds, this.excludedIds, this.draftHandling, this.dirNamingType, this.scriptCollectionMap, this.normalizeManifestAction, this.normalizeManifestPrefixOrSuffix)
         } catch (UtilException e) {
             logger.error("🛑 Error occurred when processing package ${this.packageId}")
             throw new ExecutionException(e.getMessage())

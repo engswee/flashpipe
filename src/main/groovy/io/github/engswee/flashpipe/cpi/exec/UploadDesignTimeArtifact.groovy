@@ -4,6 +4,7 @@ import io.github.engswee.flashpipe.cpi.api.CSRFToken
 import io.github.engswee.flashpipe.cpi.api.DesignTimeArtifact
 import io.github.engswee.flashpipe.cpi.api.IntegrationPackage
 import io.github.engswee.flashpipe.cpi.util.ManifestHandler
+import io.github.engswee.flashpipe.cpi.util.ScriptCollection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.zeroturnaround.zip.ZipUtil
@@ -44,10 +45,8 @@ class UploadDesignTimeArtifact extends APIExecuter {
         validateInputContainsNoSecrets('PACKAGE_NAME', this.packageName)
         validateInputContainsNoSecrets('SCRIPT_COLLECTION_MAP', this.scriptCollectionMap)
 
-        Map collections = this.scriptCollectionMap?.split(',')?.toList()?.collectEntries {
-            String[] pair = it.split('=')
-            [(pair[0]): pair[1]]
-        }
+        ScriptCollection scriptCollection = ScriptCollection.newInstance(this.scriptCollectionMap)
+        Map collections = scriptCollection.getCollections()
 
         CSRFToken csrfToken = new CSRFToken(this.httpExecuter)
 
@@ -60,11 +59,11 @@ class UploadDesignTimeArtifact extends APIExecuter {
         }
 
         ManifestHandler manifestHandler = new ManifestHandler("${this.iFlowDir}/META-INF/MANIFEST.MF")
-        manifestHandler.updateAttributes(this.iFlowId, this.iFlowName, collections.collect { it.value })
+        manifestHandler.updateAttributes(this.iFlowId, this.iFlowName, scriptCollection.getTargetCollectionValues())
         manifestHandler.updateFile()
 
         // Update the script collection in IFlow BPMN2 XML before upload
-        if (collections?.size()) {
+        if (collections.size()) {
             BPMN2Handler bpmn2Handler = new BPMN2Handler()
             bpmn2Handler.updateFiles(collections, this.iFlowDir)
         }

@@ -17,7 +17,7 @@ class PackageSynchroniser {
         this.httpExecuter = httpExecuter
     }
 
-    void sync(String packageId, String workDir, String gitSrcDir, List<String> includedIds, List<String> excludedIds, String draftHandling, String dirNamingType, Map collections, String normalizeManifestAction, String normalizeManifestPrefixOrSuffix) {
+    void sync(String packageId, String workDir, String gitSrcDir, List<String> includedIds, List<String> excludedIds, String draftHandling, String dirNamingType, String scriptCollectionMap, String normalizeManifestAction, String normalizeManifestPrefixOrSuffix) {
         // Get all design time artifacts of package
         logger.info("Getting artifacts in integration package ${packageId}")
         IntegrationPackage integrationPackage = new IntegrationPackage(this.httpExecuter)
@@ -70,12 +70,15 @@ class PackageSynchroniser {
             logger.info("Downloaded IFlow artifact unzipped to ${workDir}/download/${directoryName}")
 
             // Normalize MANIFEST.MF before sync to Git
+            ScriptCollection scriptCollection = ScriptCollection.newInstance(scriptCollectionMap)
+            Map collections = scriptCollection.getCollections()
+
             ManifestHandler manifestHandler = new ManifestHandler("${workDir}/download/${directoryName}/META-INF/MANIFEST.MF")
-            manifestHandler.updateAttributes(normalizedIFlowID, normalizedIFlowName, collections.collect { it.value })
+            manifestHandler.updateAttributes(normalizedIFlowID, normalizedIFlowName, scriptCollection.getTargetCollectionValues())
             manifestHandler.updateFile()
 
             // Normalize the script collection in IFlow BPMN2 XML before syncing to Git
-            if (collections?.size()) {
+            if (collections.size()) {
                 BPMN2Handler bpmn2Handler = new BPMN2Handler()
                 bpmn2Handler.updateFiles(collections, "${workDir}/download/${directoryName}")
             }

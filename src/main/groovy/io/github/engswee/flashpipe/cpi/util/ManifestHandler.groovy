@@ -17,16 +17,9 @@ class ManifestHandler {
         String filePath = args[0]
         String iFlowId = args[1]
         String iFlowName = args[2]
-        Map collections = [:]
-        if (args.size() > 3 && args[3].trim()) {
-            String scriptCollectionMap = args[3]
-            collections = scriptCollectionMap?.split(',')?.toList()?.collectEntries {
-                String[] pair = it.split('=')
-                [(pair[0]): pair[1]]
-            }
-        }
+        ScriptCollection scriptCollection = (args.size() > 3) ? ScriptCollection.newInstance(args[3]) : ScriptCollection.newInstance('')
         ManifestHandler manifestHandler = new ManifestHandler(filePath)
-        manifestHandler.updateAttributes(iFlowId, iFlowName, collections.collect { it.value })
+        manifestHandler.updateAttributes(iFlowId, iFlowName, scriptCollection.getTargetCollectionValues())
         manifestHandler.updateFile()
     }
 

@@ -4,6 +4,7 @@ import io.github.engswee.flashpipe.cpi.api.CSRFToken
 import io.github.engswee.flashpipe.cpi.api.DesignTimeArtifact
 import io.github.engswee.flashpipe.cpi.api.RuntimeArtifact
 import io.github.engswee.flashpipe.cpi.util.ManifestHandler
+import io.github.engswee.flashpipe.cpi.util.ScriptCollection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.zeroturnaround.zip.ZipUtil
@@ -51,13 +52,8 @@ class UpdateDesignTimeArtifact extends APIExecuter {
         validateInputContainsNoSecrets('PACKAGE_ID', this.packageId)
         validateInputContainsNoSecrets('SCRIPT_COLLECTION_MAP', this.scriptCollectionMap)
 
-        Map collections = this.scriptCollectionMap?.split(',')?.toList()?.collectEntries {
-            String[] pair = it.split('=')
-            [(pair[0]): pair[1]]
-        }
-
         ManifestHandler manifestHandler = new ManifestHandler("${this.iFlowDir}/META-INF/MANIFEST.MF")
-        manifestHandler.updateAttributes(this.iFlowId, this.iFlowName, collections.collect { it.value })
+        manifestHandler.updateAttributes(this.iFlowId, this.iFlowName, ScriptCollection.newInstance(this.scriptCollectionMap).getTargetCollectionValues())
         manifestHandler.updateFile()
 
         // Zip iFlow directory and encode to Base 64
