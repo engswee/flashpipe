@@ -1,5 +1,19 @@
 # Release Notes
 
+## 2.6.0 (Released 31 March 2022)
+
+---
+
+- Deprecated parameters `MANIFEST_FILE` and `VERSION_HANDLING` for `update_designtime_artifact.sh`
+  - `MANIFEST_FILE` - it will now always refer to the file `META-INF/MANIFEST.MF`, and automatically convert based on provided `IFLOW_ID` and `IFLOW_NAME` 
+  - `VERSION_HANDLING` - it will now behave as though `VERSION_HANDLING` = `MANIFEST`, meaning version number will depend on `Bundle-Version` set in `META-INF/MANIFEST.MF` file
+- New optional parameter for `deploy_runtime_artifact.sh` 
+  - `COMPARE_VERSIONS` - perform version comparison between design time artifact and runtime before deployment (Default = `true`)
+- New optional parameters for `sync_to_git_repository.sh`
+  - `SCRIPT_COLLECTION_MAP` - handle conversion of script collection references in `MANIFEST.MF` and IFlow BPMN XML files
+  - `NORMALIZE_MANIFEST_ACTION` - normalize IFlow ID and IFlow Name in `MANIFEST.MF` by adding or deleting prefix/suffix
+  - `NORMALIZE_MANIFEST_PREFIX_SUFFIX` - prefix or suffix used in normalization of IFlow ID and IFlow Name in `MANIFEST.MF`
+
 ## 2.5.3 (Released 16 March 2022)
 
 ---

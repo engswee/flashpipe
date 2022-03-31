@@ -38,7 +38,7 @@ Mandatory environment variables:
 
 Optional environment variables:
     PARAM_FILE - Use to a different parameters.prop file instead of the default in src/main/resources/
-    MANIFEST_FILE - [DEPRECATED] Use to a different MANIFEST.MF file instead of the default in META-INF/
+    MANIFEST_FILE - [DEPRECATED] Use a different MANIFEST.MF file instead of the default in META-INF/
     WORK_DIR - Working directory for in-transit files (default is /tmp if not set)
     HOST_OAUTH_PATH - Specific path for OAuth token server, e.g. example /oauth2/api/v1/token for Neo environments (default is /oauth/token if not set for CF environments)
     VERSION_HANDLING - [DEPRECATED] Determination of version number during artifact update
@@ -154,6 +154,9 @@ Optional environment variables:
     DRAFT_HANDLING - Handling when IFlow is in draft version. Allowed values: SKIP (default), ADD, ERROR
     DIR_NAMING_TYPE - Name IFlow directories by ID or Name. Allowed values: ID (default), NAME
     COMMIT_MESSAGE - Message used in commit
+    SCRIPT_COLLECTION_MAP - Comma-separated source-target ID pairs for converting script collection references during sync
+    NORMALIZE_MANIFEST_ACTION - Action for normalizing IFlow ID & Name in MANIFEST.MF. Allowed values: NONE (default), ADD_PREFIX, ADD_SUFFIX, DELETE_PREFIX, DELETE_SUFFIX
+    NORMALIZE_MANIFEST_PREFIX_SUFFIX - Prefix/suffix used for normalizing IFlow ID & Name in MANIFEST.MF
     WORK_DIR - Working directory for in-transit files (default is /tmp if not set)
     HOST_OAUTH_PATH - Specific path for OAuth token server, e.g. example /oauth2/api/v1/token for Neo environments (default is /oauth/token if not set for CF environments)
 ```

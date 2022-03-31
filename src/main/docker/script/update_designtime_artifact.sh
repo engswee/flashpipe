@@ -21,7 +21,7 @@
 #
 # 3. Optional variables:
 # PARAM_FILE - Use to a different parameters.prop file instead of the default in src/main/resources/
-# MANIFEST_FILE - [DEPRECATED] Use to a different MANIFEST.MF file instead of the default in META-INF/
+# MANIFEST_FILE - [DEPRECATED] Use a different MANIFEST.MF file instead of the default in META-INF/
 # WORK_DIR - Working directory for in-transit files (default is /tmp if not set)
 # VERSION_HANDLING - [DEPRECATED] Determination of version number during artifact update
 # SCRIPT_COLLECTION_MAP - Comma-separated source-target ID pairs for converting script collection references during upload/update
