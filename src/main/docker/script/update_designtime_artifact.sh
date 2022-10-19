@@ -139,8 +139,8 @@ if [[ "$check_iflow_status" == "0" ]]; then
   # Compare META-INF directory for any differences in the manifest file
   exec_java_command io.github.engswee.flashpipe.cpi.util.ManifestHandler "$GIT_SRC_DIR/META-INF/MANIFEST.MF" "$IFLOW_ID" "$IFLOW_NAME" "$SCRIPT_COLLECTION_MAP"
   echo "[INFO] Checking for changes in META-INF directory"
-  echo "[INFO] Executing command: - diff --strip-trailing-cr -qr -w -B $WORK_DIR/download/META-INF/ $GIT_SRC_DIR/META-INF/"
-  manifest_diff_result="$(diff --strip-trailing-cr -qr -w -B "$WORK_DIR/download/META-INF/" "$GIT_SRC_DIR/META-INF/")"
+  echo "[INFO] Executing command: - diff -I '^Origin.*' --strip-trailing-cr -qr -w -B $WORK_DIR/download/META-INF/ $GIT_SRC_DIR/META-INF/"
+  manifest_diff_result="$(diff -I '^Origin.*' --strip-trailing-cr -qr -w -B "$WORK_DIR/download/META-INF/" "$GIT_SRC_DIR/META-INF/")"
 
   # Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
   # Therefore diff of parameters.prop may come up with false differences
@@ -151,7 +151,7 @@ if [[ "$check_iflow_status" == "0" ]]; then
     echo '[INFO] 🏆 No changes detected. IFlow design does not need to be updated'
   else
     echo "[INFO] Changes found in IFlow"
-    diff --strip-trailing-cr -r -w -B "$WORK_DIR/download/META-INF/" "$GIT_SRC_DIR/META-INF/"
+    diff  -I '^Origin.*' --strip-trailing-cr -r -w -B "$WORK_DIR/download/META-INF/" "$GIT_SRC_DIR/META-INF/"
     diff --strip-trailing-cr -r -w -B -x 'parameters.prop' "$WORK_DIR/download/src/main/resources/" "$GIT_SRC_DIR/src/main/resources/"
     echo '[INFO] IFlow design will be updated in CPI tenant'
     # Clean up previous uploads
