@@ -140,7 +140,7 @@ jobs:
         buildContext: '.'
         # FLASHPIPE_VERSION
         tags: |
-          2.6.0-lite
+          2.6.1-lite
           2.6.x-lite
           2.x.x-lite
   - job: build_image_full
@@ -164,6 +164,6 @@ jobs:
         buildContext: '.'
         # FLASHPIPE_VERSION
         tags: |
-          2.6.0
+          2.6.1
           2.6.x
           2.x.x
