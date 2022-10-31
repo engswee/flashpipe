@@ -102,7 +102,7 @@ class PackageSynchroniser {
 
                 // Execute shell command diff to compare directory contents
                 ShellCommand shellCommand = new ShellCommand('bash')
-                String command = "diff --strip-trailing-cr -qr -x '.DS_Store' '${workDir}/from_tenant/${directoryName}' '${workDir}/from_git/${directoryName}'"
+                String command = "diff -I '^Origin.*' --strip-trailing-cr -qr -x '.DS_Store' '${workDir}/from_tenant/${directoryName}' '${workDir}/from_git/${directoryName}'"
                 shellCommand.execute(command)
                 switch (shellCommand.getExitValue()) {
                     case 0:
