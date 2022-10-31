@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2.6.1 (Released 31 October 2022)
+
+---
+
+- Minor fix to ignore Origin-* properties in MANIFEST.MF files when performing comparison during sync or update
+
 ## 2.6.0 (Released 31 March 2022)
 
 ---
