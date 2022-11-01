@@ -140,8 +140,8 @@ jobs:
         buildContext: '.'
         # FLASHPIPE_VERSION
         tags: |
-          2.6.1-lite
-          2.6.x-lite
+          2.7.0-lite
+          2.7.x-lite
           2.x.x-lite
   - job: build_image_full
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
@@ -164,6 +164,6 @@ jobs:
         buildContext: '.'
         # FLASHPIPE_VERSION
         tags: |
-          2.6.1
-          2.6.x
+          2.7.0
+          2.7.x
           2.x.x
