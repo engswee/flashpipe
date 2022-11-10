@@ -20,6 +20,7 @@
 # GIT_BRANCH - Branch name to be used for the snapshot -TODO-
 # DRAFT_HANDLING - Handling when IFlow is in draft version
 # COMMIT_MESSAGE - Message used in commit
+# # SYNC_PACKAGE_LEVEL_DETAILS - Sync details of Integration Packages
 
 
 function check_mandatory_env_var() {

@@ -1,5 +1,7 @@
 package io.github.engswee.flashpipe.cpi.util
 
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import io.github.engswee.flashpipe.cpi.api.DesignTimeArtifact
 import io.github.engswee.flashpipe.cpi.api.IntegrationPackage
 import io.github.engswee.flashpipe.cpi.exec.BPMN2Handler
@@ -10,24 +12,70 @@ import org.zeroturnaround.zip.ZipUtil
 
 class PackageSynchroniser {
     final HTTPExecuter httpExecuter
+    final IntegrationPackage integrationPackage
 
     static Logger logger = LoggerFactory.getLogger(PackageSynchroniser)
 
     PackageSynchroniser(HTTPExecuter httpExecuter) {
         this.httpExecuter = httpExecuter
+        this.integrationPackage = new IntegrationPackage(this.httpExecuter)
     }
 
-    void sync(String packageId, String workDir, String gitSrcDir, List<String> includedIds, List<String> excludedIds, String draftHandling, String dirNamingType, String scriptCollectionMap, String normalizeManifestAction, String normalizeManifestPrefixOrSuffix) {
+    void syncInfo(String packageId, String workDir, String gitSrcDir, String normalizePackageAction, String normalizePackageIDPrefixOrSuffix, String normalizePackageNamePrefixOrSuffix) {
+        logger.info("Processing details of integration package ${packageId}")
+        if (this.integrationPackage.isReadOnly(packageId)) {
+            logger.warn("⚠️ Skipping package ${packageId} as it is Configure-only")
+            return
+        }
+        // Create temp directory in working dir
+        new File("${workDir}/from_tenant").mkdirs()
+
+        // Get details from tenant
+        String packageContent = this.integrationPackage.getDetails(packageId)
+        Map packageFromTenant = new JsonSlurper().parseText(packageContent)
+
+        // Normalize ID
+        String normalizedPackageID = normalizeIFlowIDOrName(packageId, normalizePackageAction, normalizePackageIDPrefixOrSuffix)
+        // Normalize Name
+        String normalizedPackageName = normalizeIFlowIDOrName(packageFromTenant.d.Name, normalizePackageAction, normalizePackageNamePrefixOrSuffix)
+
+        logger.info("Storing package details from tenant for comparison")
+        File packageFile = new File("${workDir}/from_tenant/${normalizedPackageID}.json")
+        if (normalizePackageAction != 'NONE') {
+            logger.info("Normalizing Package ID from '${packageId}' to '${normalizedPackageID}'")
+            packageFromTenant.d.Id = normalizedPackageID
+            logger.info("Normalizing Package Name from '${packageFromTenant.d.Name}' to '${normalizedPackageName}'")
+            packageFromTenant.d.Name = normalizedPackageName
+            // Update file content with normalized values
+            packageFile.bytes = JsonOutput.toJson(packageFromTenant).getBytes('UTF-8')
+        }
+
+        // Get existing package info file if it exists and compare values
+        String gitSourceFile = "${gitSrcDir}/${normalizedPackageID}.json"
+        if (new File(gitSourceFile).exists()) {
+            Map packageFromGit = new JsonSlurper().parse(new File(gitSourceFile))
+            if (contentDiffer(packageFromGit.d, packageFromTenant.d)) {
+                logger.info('🏆 Changes detected and will be updated to Git')
+                FileUtility.replaceFile("${workDir}/from_tenant/${normalizedPackageID}.json", gitSourceFile)
+            } else {
+                logger.info('🏆 No changes detected. Update to Git not required')
+            }
+        } else {
+            logger.info("🏆 Saving new file to Git")
+            FileUtility.copyFile("${workDir}/from_tenant/${normalizedPackageID}.json", gitSrcDir)
+        }
+    }
+
+    void syncArtifacts(String packageId, String workDir, String gitSrcDir, List<String> includedIds, List<String> excludedIds, String draftHandling, String dirNamingType, String scriptCollectionMap, String normalizeManifestAction, String normalizeManifestPrefixOrSuffix) {
         // Get all design time artifacts of package
         logger.info("Getting artifacts in integration package ${packageId}")
-        IntegrationPackage integrationPackage = new IntegrationPackage(this.httpExecuter)
         // Verify the package is downloadable
-        if (integrationPackage.isReadOnly(packageId)) {
+        if (this.integrationPackage.isReadOnly(packageId)) {
             logger.warn("⚠️ Skipping package ${packageId} as it is Configure-only and cannot be downloaded")
             return
         }
 
-        List artifacts = integrationPackage.getIFlowsWithDraftState(packageId)
+        List artifacts = this.integrationPackage.getIFlowsWithDraftState(packageId)
         DesignTimeArtifact designTimeArtifact = new DesignTimeArtifact(this.httpExecuter)
 
         // Create temp directories in working dir
@@ -135,7 +183,47 @@ class PackageSynchroniser {
         new File("${workDir}/from_git").deleteDir()
         new File("${workDir}/from_tenant").deleteDir()
         println '---------------------------------------------------------------------------------'
-        logger.info("🏆 Completed processing of integration package ${packageId}")
+        logger.info("🏆 Completed processing of artifacts in integration package ${packageId}")
+    }
+
+    boolean contentDiffer(Map source, Map target) {
+        if (source.Name.toString() != target.Name.toString()) {
+            return true
+        }
+        if (source.Description.toString() != target.Description.toString()) {
+            return true
+        }
+        if (source.ShortText.toString() != target.ShortText.toString()) {
+            return true
+        }
+        if (source.Version.toString() != target.Version.toString()) {
+            return true
+        }
+        if (source.Vendor.toString() != target.Vendor.toString()) {
+            return true
+        }
+        if (source.Mode.toString() != target.Mode.toString()) {
+            return true
+        }
+        if (source.SupportedPlatform.toString() != target.SupportedPlatform.toString()) {
+            return true
+        }
+        if (source.Products.toString() != target.Products.toString()) {
+            return true
+        }
+        if (source.Keywords.toString() != target.Keywords.toString()) {
+            return true
+        }
+        if (source.Countries.toString() != target.Countries.toString()) {
+            return true
+        }
+        if (source.Industries.toString() != target.Industries.toString()) {
+            return true
+        }
+        if (source.LineOfBusiness.toString() != target.LineOfBusiness.toString()) {
+            return true
+        }
+        return false
     }
 
     private List filterArtifacts(List artifacts, List includedIds, List excludedIds) {

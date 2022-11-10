@@ -21,6 +21,10 @@ class DownloadIntegrationPackageContent extends APIExecuter {
     String scriptCollectionMap
     String normalizeManifestAction
     String normalizeManifestPrefixOrSuffix
+    String syncPackageLevelDetails
+    String normalizePackageAction
+    String normalizePackageIDPrefixOrSuffix
+    String normalizePackageNamePrefixOrSuffix
 
     static void main(String[] args) {
         DownloadIntegrationPackageContent downloadIntegrationPackageContent = new DownloadIntegrationPackageContent()
@@ -45,6 +49,10 @@ class DownloadIntegrationPackageContent extends APIExecuter {
         this.scriptCollectionMap = System.getenv('SCRIPT_COLLECTION_MAP')
         this.normalizeManifestAction = (System.getenv('NORMALIZE_MANIFEST_ACTION') ?: 'NONE')
         this.normalizeManifestPrefixOrSuffix = (System.getenv('NORMALIZE_MANIFEST_PREFIX_SUFFIX') ?: '')
+        this.syncPackageLevelDetails = (System.getenv('SYNC_PACKAGE_LEVEL_DETAILS') ?: 'NO')
+        this.normalizePackageAction = (System.getenv('NORMALIZE_PACKAGE_ACTION') ?: 'NONE')
+        this.normalizePackageIDPrefixOrSuffix = (System.getenv('NORMALIZE_PACKAGE_ID_PREFIX_SUFFIX') ?: '')
+        this.normalizePackageNamePrefixOrSuffix = (System.getenv('NORMALIZE_PACKAGE_NAME_PREFIX_SUFFIX') ?: '')
     }
 
     @Override
@@ -69,13 +77,22 @@ class DownloadIntegrationPackageContent extends APIExecuter {
             throw new ExecutionException('Invalid value for NORMALIZE_MANIFEST_ACTION')
         }
 
+        if (!['NONE', 'ADD_PREFIX', 'ADD_SUFFIX', 'DELETE_PREFIX', 'DELETE_SUFFIX'].contains(this.normalizePackageAction.toUpperCase())) {
+            logger.error("🛑 Value ${this.normalizePackageAction} for environment variable NORMALIZE_PACKAGE_ACTION not in list of accepted values: NONE, ADD_PREFIX, ADD_SUFFIX, DELETE_PREFIX or DELETE_SUFFIX")
+            throw new ExecutionException('Invalid value for NORMALIZE_PACKAGE_ACTION')
+        }
+
         if (this.includedIds && this.excludedIds) {
             logger.error('🛑 INCLUDE_IDS and EXCLUDE_IDS are mutually exclusive - use only one of them')
             throw new ExecutionException('INCLUDE_IDS and EXCLUDE_IDS are mutually exclusive')
         }
 
         try {
-            new PackageSynchroniser(this.httpExecuter).sync(this.packageId, this.workDir, this.gitSrcDir, this.includedIds, this.excludedIds, this.draftHandling, this.dirNamingType, this.scriptCollectionMap, this.normalizeManifestAction, this.normalizeManifestPrefixOrSuffix)
+            PackageSynchroniser packageSynchroniser = new PackageSynchroniser(this.httpExecuter)
+            if (this.syncPackageLevelDetails == 'YES') {
+                packageSynchroniser.syncInfo(this.packageId, this.workDir, this.gitSrcDir, this.normalizePackageAction, this.normalizePackageIDPrefixOrSuffix, this.normalizePackageNamePrefixOrSuffix)
+            }
+            packageSynchroniser.syncArtifacts(this.packageId, this.workDir, this.gitSrcDir, this.includedIds, this.excludedIds, this.draftHandling, this.dirNamingType, this.scriptCollectionMap, this.normalizeManifestAction, this.normalizeManifestPrefixOrSuffix)
         } catch (UtilException e) {
             logger.error("🛑 Error occurred when processing package ${this.packageId}")
             throw new ExecutionException(e.getMessage())

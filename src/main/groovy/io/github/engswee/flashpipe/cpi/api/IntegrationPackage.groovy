@@ -68,6 +68,18 @@ class IntegrationPackage {
         }
     }
 
+    String getDetails(String packageId) {
+        // Check existence of package
+        logger.info("Getting details of package ${packageId}")
+        this.httpExecuter.executeRequest("/api/v1/IntegrationPackages('${packageId}')", ['Accept': 'application/json'])
+        def code = this.httpExecuter.getResponseCode()
+        if (code == 200) {
+            return this.httpExecuter.getResponseBody().getText('UTF-8')
+        } else {
+            this.httpExecuter.logError('Get IntegrationPackages by ID')
+        }
+    }
+
     String create(String packageId, String packageName, CSRFToken csrfToken) {
         // 1 - Get CSRF token
         String token = csrfToken.get()
@@ -110,13 +122,9 @@ class IntegrationPackage {
 
     boolean isReadOnly(String packageId) {
         logger.info("Checking if package is marked as read only")
-        this.httpExecuter.executeRequest("/api/v1/IntegrationPackages('${packageId}')", ['Accept': 'application/json'])
-        def code = this.httpExecuter.getResponseCode()
-        if (code == 200) {
-            def root = new JsonSlurper().parse(this.httpExecuter.getResponseBody())
-            return (root.d.Mode.toString() == 'READ_ONLY')
-        } else
-            this.httpExecuter.logError('Get IntegrationPackages by ID')
+        String response = this.getDetails(packageId)
+        def root = new JsonSlurper().parseText(response)
+        return (root.d.Mode.toString() == 'READ_ONLY')
     }
 
     List getPackagesList() {

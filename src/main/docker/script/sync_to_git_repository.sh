@@ -26,6 +26,10 @@
 # SCRIPT_COLLECTION_MAP - Comma-separated source-target ID pairs for converting script collection references during sync
 # NORMALIZE_MANIFEST_ACTION - Action for normalizing IFlow ID & Name in MANIFEST.MF
 # NORMALIZE_MANIFEST_PREFIX_SUFFIX - Prefix/suffix used for normalizing IFlow ID & Name in MANIFEST.MF
+# SYNC_PACKAGE_LEVEL_DETAILS - Sync details of Integration Package
+# NORMALIZE_PACKAGE_ACTION - Action for normalizing Package ID & Name package file
+# NORMALIZE_PACKAGE_ID_PREFIX_SUFFIX - Prefix/suffix used for normalizing Package ID
+# NORMALIZE_PACKAGE_NAME_PREFIX_SUFFIX - Prefix/suffix used for normalizing Package Name
 
 function check_mandatory_env_var() {
   local env_var_name=$1

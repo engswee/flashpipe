@@ -37,4 +37,11 @@ class FileUtility {
         new File(targetFilePath).delete()
         Files.copy(Paths.get(sourceFilePath), Paths.get(targetFilePath), StandardCopyOption.REPLACE_EXISTING)
     }
+
+    static void copyFile(String sourceFilePath, String destinationDirectoryLocation) {
+        new File(destinationDirectoryLocation).mkdirs()
+        Path sourceFile = Paths.get(sourceFilePath)
+        Path targetDir = Paths.get(destinationDirectoryLocation)
+        Files.copy(sourceFile, targetDir.resolve(sourceFile.getFileName()))
+    }
 }

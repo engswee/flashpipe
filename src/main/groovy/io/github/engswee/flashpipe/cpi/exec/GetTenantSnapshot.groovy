@@ -14,6 +14,7 @@ class GetTenantSnapshot extends APIExecuter {
     String gitSrcDir
     String commitMessage
     String draftHandling
+    String syncPackageLevelDetails
 
     static void main(String[] args) {
         GetTenantSnapshot getTenantSnapshot = new GetTenantSnapshot()
@@ -31,6 +32,7 @@ class GetTenantSnapshot extends APIExecuter {
         this.workDir = getMandatoryEnvVar('WORK_DIR')
         this.commitMessage = System.getenv('COMMIT_MESSAGE')
         this.draftHandling = (System.getenv('DRAFT_HANDLING') ?: 'SKIP')
+        this.syncPackageLevelDetails = (System.getenv('SYNC_PACKAGE_LEVEL_DETAILS') ?: 'NO')
     }
 
     @Override
@@ -64,7 +66,10 @@ class GetTenantSnapshot extends APIExecuter {
             println '---------------------------------------------------------------------------------'
             logger.info("Processing package ${index}/${packages.size()} - ID: ${packageId}")
             try {
-                packageSynchroniser.sync(packageId, "${this.workDir}/${packageId}", "${this.gitSrcDir}/${packageId}", [], [], this.draftHandling, 'ID', '', 'NONE', '')
+                if (this.syncPackageLevelDetails == 'YES') {
+                    packageSynchroniser.syncInfo(packageId, "${this.workDir}/${packageId}", "${this.gitSrcDir}/${packageId}", 'NONE', '', '')
+                }
+                packageSynchroniser.syncArtifacts(packageId, "${this.workDir}/${packageId}", "${this.gitSrcDir}/${packageId}", [], [], this.draftHandling, 'ID', '', 'NONE', '')
             } catch (UtilException e) {
                 logger.error("🛑 Error occurred when processing package ${packageId}")
                 throw new ExecutionException(e.getMessage())
