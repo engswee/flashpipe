@@ -38,6 +38,7 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
         downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
         downloadIntegrationPackageContent.setScriptCollectionMap('')
+        downloadIntegrationPackageContent.setNormalizePackageAction('NONE')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -58,6 +59,7 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
         downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
         downloadIntegrationPackageContent.setScriptCollectionMap('')
+        downloadIntegrationPackageContent.setNormalizePackageAction('NONE')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -78,6 +80,7 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
         downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
         downloadIntegrationPackageContent.setScriptCollectionMap('')
+        downloadIntegrationPackageContent.setNormalizePackageAction('NONE')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -101,6 +104,7 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
         downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
         downloadIntegrationPackageContent.setScriptCollectionMap('')
+        downloadIntegrationPackageContent.setNormalizePackageAction('NONE')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -128,6 +132,7 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
         downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
         downloadIntegrationPackageContent.setScriptCollectionMap('')
+        downloadIntegrationPackageContent.setNormalizePackageAction('NONE')
 
         File fileToDelete = new File('target/DownloadIntegrationPackageContentIT/TempGitSrcDir/FlashPipe Update/src/main/resources/scenarioflows/integrationflow/FlashPipe Update.iflw')
         fileToDelete.delete()
@@ -195,6 +200,7 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
         downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
         downloadIntegrationPackageContent.setScriptCollectionMap('')
+        downloadIntegrationPackageContent.setNormalizePackageAction('NONE')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -216,6 +222,7 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
         downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
         downloadIntegrationPackageContent.setScriptCollectionMap('')
+        downloadIntegrationPackageContent.setNormalizePackageAction('NONE')
 
         when:
         downloadIntegrationPackageContent.execute()
@@ -237,6 +244,7 @@ class DownloadIntegrationPackageContentIT extends Specification {
         downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
         downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
         downloadIntegrationPackageContent.setScriptCollectionMap('')
+        downloadIntegrationPackageContent.setNormalizePackageAction('NONE')
 
         when:
         downloadIntegrationPackageContent.execute()
