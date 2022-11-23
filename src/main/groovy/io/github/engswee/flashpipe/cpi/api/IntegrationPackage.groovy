@@ -81,11 +81,46 @@ class IntegrationPackage {
     }
 
     String create(String packageId, String packageName, CSRFToken csrfToken) {
+        // Create package
+        Map packageContent = ['Id'               : packageId,
+                              'Name'             : packageName,
+                              'ShortText'        : packageId,
+                              'Version'          : '1.0.0',
+                              'SupportedPlatform': 'SAP Cloud Integration']
+        return createPackage(packageContent, csrfToken.get())
+    }
+
+    String create(Map packageContent, CSRFToken csrfToken) {
+        // Create package
+        return createPackage(packageContent, csrfToken.get())
+    }
+
+    void update(Map packageContent, CSRFToken csrfToken) {
         // 1 - Get CSRF token
         String token = csrfToken.get()
 
-        // Create package
-        return createPackage(packageId, packageName, token)
+        logger.debug('Update integration package')
+        def builder = new JsonBuilder()
+        builder {
+            'Name' packageContent.Name
+            'Description' packageContent.Description
+            'ShortText' packageContent.ShortText
+            'Version' packageContent.Version
+            'Vendor' packageContent.Vendor
+            'SupportedPlatform' packageContent.SupportedPlatform
+            'Products' packageContent.Products
+            'Keywords' packageContent.Keywords
+            'Countries' packageContent.Countries
+            'Industries' packageContent.Industries
+            'LineOfBusiness' packageContent.LineOfBusiness
+        }
+        def payload = builder.toString()
+        logger.debug("Request body = ${payload}")
+
+        this.httpExecuter.executeRequest('PUT', "/api/v1/IntegrationPackages('${packageContent.Id}')", ['x-csrf-token': token, 'Accept': 'application/json'], null, payload, 'UTF-8', 'application/json')
+        def code = this.httpExecuter.getResponseCode()
+        if (code != 202)
+            this.httpExecuter.logError('Update integration package')
     }
 
     void delete(String packageId, CSRFToken csrfToken) {
@@ -99,15 +134,21 @@ class IntegrationPackage {
             this.httpExecuter.logError('Delete integration package')
     }
 
-    private String createPackage(String packageId, String packageName, String csrfToken) {
+    private String createPackage(Map packageContent, String csrfToken) {
         logger.debug('Create integration package')
         def builder = new JsonBuilder()
         builder {
-            'Id' packageId
-            'Name' packageName
-            'ShortText' packageId
-            'Version' '1.0.0'
-            'SupportedPlatform' 'SAP Cloud Integration'
+            'Id' packageContent.Id
+            'Name' packageContent.Name
+            'Description' packageContent.Description
+            'ShortText' packageContent.ShortText
+            'Version' packageContent.Version
+            'SupportedPlatform' packageContent.SupportedPlatform
+            'Products' packageContent.Products
+            'Keywords' packageContent.Keywords
+            'Countries' packageContent.Countries
+            'Industries' packageContent.Industries
+            'LineOfBusiness' packageContent.LineOfBusiness
         }
         def payload = builder.toString()
         logger.debug("Request body = ${payload}")
