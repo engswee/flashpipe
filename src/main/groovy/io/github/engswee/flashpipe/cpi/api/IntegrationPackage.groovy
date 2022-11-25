@@ -87,7 +87,7 @@ class IntegrationPackage {
                               'ShortText'        : packageId,
                               'Version'          : '1.0.0',
                               'SupportedPlatform': 'SAP Cloud Integration']
-        return createPackage(packageContent, csrfToken.get())
+        return create(packageContent, csrfToken)
     }
 
     String create(Map packageContent, CSRFToken csrfToken) {

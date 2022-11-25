@@ -175,6 +175,31 @@ class IntegrationPackageSpec extends Specification {
         e.getMessage() == 'Create integration package call failed with response code = 500'
     }
 
+    def 'Successful package update'() {
+        given:
+        this.mockExpectation.setCSRFTokenExpectation('/api/v1/', '50B5187CDE58A345C8A713959F9A4893')
+        this.mockExpectation.set('PUT', "/api/v1/IntegrationPackages('FlashPipeUnitTest')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], 202, 'Success')
+
+        when:
+        integrationPackage.update(['Id':'FlashPipeUnitTest', 'Name':'FlashPipe Unit Test'], csrfToken)
+
+        then:
+        noExceptionThrown()
+    }
+
+    def 'Failure during package update'() {
+        given:
+        this.mockExpectation.setCSRFTokenExpectation('/api/v1/', '50B5187CDE58A345C8A713959F9A4893')
+        this.mockExpectation.set('PUT', "/api/v1/IntegrationPackages('FlashPipeUnitTest')", ['x-csrf-token': '50B5187CDE58A345C8A713959F9A4893', 'Accept': 'application/json'], 500, '')
+
+        when:
+        integrationPackage.update(['Id':'FlashPipeUnitTest', 'Name':'FlashPipe Unit Test'], csrfToken)
+
+        then:
+        HTTPExecuterException e = thrown()
+        e.getMessage() == 'Update integration package call failed with response code = 500'
+    }
+
     def 'Successful package deletion'() {
         given:
         this.mockExpectation.setCSRFTokenExpectation('/api/v1/', '50B5187CDE58A345C8A713959F9A4893')
