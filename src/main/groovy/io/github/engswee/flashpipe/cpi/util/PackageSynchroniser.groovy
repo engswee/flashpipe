@@ -35,9 +35,9 @@ class PackageSynchroniser {
         Map packageFromTenant = new JsonSlurper().parseText(packageContent)
 
         // Normalize ID
-        String normalizedPackageID = normalizeIFlowIDOrName(packageId, normalizePackageAction, normalizePackageIDPrefixOrSuffix)
+        String normalizedPackageID = Normalizer.normalize(packageId, normalizePackageAction, normalizePackageIDPrefixOrSuffix)
         // Normalize Name
-        String normalizedPackageName = normalizeIFlowIDOrName(packageFromTenant.d.Name, normalizePackageAction, normalizePackageNamePrefixOrSuffix)
+        String normalizedPackageName = Normalizer.normalize(packageFromTenant.d.Name, normalizePackageAction, normalizePackageNamePrefixOrSuffix)
 
         logger.info("Storing package details from tenant for comparison")
         File packageFile = new File("${workDir}/from_tenant/${normalizedPackageID}.json")
@@ -109,8 +109,8 @@ class PackageSynchroniser {
             outputZip.bytes = designTimeArtifact.download(artifact.id, 'active')
             logger.info("IFlow ${artifact.id} downloaded to ${outputZip}")
 
-            String normalizedIFlowID = normalizeIFlowIDOrName(artifact.id, normalizeManifestAction, normalizeManifestPrefixOrSuffix)
-            String normalizedIFlowName = normalizeIFlowIDOrName(artifact.name, normalizeManifestAction, normalizeManifestPrefixOrSuffix)
+            String normalizedIFlowID = Normalizer.normalize(artifact.id, normalizeManifestAction, normalizeManifestPrefixOrSuffix)
+            String normalizedIFlowName = Normalizer.normalize(artifact.name, normalizeManifestAction, normalizeManifestPrefixOrSuffix)
             logger.debug("Normalized IFlow ID - ${normalizedIFlowID}")
             logger.debug("Normalized IFlow Name - ${normalizedIFlowName}")
 
@@ -259,25 +259,6 @@ class PackageSynchroniser {
             return outputList
         } else {
             return artifacts
-        }
-    }
-
-    private String normalizeIFlowIDOrName(String input, String normalizeManifestAction, String normalizeManifestPrefixOrSuffix) {
-        switch (normalizeManifestAction) {
-            case 'ADD_PREFIX':
-                return "${normalizeManifestPrefixOrSuffix}${input}"
-            case 'ADD_SUFFIX':
-                return "${input}${normalizeManifestPrefixOrSuffix}"
-            case 'DELETE_PREFIX':
-                return (input.startsWith(normalizeManifestPrefixOrSuffix)) ? input.replaceFirst(normalizeManifestPrefixOrSuffix, '') : input
-            case 'DELETE_SUFFIX':
-                if ((input.endsWith(normalizeManifestPrefixOrSuffix))) {
-                    return input.substring(0, input.size() - normalizeManifestPrefixOrSuffix.size())
-                } else {
-                    return input
-                }
-            default:
-                return input
         }
     }
 }
