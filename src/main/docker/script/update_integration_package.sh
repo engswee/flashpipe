@@ -16,8 +16,8 @@
 # PACKAGE_FILE - Path to location of package file
 #
 # 3. Optional variables:
-# OVERWRITE_PACKAGE_ID - Use package ID from variable rather than from file
-# OVERWRITE_PACKAGE_NAME - Use package Name from variable rather than from file
+# PACKAGE_ID - Use package ID from variable rather than from file
+# PACKAGE_NAME - Use package Name from variable rather than from file
 
 function check_mandatory_env_var() {
   local env_var_name=$1

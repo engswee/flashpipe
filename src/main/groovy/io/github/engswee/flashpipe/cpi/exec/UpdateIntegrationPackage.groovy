@@ -27,8 +27,8 @@ class UpdateIntegrationPackage extends APIExecuter {
     @Override
     void getEnvironmentVariables() {
         this.packageFilePath = getMandatoryEnvVar('PACKAGE_FILE')
-        this.overwritePackageId = (System.getenv('OVERWRITE_PACKAGE_ID') ?: '')
-        this.overwritePackageName = (System.getenv('OVERWRITE_PACKAGE_NAME') ?: '')
+        this.overwritePackageId = (System.getenv('PACKAGE_ID') ?: '')
+        this.overwritePackageName = (System.getenv('PACKAGE_NAME') ?: '')
     }
 
     @Override
