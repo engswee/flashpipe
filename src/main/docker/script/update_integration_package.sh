@@ -16,9 +16,8 @@
 # PACKAGE_FILE - Path to location of package file
 #
 # 3. Optional variables:
-# NORMALIZE_PACKAGE_ACTION - Action for normalizing Package ID & Name package file
-# NORMALIZE_PACKAGE_ID_PREFIX_SUFFIX - Prefix/suffix used for normalizing Package ID
-# NORMALIZE_PACKAGE_NAME_PREFIX_SUFFIX - Prefix/suffix used for normalizing Package Name
+# OVERWRITE_PACKAGE_ID - Use package ID from variable rather than from file
+# OVERWRITE_PACKAGE_NAME - Use package Name from variable rather than from file
 
 function check_mandatory_env_var() {
   local env_var_name=$1
