@@ -46,9 +46,9 @@ class PackageSynchroniser {
             packageFromTenant.d.Id = normalizedPackageID
             logger.info("Normalizing Package Name from '${packageFromTenant.d.Name}' to '${normalizedPackageName}'")
             packageFromTenant.d.Name = normalizedPackageName
-            // Update file content with normalized values
-            packageFile.bytes = JsonOutput.toJson(packageFromTenant).getBytes('UTF-8')
         }
+        // Update file content with normalized values
+        packageFile.bytes = JsonOutput.toJson(packageFromTenant).getBytes('UTF-8')
 
         // Get existing package info file if it exists and compare values
         String gitSourceFile = "${gitSrcDir}/${normalizedPackageID}.json"
