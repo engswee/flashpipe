@@ -1,5 +1,6 @@
 package io.github.engswee.flashpipe.cpi.exec
 
+import groovy.json.JsonSlurper
 import io.github.engswee.flashpipe.cpi.util.FileUtility
 import io.github.engswee.flashpipe.cpi.util.IntegrationTestHelper
 import io.github.engswee.flashpipe.http.HTTPExecuter
@@ -45,6 +46,38 @@ class DownloadIntegrationPackageContentIT extends Specification {
 
         then:
         noExceptionThrown()
+    }
+
+    def 'Include sync on integration package'() {
+        given:
+        DownloadIntegrationPackageContent downloadIntegrationPackageContent = new DownloadIntegrationPackageContent()
+        downloadIntegrationPackageContent.setPackageId('FlashPipeIntegrationTest')
+        downloadIntegrationPackageContent.setGitSrcDir('src/integration-test/resources/test-data/DesignTimeArtifact/IFlows')
+        downloadIntegrationPackageContent.setWorkDir('target/DownloadIntegrationPackageContentIT/FlashPipeIntegrationTest')
+        downloadIntegrationPackageContent.setDirNamingType('NAME')
+        downloadIntegrationPackageContent.setDraftHandling('SKIP')
+        downloadIntegrationPackageContent.setNormalizeManifestAction('NONE')
+        downloadIntegrationPackageContent.setNormalizeManifestPrefixOrSuffix('')
+        downloadIntegrationPackageContent.setScriptCollectionMap('')
+        downloadIntegrationPackageContent.setNormalizePackageAction('NONE')
+        downloadIntegrationPackageContent.setSyncPackageLevelDetails('YES')
+        downloadIntegrationPackageContent.setNormalizePackageAction('NONE')
+        downloadIntegrationPackageContent.setNormalizePackageIDPrefixOrSuffix('')
+        downloadIntegrationPackageContent.setNormalizePackageNamePrefixOrSuffix('')
+
+        when:
+        downloadIntegrationPackageContent.execute()
+
+        then:
+        Map packageContent = new JsonSlurper().parse(new File('src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipeIntegrationTest.json'))
+        verifyAll {
+            packageContent.d.Id == 'FlashPipeIntegrationTest'
+            packageContent.d.Name == 'FlashPipe Integration Test'
+            packageContent.d.ShortText == 'FlashPipeIntegrationTest'
+        }
+
+        cleanup:
+        new File('src/integration-test/resources/test-data/DesignTimeArtifact/IFlows/FlashPipeIntegrationTest.json').delete()
     }
 
     def 'Download integration package by NAME with exclusion'() {
