@@ -86,6 +86,7 @@ if [ -n "$PARAM_FILE" ] && [ "$PARAM_FILE" != "$GIT_SRC_DIR/src/main/resources/p
   echo "[INFO] Using $PARAM_FILE as parameters.prop file"
   cp "$PARAM_FILE" "$GIT_SRC_DIR/src/main/resources/parameters.prop" || exit 1
 fi
+# TODO - to remove in future release 3.0.0
 if [ -n "$MANIFEST_FILE" ]; then
   echo "[WARNING] ⚠️ MANIFEST_FILE is deprecated and will be removed in a future release!"
   echo "[INFO] META-INF/MANIFEST.MF will be used for IFlow upload/update"

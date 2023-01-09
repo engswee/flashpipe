@@ -36,7 +36,7 @@ class UpdateDesignTimeArtifact extends APIExecuter {
         this.iFlowName = getMandatoryEnvVar('IFLOW_NAME')
         this.iFlowDir = getMandatoryEnvVar('IFLOW_DIR')
         this.packageId = getMandatoryEnvVar('PACKAGE_ID')
-        this.versionHandling = System.getenv('VERSION_HANDLING')
+        this.versionHandling = System.getenv('VERSION_HANDLING') // TODO - to remove in future version 3.0.0
         this.scriptCollectionMap = System.getenv('SCRIPT_COLLECTION_MAP')
     }
 

@@ -1,5 +1,16 @@
 # Release Notes
 
+## 2.7.0 (Released 9 January 2023)
+
+---
+
+- 🔥🔥 New feature 🔥🔥 - _FlashPipe_ now supports syncing and updating integration package details
+  - New script `update_integration_package.sh` can be configured in a pipeline for updating integration package details on tenant
+  - Existing script `sync_to_git_repository.sh` can be configured to sync integration package details from a tenant to a Git repository
+    - New optional parameters `SYNC_PACKAGE_LEVEL_DETAILS`, `NORMALIZE_PACKAGE_ACTION`, `NORMALIZE_PACKAGE_ID_PREFIX_SUFFIX`, `NORMALIZE_PACKAGE_NAME_PREFIX_SUFFIX` to handle syncing of integration package
+  - Existing script `snapshot_to_git_repository.sh` can be configured to sync integration package details from a tenant to a Git repository
+    - New optional parameters `SYNC_PACKAGE_LEVEL_DETAILS` to handle syncing of integration package
+
 ## 2.6.1 (Released 31 October 2022)
 
 ---
