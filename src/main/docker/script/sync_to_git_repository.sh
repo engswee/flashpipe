@@ -96,8 +96,9 @@ exec_java_command io.github.engswee.flashpipe.cpi.exec.DownloadIntegrationPackag
 # Commit
 echo "[INFO] Configuring git"
 git config --global core.autocrlf input
-git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-git config --local user.name "github-actions[bot]"
+git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+git config --global user.name "github-actions[bot]"
+git config --global --add safe.directory '*'
 echo "[INFO] Adding all files for Git tracking"
 git add --all --verbose
 echo "[INFO] Trying to commit changes"

@@ -85,8 +85,9 @@ source /usr/bin/set_classpath.sh
 
 # Git config
 git config --global core.autocrlf input
-git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-git config --local user.name "github-actions[bot]"
+git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+git config --global user.name "github-actions[bot]"
+git config --global --add safe.directory '*'
 
 exec_java_command io.github.engswee.flashpipe.cpi.exec.GetTenantSnapshot
 
