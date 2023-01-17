@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2.7.1 (Released 17 January 2023)
+
+---
+
+- Bug fix - handle issues with syncing to Git due to new behavior introduced in latest version of git in Debian image
+
 ## 2.7.0 (Released 9 January 2023)
 
 ---
