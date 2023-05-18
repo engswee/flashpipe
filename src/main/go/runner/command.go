@@ -1,0 +1,54 @@
+package runner
+
+import (
+	"fmt"
+	"log"
+	"os/exec"
+	"strings"
+)
+
+func constructClassPath(prefix string, flashpipeLocation string) string {
+	paths := []string{
+		"/org/codehaus/groovy/groovy-all/2.4.21/groovy-all-2.4.21.jar",
+		"/org/apache/httpcomponents/core5/httpcore5/5.0.4/httpcore5-5.0.4.jar",
+		"/org/apache/httpcomponents/client5/httpclient5/5.0.4/httpclient5-5.0.4.jar",
+		"/commons-codec/commons-codec/1.15/commons-codec-1.15.jar",
+		"/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar",
+		"/org/apache/logging/log4j/log4j-slf4j-impl/2.17.1/log4j-slf4j-impl-2.17.1.jar",
+		"/org/apache/logging/log4j/log4j-api/2.17.1/log4j-api-2.17.1.jar",
+		"/org/apache/logging/log4j/log4j-core/2.17.1/log4j-core-2.17.1.jar",
+		"/org/zeroturnaround/zt-zip/1.14/zt-zip-1.14.jar",
+	}
+	var builder strings.Builder
+	for _, path := range paths {
+		_, err := builder.WriteString(prefix + path + ":")
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	_, err := builder.WriteString(flashpipeLocation)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return builder.String()
+}
+
+func JavaCmd(className string, mavenRepoPrefix string, flashpipeLocation string, log4jFile string) {
+	classPath := constructClassPath(mavenRepoPrefix, flashpipeLocation)
+	var cmd *exec.Cmd
+	if log4jFile == "" {
+		fmt.Printf("[INFO] Executing command: java -classpath %v %v\n", classPath, className)
+		cmd = exec.Command("java", "-classpath", classPath, className)
+	} else {
+		fmt.Printf("[INFO] Executing command: java -Dlog4j.configurationFile=%v -classpath %v %v\n", log4jFile, classPath, className)
+		logConfig := fmt.Sprintf("-Dlog4j.configurationFile=%v", log4jFile)
+		cmd = exec.Command("java", logConfig, "-classpath", classPath, className)
+	}
+
+	stdoutStderr, err := cmd.CombinedOutput()
+	fmt.Printf(string(stdoutStderr))
+	if err != nil {
+		log.SetFlags(0)
+		log.Fatal("[ERROR] 🛑 Execution of java command failed")
+	}
+}
