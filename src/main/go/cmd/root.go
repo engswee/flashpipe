@@ -68,6 +68,9 @@ func init() {
 	rootCmd.PersistentFlags().MarkHidden("location-flashpipe")
 	rootCmd.PersistentFlags().MarkHidden("debug-level")
 
+	//rootCmd.MarkFlagsRequiredTogether("tmn.userid", "tmn.password")
+	//rootCmd.MarkFlagsRequiredTogether("oauth.host", "oauth.clientid", "oauth.clientsecret")
+
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 }
@@ -122,11 +125,11 @@ func initConfig() {
 
 	debugLevel := viper.GetString("debug.level")
 	if debugLevel != "" {
-		log4jFile = viper.GetString(fmt.Sprintf("debug.%v", strings.ToLower(debugLevel)))
+		log4jFile = viper.GetString("debug." + strings.ToLower(debugLevel))
 	}
 
 	//for _, key := range viper.AllKeys() {
-	//	fmt.Printf("%v = %v\n", key, viper.GetString(key))
+	//	fmt.Println(key, "=", viper.GetString(key))
 	//}
 }
 

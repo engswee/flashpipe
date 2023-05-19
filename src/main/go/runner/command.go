@@ -37,16 +37,17 @@ func JavaCmd(className string, mavenRepoPrefix string, flashpipeLocation string,
 	classPath := constructClassPath(mavenRepoPrefix, flashpipeLocation)
 	var cmd *exec.Cmd
 	if log4jFile == "" {
-		fmt.Printf("[INFO] Executing command: java -classpath %v %v\n", classPath, className)
+		fmt.Println("[INFO] Executing command: java -classpath", classPath, className)
 		cmd = exec.Command("java", "-classpath", classPath, className)
 	} else {
-		fmt.Printf("[INFO] Executing command: java -Dlog4j.configurationFile=%v -classpath %v %v\n", log4jFile, classPath, className)
-		logConfig := fmt.Sprintf("-Dlog4j.configurationFile=%v", log4jFile)
+		logConfig := "-Dlog4j.configurationFile=" + log4jFile
+		fmt.Println("[INFO] Executing command: java", logConfig, "-classpath", classPath, className)
 		cmd = exec.Command("java", logConfig, "-classpath", classPath, className)
 	}
 
 	stdoutStderr, err := cmd.CombinedOutput()
-	fmt.Printf(string(stdoutStderr))
+	fmt.Println(string(stdoutStderr))
+
 	if err != nil {
 		log.SetFlags(0)
 		log.Fatal("[ERROR] 🛑 Execution of java command failed")
