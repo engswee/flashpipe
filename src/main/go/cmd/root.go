@@ -1,6 +1,3 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -23,13 +20,15 @@ var log4jFile string
 var rootCmd = &cobra.Command{
 	Use:     "flashpipe",
 	Version: version,
-	Short:   "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short:   "FlashPipe - The CI/CD Companion for SAP Integration Suite",
+	Long: `FlashPipe - The CI/CD Companion for SAP Integration Suite
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+FlashPipe is a CLI that is used to simplify the Build-To-Deploy cycle
+for SAP Integration Suite by providing CI/CD capabilities for 
+automating time-consuming manual tasks like:
+- synchronising integration artifacts to Git
+- uploading/updating integration artifacts to SAP Integration Suite
+- deploy integration artifacts on SAP Integration Suite`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
@@ -52,39 +51,25 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/flashpipe.yaml)")
+
+	setPersistentStringFlagAndBind(rootCmd, "location.mavenrepo", "", "Maven Repository Location [or set environment MVN_REPO_LOCATION]")
+	setPersistentStringFlagAndBind(rootCmd, "location.flashpipe", "", "FlashPipe Location [or set environment FLASHPIPE_LOCATION]")
+	setPersistentStringFlagAndBind(rootCmd, "tmn.host", "", "Host for tenant management node of Cloud Integration excluding https:// [or set environment HOST_TMN]")
+	setPersistentStringFlagAndBind(rootCmd, "tmn.userid", "", "User ID for Basic Auth [or set environment BASIC_USERID]")
+	setPersistentStringFlagAndBind(rootCmd, "tmn.password", "", "Password for Basic Auth [or set environment BASIC_PASSWORD]")
+	setPersistentStringFlagAndBind(rootCmd, "oauth.host", "", "Host for OAuth token server excluding https:// [or set environment HOST_OAUTH]")
+	setPersistentStringFlagAndBind(rootCmd, "oauth.clientid", "", "Client ID for using OAuth [or set environment OAUTH_CLIENTID]")
+	setPersistentStringFlagAndBind(rootCmd, "oauth.clientsecret", "", "Client Secret for using OAuth [or set environment OAUTH_CLIENTSECRET]")
+	setPersistentStringFlagAndBind(rootCmd, "oauth.path", "/oauth/token", "Path for OAuth token server, e.g /oauth2/api/v1/token for Neo [or set environment HOST_OAUTH_PATH]")
+	setPersistentStringFlagAndBind(rootCmd, "debug.level", "", "Debug level - FLASHPIPE, APACHE, ALL")
+
 	rootCmd.PersistentFlags().MarkHidden("config")
-
-	rootCmd.PersistentFlags().String("location-mavenrepo", "", "Maven Repository Location (or set environment MVN_REPO_LOCATION)")
 	rootCmd.PersistentFlags().MarkHidden("location-mavenrepo")
-	viper.BindPFlag("location.mavenrepo", rootCmd.PersistentFlags().Lookup("location-mavenrepo"))
-
-	rootCmd.PersistentFlags().String("location-flashpipe", "", "FlashPipe Location (or set environment FLASHPIPE_LOCATION)")
 	rootCmd.PersistentFlags().MarkHidden("location-flashpipe")
-	viper.BindPFlag("location.flashpipe", rootCmd.PersistentFlags().Lookup("location-flashpipe"))
-
-	rootCmd.PersistentFlags().String("tmn-host", "", "Host for tenant management node of Cloud Integration excluding https:// (or set environment HOST_TMN)")
-	viper.BindPFlag("tmn.host", rootCmd.PersistentFlags().Lookup("tmn-host"))
-	rootCmd.PersistentFlags().String("tmn-userid", "", "User ID for Basic Auth (or set environment BASIC_USERID)")
-	viper.BindPFlag("tmn.userid", rootCmd.PersistentFlags().Lookup("tmn-userid"))
-	rootCmd.PersistentFlags().String("tmn-password", "", "Password for Basic Auth (or set environment BASIC_PASSWORD)")
-	viper.BindPFlag("tmn.password", rootCmd.PersistentFlags().Lookup("tmn-password"))
-	rootCmd.PersistentFlags().String("oauth-host", "", "Host for OAuth token server excluding https:// (or set environment HOST_OAUTH)")
-	viper.BindPFlag("oauth.host", rootCmd.PersistentFlags().Lookup("oauth-host"))
-	rootCmd.PersistentFlags().String("oauth-clientid", "", "Client ID for using OAuth (or set environment OAUTH_CLIENTID)")
-	viper.BindPFlag("oauth.clientid", rootCmd.PersistentFlags().Lookup("oauth-clientid"))
-	rootCmd.PersistentFlags().String("oauth-clientsecret", "", "Client Secret for using OAuth (or set environment OAUTH_CLIENTSECRET)")
-	viper.BindPFlag("oauth.clientsecret", rootCmd.PersistentFlags().Lookup("oauth-clientsecret"))
-	rootCmd.PersistentFlags().String("oauth-path", "", "Optional path for OAuth token server (default=/oauth/token), e.g /oauth2/api/v1/token for Neo (or set environment HOST_OAUTH_PATH)")
-	viper.BindPFlag("oauth.clientsecret", rootCmd.PersistentFlags().Lookup("oauth-clientsecret"))
-
-	rootCmd.PersistentFlags().StringP("debug-level", "d", "", "Debug level - FLASHPIPE, APACHE, ALL")
-	// TODO - hide debug
-	rootCmd.PersistentFlags().MarkHidden("debug")
-	viper.BindPFlag("debug.level", rootCmd.PersistentFlags().Lookup("debug-level"))
+	rootCmd.PersistentFlags().MarkHidden("debug-level")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -127,7 +112,7 @@ func initConfig() {
 		// OAuth
 		setMandatoryVariable("oauth.clientid", "OAUTH_CLIENTID")
 		setMandatoryVariable("oauth.clientsecret", "OAUTH_CLIENTSECRET")
-		viper.SetDefault("oauth.path", "/oauth/token")
+		//viper.SetDefault("oauth.path", "/oauth/token")
 		setOptionalVariable("oauth.path", "HOST_OAUTH_PATH")
 	}
 
@@ -163,4 +148,28 @@ func setOptionalVariable(viperKey string, envVarName string) string {
 		os.Setenv(envVarName, val) // TODO - remove when Java switch to CLI arguments
 	}
 	return val
+}
+
+func setPersistentStringFlagAndBind(cmd *cobra.Command, viperKey string, defaultValue string, usage string) {
+	flagName := strings.ReplaceAll(viperKey, ".", "-")
+	cmd.PersistentFlags().String(flagName, defaultValue, usage)
+	viper.BindPFlag(viperKey, cmd.PersistentFlags().Lookup(flagName))
+}
+
+func setStringFlagAndBind(cmd *cobra.Command, viperKey string, defaultValue string, usage string) {
+	flagName := strings.ReplaceAll(viperKey, ".", "-")
+	cmd.Flags().String(flagName, defaultValue, usage)
+	viper.BindPFlag(viperKey, cmd.Flags().Lookup(flagName))
+}
+
+func setIntFlagAndBind(cmd *cobra.Command, viperKey string, defaultValue int, usage string) {
+	flagName := strings.ReplaceAll(viperKey, ".", "-")
+	cmd.Flags().Int(flagName, defaultValue, usage)
+	viper.BindPFlag(viperKey, cmd.Flags().Lookup(flagName))
+}
+
+func setBoolFlagAndBind(cmd *cobra.Command, viperKey string, defaultValue bool, usage string) {
+	flagName := strings.ReplaceAll(viperKey, ".", "-")
+	cmd.Flags().Bool(flagName, defaultValue, usage)
+	viper.BindPFlag(viperKey, cmd.Flags().Lookup(flagName))
 }
