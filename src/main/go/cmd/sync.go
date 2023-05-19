@@ -1,26 +1,85 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
 	"fmt"
-
+	"github.com/engswee/flashpipe/runner"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"log"
+	"time"
 )
 
 // syncCmd represents the sync command
 var syncCmd = &cobra.Command{
 	Use:   "sync",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Sync integration flows from tenant to Git",
+	Long: `Synchronise integration flows from SAP Integration Suite
+tenant to a Git repository.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("sync called")
+		fmt.Println("[INFO] Executing sync command")
+
+		setMandatoryVariable("packageid", "PACKAGE_ID")
+		setMandatoryVariable("dir.gitsrc", "GIT_SRC_DIR")
+		setOptionalVariable("dir.work", "WORK_DIR")
+		setOptionalVariable("dirnamingtype", "DIR_NAMING_TYPE")
+		setOptionalVariable("drafthandling", "DRAFT_HANDLING")
+		setOptionalVariable("ids.include", "INCLUDE_IDS")
+		setOptionalVariable("ids.exclude", "EXCLUDE_IDS")
+		setOptionalVariable("commitmsg", "COMMIT_MESSAGE")
+		setOptionalVariable("scriptmap", "SCRIPT_COLLECTION_MAP")
+		setOptionalVariable("normalize.manifest.action", "NORMALIZE_MANIFEST_ACTION")
+		setOptionalVariable("normalize.manifest.prefixsuffix", "NORMALIZE_MANIFEST_PREFIX_SUFFIX")
+		setOptionalVariable("syncpackagedetails", "SYNC_PACKAGE_LEVEL_DETAILS")
+		setOptionalVariable("normalize.package.action", "NORMALIZE_PACKAGE_ACTION")
+		setOptionalVariable("normalize.package.prefixsuffix.id", "NORMALIZE_PACKAGE_ID_PREFIX_SUFFIX")
+		setOptionalVariable("normalize.package.prefixsuffix.name", "NORMALIZE_PACKAGE_NAME_PREFIX_SUFFIX")
+
+		runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.DownloadIntegrationPackageContent", mavenRepoLocation, flashpipeLocation, log4jFile)
+
+		r, err := git.PlainOpen(viper.GetString("dir.gitsrc"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		w, err := r.Worktree()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("[INFO] Adding all files for Git tracking")
+		err = w.AddWithOptions(&git.AddOptions{
+			All: true,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+		status, err := w.Status()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(status)
+		if status.IsClean() {
+			fmt.Println("[INFO] 🏆 No changes to commit")
+		} else {
+			fmt.Println("[INFO] Trying to commit changes")
+			commit, err := w.Commit(viper.GetString("commitmsg"), &git.CommitOptions{
+				All: true,
+				Author: &object.Signature{
+					Name:  "github-actions[bot]",
+					Email: "41898282+github-actions[bot]@users.noreply.github.com",
+					When:  time.Now(),
+				},
+			})
+			if err != nil {
+				log.Fatal(err)
+			}
+			obj, err := r.CommitObject(commit)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println("[INFO] 🏆 Changes committed")
+			fmt.Println(obj)
+		}
 	},
 }
 
@@ -35,5 +94,19 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// syncCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	setStringFlagAndBind(syncCmd, "packageid", "", "ID of Integration Package [or set environment PACKAGE_ID]")
+	setStringFlagAndBind(syncCmd, "dir.gitsrc", "", "Base directory containing contents of Integration Flow(s) [or set environment GIT_SRC_DIR]")
+	setStringFlagAndBind(syncCmd, "dir.work", "/tmp", "Working directory for in-transit files [or set environment WORK_DIR]")
+	setStringFlagAndBind(syncCmd, "dirnamingtype", "ID", "Name IFlow directories by ID or Name. Allowed values: ID, NAME [or set environment DIR_NAMING_TYPE]")
+	setStringFlagAndBind(syncCmd, "drafthandling", "SKIP", "Handling when IFlow is in draft version. Allowed values: SKIP, ADD, ERROR [or set environment DRAFT_HANDLING]")
+	setStringFlagAndBind(syncCmd, "ids.include", "", "List of included IFlow IDs [or set environment INCLUDE_IDS]")
+	setStringFlagAndBind(syncCmd, "ids.exclude", "", "List of excluded IFlow IDs [or set environment EXCLUDE_IDS]")
+	setStringFlagAndBind(syncCmd, "commitmsg", "Sync repo from tenant", "Message used in commit [or set environment COMMIT_MESSAGE]")
+	setStringFlagAndBind(syncCmd, "scriptmap", "", "Comma-separated source-target ID pairs for converting script collection references during sync [or set environment SCRIPT_COLLECTION_MAP]")
+	setStringFlagAndBind(syncCmd, "normalize.manifest.action", "NONE", "Action for normalizing IFlow ID & Name in MANIFEST.MF. Allowed values: NONE, ADD_PREFIX, ADD_SUFFIX, DELETE_PREFIX, DELETE_SUFFIX [or set environment NORMALIZE_MANIFEST_ACTION]")
+	setStringFlagAndBind(syncCmd, "normalize.manifest.prefixsuffix", "", "Prefix/suffix used for normalizing IFlow ID & Name in MANIFEST.MF [or set environment NORMALIZE_MANIFEST_PREFIX_SUFFIX]")
+	setStringFlagAndBind(syncCmd, "syncpackagedetails", "NO", "Sync details of Integration Package. Allowed values: NO, YES [or set environment SYNC_PACKAGE_LEVEL_DETAILS]")
+	setStringFlagAndBind(syncCmd, "normalize.package.action", "NONE", "Action for normalizing Package ID & Name package file. Allowed values: NONE, ADD_PREFIX, ADD_SUFFIX, DELETE_PREFIX, DELETE_SUFFIX [or set environment NORMALIZE_PACKAGE_ACTION]")
+	setStringFlagAndBind(syncCmd, "normalize.package.prefixsuffix.id", "", "Prefix/suffix used for normalizing Package ID [or set environment NORMALIZE_PACKAGE_ID_PREFIX_SUFFIX]")
+	setStringFlagAndBind(syncCmd, "normalize.package.prefixsuffix.name", "", "Prefix/suffix used for normalizing Package Name [or set environment NORMALIZE_PACKAGE_NAME_PREFIX_SUFFIX]")
 }
