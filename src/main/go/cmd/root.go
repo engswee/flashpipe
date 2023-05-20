@@ -137,7 +137,7 @@ func setMandatoryVariable(viperKey string, envVarName string) string {
 	viper.BindEnv(viperKey, envVarName)
 	val := viper.GetString(viperKey)
 	if val == "" {
-		log.Fatalf("[ERROR] 🛑 Mandatory environment variable %v is not populated", envVarName)
+		log.Fatalln("[ERROR] 🛑 Mandatory environment variable", envVarName, "is not populated")
 	} else {
 		os.Setenv(envVarName, val) // TODO - remove when Java switch to CLI arguments
 	}

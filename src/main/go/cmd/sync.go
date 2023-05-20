@@ -2,13 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/engswee/flashpipe/repo"
 	"github.com/engswee/flashpipe/runner"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"log"
-	"time"
 )
 
 // syncCmd represents the sync command
@@ -27,7 +24,7 @@ tenant to a Git repository.`,
 		setOptionalVariable("drafthandling", "DRAFT_HANDLING")
 		setOptionalVariable("ids.include", "INCLUDE_IDS")
 		setOptionalVariable("ids.exclude", "EXCLUDE_IDS")
-		setOptionalVariable("commitmsg", "COMMIT_MESSAGE")
+		setOptionalVariable("git.commitmsg", "COMMIT_MESSAGE")
 		setOptionalVariable("scriptmap", "SCRIPT_COLLECTION_MAP")
 		setOptionalVariable("normalize.manifest.action", "NORMALIZE_MANIFEST_ACTION")
 		setOptionalVariable("normalize.manifest.prefixsuffix", "NORMALIZE_MANIFEST_PREFIX_SUFFIX")
@@ -38,48 +35,7 @@ tenant to a Git repository.`,
 
 		runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.DownloadIntegrationPackageContent", mavenRepoLocation, flashpipeLocation, log4jFile)
 
-		r, err := git.PlainOpen(viper.GetString("dir.gitsrc"))
-		if err != nil {
-			log.Fatal(err)
-		}
-		w, err := r.Worktree()
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println("[INFO] Adding all files for Git tracking")
-		err = w.AddWithOptions(&git.AddOptions{
-			All: true,
-		})
-		if err != nil {
-			log.Fatal(err)
-		}
-		status, err := w.Status()
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(status)
-		if status.IsClean() {
-			fmt.Println("[INFO] 🏆 No changes to commit")
-		} else {
-			fmt.Println("[INFO] Trying to commit changes")
-			commit, err := w.Commit(viper.GetString("commitmsg"), &git.CommitOptions{
-				All: true,
-				Author: &object.Signature{
-					Name:  "github-actions[bot]",
-					Email: "41898282+github-actions[bot]@users.noreply.github.com",
-					When:  time.Now(),
-				},
-			})
-			if err != nil {
-				log.Fatal(err)
-			}
-			obj, err := r.CommitObject(commit)
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Println("[INFO] 🏆 Changes committed")
-			fmt.Println(obj)
-		}
+		repo.CommitToRepo(viper.GetString("dir.gitsrc"), viper.GetString("git.commitmsg"))
 	},
 }
 
@@ -101,7 +57,7 @@ func init() {
 	setStringFlagAndBind(syncCmd, "drafthandling", "SKIP", "Handling when IFlow is in draft version. Allowed values: SKIP, ADD, ERROR [or set environment DRAFT_HANDLING]")
 	setStringFlagAndBind(syncCmd, "ids.include", "", "List of included IFlow IDs [or set environment INCLUDE_IDS]")
 	setStringFlagAndBind(syncCmd, "ids.exclude", "", "List of excluded IFlow IDs [or set environment EXCLUDE_IDS]")
-	setStringFlagAndBind(syncCmd, "commitmsg", "Sync repo from tenant", "Message used in commit [or set environment COMMIT_MESSAGE]")
+	setStringFlagAndBind(syncCmd, "git.commitmsg", "Sync repo from tenant", "Message used in commit [or set environment COMMIT_MESSAGE]")
 	setStringFlagAndBind(syncCmd, "scriptmap", "", "Comma-separated source-target ID pairs for converting script collection references during sync [or set environment SCRIPT_COLLECTION_MAP]")
 	setStringFlagAndBind(syncCmd, "normalize.manifest.action", "NONE", "Action for normalizing IFlow ID & Name in MANIFEST.MF. Allowed values: NONE, ADD_PREFIX, ADD_SUFFIX, DELETE_PREFIX, DELETE_SUFFIX [or set environment NORMALIZE_MANIFEST_ACTION]")
 	setStringFlagAndBind(syncCmd, "normalize.manifest.prefixsuffix", "", "Prefix/suffix used for normalizing IFlow ID & Name in MANIFEST.MF [or set environment NORMALIZE_MANIFEST_PREFIX_SUFFIX]")
