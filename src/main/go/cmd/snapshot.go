@@ -1,26 +1,35 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
 	"fmt"
+	"github.com/engswee/flashpipe/repo"
+	"github.com/engswee/flashpipe/runner"
+	"github.com/spf13/viper"
+	"time"
 
 	"github.com/spf13/cobra"
 )
 
+var snapshotViper = viper.New()
+
 // snapshotCmd represents the snapshot command
 var snapshotCmd = &cobra.Command{
 	Use:   "snapshot",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Snapshot integration packages from tenant to Git",
+	Long: `Snapshot all editable integration packages from SAP Integration Suite
+tenant to a Git repository.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("snapshot called")
+		fmt.Println("[INFO] Executing snapshot command")
+
+		setMandatoryVariable(snapshotViper, "dir.gitsrc", "GIT_SRC_DIR")
+		setOptionalVariable(snapshotViper, "dir.work", "WORK_DIR")
+		setOptionalVariable(snapshotViper, "drafthandling", "DRAFT_HANDLING")
+		setOptionalVariable(snapshotViper, "git.commitmsg", "COMMIT_MESSAGE")
+		setOptionalVariable(snapshotViper, "syncpackagedetails", "SYNC_PACKAGE_LEVEL_DETAILS")
+
+		runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.GetTenantSnapshot", mavenRepoLocation, flashpipeLocation, log4jFile)
+
+		repo.CommitToRepo(snapshotViper.GetString("dir.gitsrc"), snapshotViper.GetString("git.commitmsg"))
 	},
 }
 
@@ -35,5 +44,9 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// snapshotCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	setStringFlagAndBind(snapshotViper, snapshotCmd, "dir.gitsrc", "", "Base directory containing contents of artifacts (grouped into packages) [or set environment GIT_SRC_DIR]")
+	setStringFlagAndBind(snapshotViper, snapshotCmd, "dir.work", "/tmp", "Working directory for in-transit files [or set environment WORK_DIR]")
+	setStringFlagAndBind(snapshotViper, snapshotCmd, "drafthandling", "SKIP", "Handling when IFlow is in draft version. Allowed values: SKIP, ADD, ERROR [or set environment DRAFT_HANDLING]")
+	setStringFlagAndBind(snapshotViper, snapshotCmd, "git.commitmsg", "Tenant snapshot of "+time.Now().Format(time.UnixDate), "Message used in commit [or set environment COMMIT_MESSAGE]")
+	setStringFlagAndBind(snapshotViper, snapshotCmd, "syncpackagedetails", "NO", "Sync details of Integration Packages. Allowed values: NO, YES [or set environment SYNC_PACKAGE_LEVEL_DETAILS]")
 }

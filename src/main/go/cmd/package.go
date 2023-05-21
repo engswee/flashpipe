@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"github.com/engswee/flashpipe/runner"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+var packageViper = viper.New()
 
 // packageCmd represents the package command
 var packageCmd = &cobra.Command{
@@ -16,9 +19,9 @@ SAP Integration Suite tenant.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("[INFO] Executing update package command")
 
-		setMandatoryVariable("package.file", "PACKAGE_FILE")
-		setOptionalVariable("package.override.id", "PACKAGE_ID")
-		setOptionalVariable("package.override.id", "PACKAGE_NAME")
+		setMandatoryVariable(packageViper, "package.file", "PACKAGE_FILE")
+		setOptionalVariable(packageViper, "package.override.id", "PACKAGE_ID")
+		setOptionalVariable(packageViper, "package.override.id", "PACKAGE_NAME")
 
 		runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateIntegrationPackage", mavenRepoLocation, flashpipeLocation, log4jFile)
 	},
@@ -35,7 +38,7 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	setStringFlagAndBind(packageCmd, "package.file", "", "Path to location of package file [or set environment PACKAGE_FILE]")
-	setStringFlagAndBind(packageCmd, "package.override.id", "", "Override package ID from file [or set environment PACKAGE_ID]")
-	setStringFlagAndBind(packageCmd, "package.override.name", "", "Override package name from file [or set environment PACKAGE_NAME]")
+	setStringFlagAndBind(packageViper, packageCmd, "package.file", "", "Path to location of package file [or set environment PACKAGE_FILE]")
+	setStringFlagAndBind(packageViper, packageCmd, "package.override.id", "", "Override package ID from file [or set environment PACKAGE_ID]")
+	setStringFlagAndBind(packageViper, packageCmd, "package.override.name", "", "Override package name from file [or set environment PACKAGE_NAME]")
 }
