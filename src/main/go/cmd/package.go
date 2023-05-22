@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/runner"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -17,13 +17,16 @@ var packageCmd = &cobra.Command{
 	Long: `Upload or update integration package on the
 SAP Integration Suite tenant.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("[INFO] Executing update package command")
+		logger.Info("Executing update package command")
 
 		setMandatoryVariable(packageViper, "package.file", "PACKAGE_FILE")
 		setOptionalVariable(packageViper, "package.override.id", "PACKAGE_ID")
 		setOptionalVariable(packageViper, "package.override.id", "PACKAGE_NAME")
 
-		runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateIntegrationPackage", mavenRepoLocation, flashpipeLocation, log4jFile)
+		_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateIntegrationPackage", mavenRepoLocation, flashpipeLocation, log4jFile)
+		if err != nil {
+			logger.Error("Execution of java command failed")
+		}
 	},
 }
 

@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"github.com/engswee/flashpipe/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -13,7 +13,7 @@ var updateCmd = &cobra.Command{
 	Long: `Upload or update integration flows and/or integration package on the
 SAP Integration Suite tenant.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("update called")
+		logger.Info("Executing update command")
 	},
 }
 

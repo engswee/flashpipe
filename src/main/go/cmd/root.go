@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"log"
+	"github.com/engswee/flashpipe/logger"
 	"os"
 	"strings"
 
@@ -137,7 +137,7 @@ func setMandatoryVariable(viperInstance *viper.Viper, viperKey string, envVarNam
 	viperInstance.BindEnv(viperKey, envVarName)
 	val := viperInstance.GetString(viperKey)
 	if val == "" {
-		log.Fatalln("[ERROR] 🛑 Mandatory environment variable", envVarName, "is not populated")
+		logger.Error("Mandatory environment variable", envVarName, "is not populated")
 	} else {
 		os.Setenv(envVarName, val) // TODO - remove when Java switch to CLI arguments
 	}

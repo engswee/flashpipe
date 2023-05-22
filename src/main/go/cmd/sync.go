@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/repo"
 	"github.com/engswee/flashpipe/runner"
 	"github.com/spf13/cobra"
@@ -17,7 +17,7 @@ var syncCmd = &cobra.Command{
 	Long: `Synchronise integration flows from SAP Integration Suite
 tenant to a Git repository.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("[INFO] Executing sync command")
+		logger.Info("Executing sync command")
 
 		setMandatoryVariable(syncViper, "packageid", "PACKAGE_ID")
 		setMandatoryVariable(syncViper, "dir.gitsrc", "GIT_SRC_DIR")
@@ -35,7 +35,10 @@ tenant to a Git repository.`,
 		setOptionalVariable(syncViper, "normalize.package.prefixsuffix.id", "NORMALIZE_PACKAGE_ID_PREFIX_SUFFIX")
 		setOptionalVariable(syncViper, "normalize.package.prefixsuffix.name", "NORMALIZE_PACKAGE_NAME_PREFIX_SUFFIX")
 
-		runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.DownloadIntegrationPackageContent", mavenRepoLocation, flashpipeLocation, log4jFile)
+		_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.DownloadIntegrationPackageContent", mavenRepoLocation, flashpipeLocation, log4jFile)
+		if err != nil {
+			logger.Error("Execution of java command failed")
+		}
 
 		repo.CommitToRepo(syncViper.GetString("dir.gitsrc"), syncViper.GetString("git.commitmsg"))
 	},

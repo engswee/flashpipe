@@ -2,6 +2,7 @@ package runner
 
 import (
 	"fmt"
+	"github.com/engswee/flashpipe/logger"
 	"log"
 	"os/exec"
 	"strings"
@@ -33,23 +34,20 @@ func constructClassPath(prefix string, flashpipeLocation string) string {
 	return builder.String()
 }
 
-func JavaCmd(className string, mavenRepoPrefix string, flashpipeLocation string, log4jFile string) {
+func JavaCmd(className string, mavenRepoPrefix string, flashpipeLocation string, log4jFile string) (string, error) {
 	classPath := constructClassPath(mavenRepoPrefix, flashpipeLocation)
 	var cmd *exec.Cmd
 	if log4jFile == "" {
-		fmt.Println("[INFO] Executing command: java -classpath", classPath, className)
+		logger.Info("Executing command: java -classpath", classPath, className)
 		cmd = exec.Command("java", "-classpath", classPath, className)
 	} else {
 		logConfig := "-Dlog4j.configurationFile=" + log4jFile
-		fmt.Println("[INFO] Executing command: java", logConfig, "-classpath", classPath, className)
+		logger.Info("Executing command: java", logConfig, "-classpath", classPath, className)
 		cmd = exec.Command("java", logConfig, "-classpath", classPath, className)
 	}
 
 	stdoutStderr, err := cmd.CombinedOutput()
 	fmt.Println(string(stdoutStderr))
 
-	if err != nil {
-		log.SetFlags(0)
-		log.Fatal("[ERROR] 🛑 Execution of java command failed")
-	}
+	return string(stdoutStderr), err
 }

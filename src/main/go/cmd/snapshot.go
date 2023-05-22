@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/repo"
 	"github.com/engswee/flashpipe/runner"
 	"github.com/spf13/viper"
@@ -19,7 +19,7 @@ var snapshotCmd = &cobra.Command{
 	Long: `Snapshot all editable integration packages from SAP Integration Suite
 tenant to a Git repository.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("[INFO] Executing snapshot command")
+		logger.Info("Executing snapshot command")
 
 		setMandatoryVariable(snapshotViper, "dir.gitsrc", "GIT_SRC_DIR")
 		setOptionalVariable(snapshotViper, "dir.work", "WORK_DIR")
@@ -27,7 +27,10 @@ tenant to a Git repository.`,
 		setOptionalVariable(snapshotViper, "git.commitmsg", "COMMIT_MESSAGE")
 		setOptionalVariable(snapshotViper, "syncpackagedetails", "SYNC_PACKAGE_LEVEL_DETAILS")
 
-		runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.GetTenantSnapshot", mavenRepoLocation, flashpipeLocation, log4jFile)
+		_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.GetTenantSnapshot", mavenRepoLocation, flashpipeLocation, log4jFile)
+		if err != nil {
+			logger.Error("Execution of java command failed")
+		}
 
 		repo.CommitToRepo(snapshotViper.GetString("dir.gitsrc"), snapshotViper.GetString("git.commitmsg"))
 	},
