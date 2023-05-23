@@ -24,7 +24,7 @@ runtime of SAP Integration Suite tenant.`,
 		setOptionalVariable(deployViper, "compareversions", "COMPARE_VERSIONS")
 
 		_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.DeployDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
-		logger.CheckIfErrorWithMsg(err, "Execution of java command failed")
+		logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 	},
 }
 

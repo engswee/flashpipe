@@ -138,6 +138,7 @@ func setMandatoryVariable(viperInstance *viper.Viper, viperKey string, envVarNam
 	val := viperInstance.GetString(viperKey)
 	if val == "" {
 		logger.Error("Mandatory environment variable", envVarName, "is not populated")
+		os.Exit(1)
 	} else {
 		os.Setenv(envVarName, val) // TODO - remove when Java switch to CLI arguments
 	}

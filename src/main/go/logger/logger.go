@@ -8,7 +8,6 @@ import (
 func Error(a ...any) {
 	fmt.Print("[\x1b[31mERROR\x1b[m] 🛑 ")
 	fmt.Println(a...)
-	os.Exit(1)
 }
 
 func Info(a ...any) {
@@ -26,14 +25,16 @@ func Debug(a ...any) {
 	fmt.Println(a...)
 }
 
-func CheckIfError(err error) {
+func ExitIfError(err error) {
 	if err != nil {
 		Error(err)
+		os.Exit(1)
 	}
 }
 
-func CheckIfErrorWithMsg(err error, msg string) {
+func ExitIfErrorWithMsg(err error, msg string) {
 	if err != nil {
 		Error(msg)
+		os.Exit(1)
 	}
 }

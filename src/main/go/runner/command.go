@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func constructClassPath(prefix string, flashpipeLocation string) string {
+func constructClassPath(prefix string, flashpipeLocation string) (string, error) {
 	paths := []string{
 		"/org/codehaus/groovy/groovy-all/2.4.21/groovy-all-2.4.21.jar",
 		"/org/apache/httpcomponents/core5/httpcore5/5.0.4/httpcore5-5.0.4.jar",
@@ -22,16 +22,24 @@ func constructClassPath(prefix string, flashpipeLocation string) string {
 	var builder strings.Builder
 	for _, path := range paths {
 		_, err := builder.WriteString(prefix + path + ":")
-		logger.CheckIfError(err)
+		if err != nil {
+			return "", err
+		}
 	}
 	_, err := builder.WriteString(flashpipeLocation)
-	logger.CheckIfError(err)
+	if err != nil {
+		return "", err
+	}
 
-	return builder.String()
+	return builder.String(), nil
 }
 
 func JavaCmd(className string, mavenRepoPrefix string, flashpipeLocation string, log4jFile string) (string, error) {
-	classPath := constructClassPath(mavenRepoPrefix, flashpipeLocation)
+	classPath, err := constructClassPath(mavenRepoPrefix, flashpipeLocation)
+	if err != nil {
+		logger.Error(err)
+		return "", err
+	}
 	var cmd *exec.Cmd
 	if log4jFile == "" {
 		logger.Info("Executing command: java -classpath", classPath, className)

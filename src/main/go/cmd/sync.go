@@ -36,9 +36,10 @@ tenant to a Git repository.`,
 		setOptionalVariable(syncViper, "normalize.package.prefixsuffix.name", "NORMALIZE_PACKAGE_NAME_PREFIX_SUFFIX")
 
 		_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.DownloadIntegrationPackageContent", mavenRepoLocation, flashpipeLocation, log4jFile)
-		logger.CheckIfErrorWithMsg(err, "Execution of java command failed")
+		logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
-		repo.CommitToRepo(syncViper.GetString("dir.gitsrc"), syncViper.GetString("git.commitmsg"))
+		err = repo.CommitToRepo(syncViper.GetString("dir.gitsrc"), syncViper.GetString("git.commitmsg"))
+		logger.ExitIfError(err)
 	},
 }
 

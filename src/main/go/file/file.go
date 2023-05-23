@@ -1,37 +1,39 @@
 package file
 
 import (
+	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
 
-func Copy(src, dst string) (int64, error) {
-	sourceFileStat, err := os.Stat(src)
-	if err != nil {
-		return 0, err
-	}
-
-	if !sourceFileStat.Mode().IsRegular() {
-		return 0, fmt.Errorf("%s is not a regular file", src)
-	}
-
-	source, err := os.Open(src)
-	if err != nil {
-		return 0, err
-	}
-	defer source.Close()
-
-	destination, err := os.Create(dst)
-	if err != nil {
-		return 0, err
-	}
-	defer destination.Close()
-	nBytes, err := io.Copy(destination, source)
-	return nBytes, err
-}
+//
+//func Copy(src, dst string) (int64, error) {
+//	sourceFileStat, err := os.Stat(src)
+//	if err != nil {
+//		return 0, err
+//	}
+//
+//	if !sourceFileStat.Mode().IsRegular() {
+//		return 0, fmt.Errorf("%s is not a regular file", src)
+//	}
+//
+//	source, err := os.Open(src)
+//	if err != nil {
+//		return 0, err
+//	}
+//	defer source.Close()
+//
+//	destination, err := os.Create(dst)
+//	if err != nil {
+//		return 0, err
+//	}
+//	defer destination.Close()
+//	nBytes, err := io.Copy(destination, source)
+//	return nBytes, err
+//}
 
 // https://gist.github.com/r0l1/92462b38df26839a3ca324697c8cba04
 func CopyFile(src, dst string) (err error) {
@@ -79,14 +81,14 @@ func CopyDir(src string, dst string) (err error) {
 
 	si, err := os.Stat(src)
 	if err != nil {
-		return err
+		return
 	}
 	if !si.IsDir() {
 		return fmt.Errorf("source is not a directory")
 	}
 
 	_, err = os.Stat(dst)
-	if err != nil && !os.IsNotExist(err) {
+	if err != nil && errors.Is(err, fs.ErrExist) {
 		return
 	}
 	if err == nil {
@@ -98,7 +100,7 @@ func CopyDir(src string, dst string) (err error) {
 		return
 	}
 
-	entries, err := ioutil.ReadDir(src)
+	entries, err := os.ReadDir(src)
 	if err != nil {
 		return
 	}
@@ -114,7 +116,7 @@ func CopyDir(src string, dst string) (err error) {
 			}
 		} else {
 			// Skip symlinks.
-			if entry.Mode()&os.ModeSymlink != 0 {
+			if entry.Type() == fs.ModeSymlink {
 				continue
 			}
 

@@ -4,35 +4,47 @@ import (
 	"fmt"
 	"github.com/engswee/flashpipe/logger"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"time"
 )
 
-func CommitToRepo(gitSrcDir string, commitMsg string) {
+func CommitToRepo(gitSrcDir string, commitMsg string) (err error) {
 	logger.Info("Opening Git repository at", gitSrcDir)
 	repo, err := git.PlainOpen(gitSrcDir)
-	logger.CheckIfError(err)
+	if err != nil {
+		return
+	}
 
 	w, err := repo.Worktree()
-	logger.CheckIfError(err)
+	if err != nil {
+		return
+	}
 
 	logger.Info("Checking status of working tree")
 	status, err := w.Status()
-	logger.CheckIfError(err)
+	if err != nil {
+		return
+	}
 
 	if status.IsClean() {
 		logger.Info("🏆 No changes to commit")
 	} else {
 		logger.Info("Adding all files for Git tracking")
 		err = w.AddWithOptions(&git.AddOptions{All: true})
-		logger.CheckIfError(err)
+		if err != nil {
+			return
+		}
 
 		status, err = w.Status()
-		logger.CheckIfError(err)
+		if err != nil {
+			return
+		}
 		fmt.Println(status)
 
 		logger.Info("Trying to commit changes")
-		commit, err := w.Commit(commitMsg, &git.CommitOptions{
+		var commit plumbing.Hash
+		commit, err = w.Commit(commitMsg, &git.CommitOptions{
 			All: true,
 			Author: &object.Signature{
 				Name:  "github-actions[bot]", // TODO - switch to flag
@@ -40,12 +52,18 @@ func CommitToRepo(gitSrcDir string, commitMsg string) {
 				When:  time.Now(),
 			},
 		})
-		logger.CheckIfError(err)
+		if err != nil {
+			return
+		}
 
-		obj, err := repo.CommitObject(commit)
-		logger.CheckIfError(err)
+		var obj *object.Commit
+		obj, err = repo.CommitObject(commit)
+		if err != nil {
+			return
+		}
 
 		fmt.Println(obj)
 		logger.Info("🏆 Changes committed")
 	}
+	return
 }

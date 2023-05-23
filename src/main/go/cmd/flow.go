@@ -35,19 +35,20 @@ SAP Integration Suite tenant.`,
 		defaultParamFile := fmt.Sprint(flowViper.GetString("dir.gitsrc"), "/src/main/resources/parameters.prop")
 		if parametersFile != "" && parametersFile != defaultParamFile {
 			logger.Info("Using", parametersFile, "as parameters.prop file")
-			_, err := file.Copy(parametersFile, defaultParamFile)
-			logger.CheckIfError(err)
+			err := file.CopyFile(parametersFile, defaultParamFile)
+			logger.ExitIfError(err)
 		}
 		// Check if IFlow already exist on tenant
 		output, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.QueryDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
 		if strings.Contains(output, "Active version of IFlow does not exist") {
 			// Upload IFlow
-			uploadIFlow()
+			err := uploadIFlow()
+			logger.ExitIfError(err)
 		} else if err == nil {
 			// Update IFlow
 			logger.Info("Checking if IFlow design needs to be updated")
 		} else {
-			logger.Error("Execution of java command failed")
+			logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 		}
 	},
 }
@@ -73,25 +74,35 @@ func init() {
 	setStringFlagAndBind(flowViper, flowCmd, "scriptmap", "", "Comma-separated source-target ID pairs for converting script collection references during upload/update [or set environment SCRIPT_COLLECTION_MAP]")
 }
 
-func uploadIFlow() {
+func uploadIFlow() (err error) {
 	logger.Info("IFlow will be uploaded to tenant")
 
 	// Clean up previous uploads
 	iFlowDir := flowViper.GetString("dir.work") + "/upload"
-	err := os.RemoveAll(iFlowDir)
-	logger.CheckIfError(err)
+	err = os.RemoveAll(iFlowDir)
+	if err != nil {
+		return
+	}
 
 	err = os.MkdirAll(iFlowDir+"/src/main", os.ModePerm)
-	logger.CheckIfError(err)
+	if err != nil {
+		return
+	}
 
 	err = file.CopyDir(flowViper.GetString("dir.gitsrc")+"/META-INF", iFlowDir+"/META-INF")
-	logger.CheckIfError(err)
+	if err != nil {
+		return
+	}
 
 	err = file.CopyDir(flowViper.GetString("dir.gitsrc")+"/src/main/resources", iFlowDir+"/src/main/resources")
-	logger.CheckIfError(err)
+	if err != nil {
+		return
+	}
 	os.Setenv("IFLOW_DIR", iFlowDir)
 
 	_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UploadDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
-	logger.CheckIfErrorWithMsg(err, "Execution of java command failed")
+	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 	logger.Info("🏆 IFlow created successfully")
+
+	return
 }
