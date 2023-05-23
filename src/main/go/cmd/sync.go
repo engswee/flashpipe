@@ -20,13 +20,13 @@ tenant to a Git repository.`,
 		logger.Info("Executing sync command")
 
 		setMandatoryVariable(syncViper, "packageid", "PACKAGE_ID")
-		setMandatoryVariable(syncViper, "dir.gitsrc", "GIT_SRC_DIR")
+		gitSrcDir := setMandatoryVariable(syncViper, "dir.gitsrc", "GIT_SRC_DIR")
 		setOptionalVariable(syncViper, "dir.work", "WORK_DIR")
 		setOptionalVariable(syncViper, "dirnamingtype", "DIR_NAMING_TYPE")
 		setOptionalVariable(syncViper, "drafthandling", "DRAFT_HANDLING")
 		setOptionalVariable(syncViper, "ids.include", "INCLUDE_IDS")
 		setOptionalVariable(syncViper, "ids.exclude", "EXCLUDE_IDS")
-		setOptionalVariable(syncViper, "git.commitmsg", "COMMIT_MESSAGE")
+		commitMsg := setOptionalVariable(syncViper, "git.commitmsg", "COMMIT_MESSAGE")
 		setOptionalVariable(syncViper, "scriptmap", "SCRIPT_COLLECTION_MAP")
 		setOptionalVariable(syncViper, "normalize.manifest.action", "NORMALIZE_MANIFEST_ACTION")
 		setOptionalVariable(syncViper, "normalize.manifest.prefixsuffix", "NORMALIZE_MANIFEST_PREFIX_SUFFIX")
@@ -38,7 +38,7 @@ tenant to a Git repository.`,
 		_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.DownloadIntegrationPackageContent", mavenRepoLocation, flashpipeLocation, log4jFile)
 		logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
-		err = repo.CommitToRepo(syncViper.GetString("dir.gitsrc"), syncViper.GetString("git.commitmsg"))
+		err = repo.CommitToRepo(gitSrcDir, commitMsg)
 		logger.ExitIfError(err)
 	},
 }

@@ -21,16 +21,16 @@ tenant to a Git repository.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		logger.Info("Executing snapshot command")
 
-		setMandatoryVariable(snapshotViper, "dir.gitsrc", "GIT_SRC_DIR")
+		gitSrcDir := setMandatoryVariable(snapshotViper, "dir.gitsrc", "GIT_SRC_DIR")
 		setOptionalVariable(snapshotViper, "dir.work", "WORK_DIR")
 		setOptionalVariable(snapshotViper, "drafthandling", "DRAFT_HANDLING")
-		setOptionalVariable(snapshotViper, "git.commitmsg", "COMMIT_MESSAGE")
+		commitMsg := setOptionalVariable(snapshotViper, "git.commitmsg", "COMMIT_MESSAGE")
 		setOptionalVariable(snapshotViper, "syncpackagedetails", "SYNC_PACKAGE_LEVEL_DETAILS")
 
 		_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.GetTenantSnapshot", mavenRepoLocation, flashpipeLocation, log4jFile)
 		logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
-		err = repo.CommitToRepo(snapshotViper.GetString("dir.gitsrc"), snapshotViper.GetString("git.commitmsg"))
+		err = repo.CommitToRepo(gitSrcDir, commitMsg)
 		logger.ExitIfError(err)
 	},
 }
