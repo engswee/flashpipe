@@ -25,3 +25,15 @@ func Debug(a ...any) {
 	fmt.Print("[\x1b[34mDEBUG\x1b[m] ")
 	fmt.Println(a...)
 }
+
+func CheckIfError(err error) {
+	if err != nil {
+		Error(err)
+	}
+}
+
+func CheckIfErrorWithMsg(err error, msg string) {
+	if err != nil {
+		Error(msg)
+	}
+}

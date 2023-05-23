@@ -28,9 +28,7 @@ tenant to a Git repository.`,
 		setOptionalVariable(snapshotViper, "syncpackagedetails", "SYNC_PACKAGE_LEVEL_DETAILS")
 
 		_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.GetTenantSnapshot", mavenRepoLocation, flashpipeLocation, log4jFile)
-		if err != nil {
-			logger.Error("Execution of java command failed")
-		}
+		logger.CheckIfErrorWithMsg(err, "Execution of java command failed")
 
 		repo.CommitToRepo(snapshotViper.GetString("dir.gitsrc"), snapshotViper.GetString("git.commitmsg"))
 	},

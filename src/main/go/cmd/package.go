@@ -24,9 +24,7 @@ SAP Integration Suite tenant.`,
 		setOptionalVariable(packageViper, "package.override.id", "PACKAGE_NAME")
 
 		_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateIntegrationPackage", mavenRepoLocation, flashpipeLocation, log4jFile)
-		if err != nil {
-			logger.Error("Execution of java command failed")
-		}
+		logger.CheckIfErrorWithMsg(err, "Execution of java command failed")
 	},
 }
 

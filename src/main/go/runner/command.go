@@ -3,7 +3,6 @@ package runner
 import (
 	"fmt"
 	"github.com/engswee/flashpipe/logger"
-	"log"
 	"os/exec"
 	"strings"
 )
@@ -23,14 +22,11 @@ func constructClassPath(prefix string, flashpipeLocation string) string {
 	var builder strings.Builder
 	for _, path := range paths {
 		_, err := builder.WriteString(prefix + path + ":")
-		if err != nil {
-			log.Fatal(err)
-		}
+		logger.CheckIfError(err)
 	}
 	_, err := builder.WriteString(flashpipeLocation)
-	if err != nil {
-		log.Fatal(err)
-	}
+	logger.CheckIfError(err)
+
 	return builder.String()
 }
 
