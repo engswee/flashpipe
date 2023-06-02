@@ -19,6 +19,7 @@ class QueryDesignTimeArtifact extends APIExecuter {
             queryDesignTimeArtifact.execute()
         } catch (ExecutionException e) {
             if (e.getMessage() == 'Active version of IFlow does not exist') {
+                println('Active version of IFlow does not exist')
                 System.exit(99)
             } else {
                 System.exit(1)
