@@ -132,7 +132,7 @@ class PackageSynchroniser {
             }
 
             // (1) If IFlow already exists in Git, then compare and update
-            if (new File("${gitSrcDir}/${directoryName}").exists()) {
+            if (new File("${gitSrcDir}/${directoryName}/META-INF/MANIFEST.MF").exists()) {
                 logger.info("Comparing content from tenant against Git")
                 // Copy to temp directory for diff comparison
                 FileUtility.copyDirectory("${workDir}/download/${directoryName}/src/main/resources", "${workDir}/from_tenant/${directoryName}/src/main/resources")
@@ -175,6 +175,9 @@ class PackageSynchroniser {
                     new File(gitSrcDir).mkdirs()
                 }
                 logger.info("🏆 Artifact ${artifact.id} does not exist, and will be added to Git")
+                if (new File("${gitSrcDir}/${directoryName}").exists()) {
+                    new File("${gitSrcDir}/${directoryName}").deleteDir()
+                }
                 FileUtility.copyDirectory("${workDir}/download/${directoryName}", "${gitSrcDir}/${directoryName}")
             }
         }
