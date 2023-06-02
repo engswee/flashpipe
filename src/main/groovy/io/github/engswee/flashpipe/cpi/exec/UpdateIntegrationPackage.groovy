@@ -29,6 +29,9 @@ class UpdateIntegrationPackage extends APIExecuter {
         this.packageFilePath = getMandatoryEnvVar('PACKAGE_FILE')
         this.overwritePackageId = (System.getenv('PACKAGE_ID') ?: '')
         this.overwritePackageName = (System.getenv('PACKAGE_NAME') ?: '')
+        logger.debug("PACKAGE_FILE = ${this.packageFilePath}")
+        logger.debug("PACKAGE_ID = ${this.overwritePackageId}")
+        logger.debug("PACKAGE_NAME = ${this.overwritePackageName}")
     }
 
     @Override

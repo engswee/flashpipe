@@ -36,7 +36,11 @@ class DeployDesignTimeArtifact extends APIExecuter {
 
         this.delayLength = (System.getenv('DELAY_LENGTH') ?: 30) as int
         this.maxCheckLimit = (System.getenv('MAX_CHECK_LIMIT') ?: 10) as int
-        this.compareVersions = (System.getenv('COMPARE_VERSIONS') ?: true)
+        this.compareVersions = (System.getenv('COMPARE_VERSIONS') ?: "true").toBoolean()
+        logger.debug("IFLOW_ID = ${iFlowId}")
+        logger.debug("DELAY_LENGTH = ${this.delayLength}")
+        logger.debug("MAX_CHECK_LIMIT = ${this.maxCheckLimit}")
+        logger.debug("COMPARE_VERSIONS = ${this.compareVersions}")
     }
 
     @Override
