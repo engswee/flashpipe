@@ -51,6 +51,41 @@ func JavaCmd(className string, mavenRepoPrefix string, flashpipeLocation string,
 	}
 
 	stdoutStderr, err := cmd.CombinedOutput()
+	output := string(stdoutStderr)
+	fmt.Println(output)
+
+	return output, err
+}
+
+func JavaCmdWithArgs(mavenRepoPrefix string, flashpipeLocation string, log4jFile string, args ...string) (string, error) {
+	classPath, err := constructClassPath(mavenRepoPrefix, flashpipeLocation)
+	if err != nil {
+		logger.Error(err)
+		return "", err
+	}
+	var cmd *exec.Cmd
+	if log4jFile == "" {
+		fullArgs := []string{"-classpath", classPath}
+		fullArgs = append(fullArgs, args...)
+		argsAny := []any{"Executing command: java", "-classpath", classPath}
+		for _, arg := range args {
+			argsAny = append(argsAny, arg)
+		}
+		logger.Info(argsAny...)
+		cmd = exec.Command("java", fullArgs...)
+	} else {
+		logConfig := "-Dlog4j.configurationFile=" + log4jFile
+		fullArgs := []string{logConfig, "-classpath", classPath}
+		fullArgs = append(fullArgs, args...)
+		argsAny := []any{"Executing command: java", logConfig, "-classpath", classPath}
+		for _, arg := range args {
+			argsAny = append(argsAny, arg)
+		}
+		logger.Info(argsAny...)
+		cmd = exec.Command("java", fullArgs...)
+	}
+
+	stdoutStderr, err := cmd.CombinedOutput()
 	fmt.Println(string(stdoutStderr))
 
 	return string(stdoutStderr), err

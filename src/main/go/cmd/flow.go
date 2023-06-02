@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -22,18 +23,18 @@ SAP Integration Suite tenant.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		logger.Info("Executing update flow command")
 
-		setMandatoryVariable(flowViper, "iflow.id", "IFLOW_ID")
-		setMandatoryVariable(flowViper, "iflow.name", "IFLOW_NAME")
+		iflowId := setMandatoryVariable(flowViper, "iflow.id", "IFLOW_ID")
+		iflowName := setMandatoryVariable(flowViper, "iflow.name", "IFLOW_NAME")
 		setMandatoryVariable(flowViper, "package.id", "PACKAGE_ID")
 		setMandatoryVariable(flowViper, "package.name", "PACKAGE_NAME")
-		setMandatoryVariable(flowViper, "dir.gitsrc", "GIT_SRC_DIR")
-		setOptionalVariable(flowViper, "file.param", "PARAM_FILE")
-		setOptionalVariable(flowViper, "dir.work", "WORK_DIR")
-		setOptionalVariable(flowViper, "scriptmap", "SCRIPT_COLLECTION_MAP")
+		gitSrcDir := setMandatoryVariable(flowViper, "dir.gitsrc", "GIT_SRC_DIR")
+		defaultParamFile := gitSrcDir + "/src/main/resources/parameters.prop"
+		flowViper.SetDefault("file.param", defaultParamFile)
+		parametersFile := setOptionalVariable(flowViper, "file.param", "PARAM_FILE")
+		workDir := setOptionalVariable(flowViper, "dir.work", "WORK_DIR")
+		scriptMap := setOptionalVariable(flowViper, "scriptmap", "SCRIPT_COLLECTION_MAP")
 
-		parametersFile := flowViper.GetString("file.param")
-		defaultParamFile := fmt.Sprint(flowViper.GetString("dir.gitsrc"), "/src/main/resources/parameters.prop")
-		if parametersFile != "" && parametersFile != defaultParamFile {
+		if parametersFile != defaultParamFile {
 			logger.Info("Using", parametersFile, "as parameters.prop file")
 			err := file.CopyFile(parametersFile, defaultParamFile)
 			logger.ExitIfError(err)
@@ -42,11 +43,42 @@ SAP Integration Suite tenant.`,
 		output, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.QueryDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
 		if strings.Contains(output, "Active version of IFlow does not exist") {
 			// Upload IFlow
-			err := uploadIFlow()
+			logger.Info("IFlow will be uploaded to tenant")
+
+			err = prepareUploadDir(workDir, gitSrcDir)
 			logger.ExitIfError(err)
+
+			_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UploadDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
+			logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+			logger.Info("🏆 IFlow created successfully")
+
 		} else if err == nil {
 			// Update IFlow
 			logger.Info("Checking if IFlow design needs to be updated")
+			// 1 - Download IFlow from tenant
+			zipFile := fmt.Sprintf("%v/%v.zip", workDir, iflowId)
+			downloadIFlow(zipFile)
+			// 2 - Diff contents from tenant against Git
+			changesFound, err := compareIFlowContents(workDir, zipFile, gitSrcDir, iflowId, iflowName, scriptMap)
+			logger.ExitIfError(err)
+
+			if changesFound == true {
+				logger.Info("Changes found in IFlow. IFlow design will be updated in CPI tenant")
+				err = prepareUploadDir(workDir, gitSrcDir)
+				logger.ExitIfError(err)
+
+				_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
+				logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+				logger.Info("🏆 IFlow design updated successfully")
+			} else {
+				logger.Info("🏆 No changes detected. IFlow design does not need to be updated")
+			}
+
+			// 4 - Update the configuration of the IFlow based on parameters.prop file
+			logger.Info("Updating configured parameter(s) of IFlow where necessary")
+			_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateConfiguration", mavenRepoLocation, flashpipeLocation, log4jFile)
+			logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+
 		} else {
 			logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 		}
@@ -74,11 +106,9 @@ func init() {
 	setStringFlagAndBind(flowViper, flowCmd, "scriptmap", "", "Comma-separated source-target ID pairs for converting script collection references during upload/update [or set environment SCRIPT_COLLECTION_MAP]")
 }
 
-func uploadIFlow() (err error) {
-	logger.Info("IFlow will be uploaded to tenant")
-
+func prepareUploadDir(workDir string, gitSrcDir string) (err error) {
 	// Clean up previous uploads
-	iFlowDir := flowViper.GetString("dir.work") + "/upload"
+	iFlowDir := workDir + "/upload"
 	err = os.RemoveAll(iFlowDir)
 	if err != nil {
 		return
@@ -89,20 +119,80 @@ func uploadIFlow() (err error) {
 		return
 	}
 
-	err = file.CopyDir(flowViper.GetString("dir.gitsrc")+"/META-INF", iFlowDir+"/META-INF")
+	err = file.CopyDir(gitSrcDir+"/META-INF", iFlowDir+"/META-INF")
 	if err != nil {
 		return
 	}
 
-	err = file.CopyDir(flowViper.GetString("dir.gitsrc")+"/src/main/resources", iFlowDir+"/src/main/resources")
+	err = file.CopyDir(gitSrcDir+"/src/main/resources", iFlowDir+"/src/main/resources")
 	if err != nil {
 		return
 	}
 	os.Setenv("IFLOW_DIR", iFlowDir)
-
-	_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UploadDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
-	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
-	logger.Info("🏆 IFlow created successfully")
-
 	return
+}
+
+func downloadIFlow(targetZipFile string) {
+	logger.Info("Download existing IFlow from tenant for comparison")
+	os.Setenv("OUTPUT_FILE", targetZipFile)
+	os.Setenv("IFLOW_VER", "active")
+	_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.DownloadDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
+	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+}
+
+func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflowId string, iflowName string, scriptMap string) (changesFound bool, err error) {
+	err = os.RemoveAll(workDir + "/download")
+	if err != nil {
+		return
+	}
+
+	logger.Info("Unzipping downloaded IFlow artifact", zipFile, "to", workDir+"/download")
+	err = file.UnzipSource(zipFile, workDir+"/download")
+	if err != nil {
+		return
+	}
+	// Update the script collection in IFlow BPMN2 XML before diff comparison
+	_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.BPMN2Handler", mavenRepoLocation, flashpipeLocation, log4jFile)
+	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+
+	// Update the MANIFEST.MF file with script collection conversions
+	_, err = runner.JavaCmdWithArgs(mavenRepoLocation, flashpipeLocation, log4jFile, "io.github.engswee.flashpipe.cpi.util.ManifestHandler", gitSrcDir+"/META-INF/MANIFEST.MF", iflowId, iflowName, scriptMap)
+	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+
+	// Compare META-INF directory for any differences in the manifest file
+	logger.Info("Checking for changes in META-INF directory")
+	metaDirDiffer := diffDirectories(workDir+"/download/META-INF/", gitSrcDir+"/META-INF/")
+
+	logger.Info("Checking for changes in src/main/resources directory")
+	resourcesDirDiffer := diffDirectories(workDir+"/download/src/main/resources/", gitSrcDir+"/src/main/resources/")
+
+	if metaDirDiffer == false && resourcesDirDiffer == false {
+		changesFound = false
+	} else {
+		changesFound = true
+	}
+	return
+}
+
+func diffDirectories(firstDir string, secondDir string) bool {
+	//https: //pkg.go.dev/github.com/udhos/equalfile
+	//https: //github.com/sergi/go-diff
+	//https://github.com/spcau/godiff
+	//	dmp := diffmatchpatch.New()
+	//
+	//	diffs := dmp.DiffMain("text1", "text2", false)
+	//
+	//	fmt.Println(dmp.DiffPrettyText(diffs))
+
+	// Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
+	// Therefore diff of parameters.prop may come up with false differences
+	logger.Info("Executing command:", "diff", "--ignore-matching-lines=^Origin.*", "--strip-trailing-cr", "--recursive", "--ignore-all-space", "--ignore-blank-lines", "--exclude=parameters.prop", "--exclude=.DS_Store", firstDir, secondDir)
+	cmd := exec.Command("diff", "--ignore-matching-lines=^Origin.*", "--strip-trailing-cr", "--recursive", "--ignore-all-space", "--ignore-blank-lines", "--exclude=parameters.prop", "--exclude=.DS_Store", firstDir, secondDir)
+
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Println(string(stdoutStderr))
+	}
+
+	return err != nil
 }

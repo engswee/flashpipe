@@ -10,6 +10,9 @@ import (
 )
 
 func CommitToRepo(gitSrcDir string, commitMsg string) (err error) {
+	// https://github.com/go-git/go-git/tree/master/_examples
+
+	// https://github.com/ad-m/github-push-action/blob/master/start.js
 	logger.Info("Opening Git repository at", gitSrcDir)
 	repo, err := git.PlainOpen(gitSrcDir)
 	if err != nil {
@@ -64,6 +67,12 @@ func CommitToRepo(gitSrcDir string, commitMsg string) (err error) {
 
 		fmt.Println(obj)
 		logger.Info("🏆 Changes committed")
+
+		//logger.Info("🏆 Push changes")
+		//err = repo.Push(&git.PushOptions{})
+		//if err != nil {
+		//	return
+		//}
 	}
 	return
 }
