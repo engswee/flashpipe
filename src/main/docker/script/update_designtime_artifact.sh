@@ -73,7 +73,7 @@ fi
 check_mandatory_env_var "IFLOW_ID" "$IFLOW_ID"
 check_mandatory_env_var "IFLOW_NAME" "$IFLOW_NAME"
 check_mandatory_env_var "PACKAGE_ID" "$PACKAGE_ID"
-check_mandatory_env_var "PACKAGE_NAME" "PACKAGE_NAME"
+check_mandatory_env_var "PACKAGE_NAME" "$PACKAGE_NAME"
 
 if [ -z "$WORK_DIR" ]; then
   WORK_DIR="/tmp"
