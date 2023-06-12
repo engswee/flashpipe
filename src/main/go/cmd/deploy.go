@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
@@ -8,7 +9,6 @@ import (
 	"github.com/engswee/flashpipe/str"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
 	"time"
 )
 
@@ -28,8 +28,6 @@ runtime of SAP Integration Suite tenant.`,
 		setOptionalVariable(deployViper, "maxchecklimit", "MAX_CHECK_LIMIT")
 		setOptionalVariable(deployViper, "compareversions", "COMPARE_VERSIONS")
 
-		//_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.DeployDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
-		//logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 		deployArtifacts(iFlows)
 	},
 }
@@ -78,12 +76,14 @@ func deployArtifacts(iFlows string) {
 	// Loop and deploy each IFlow
 	for i, id := range ids {
 		logger.Info(fmt.Sprintf("Processing IFlow %d - %v", i+1, id))
-		deploySingle(dt, rt, id, compareVersions)
+		err := deploySingle(dt, rt, id, compareVersions)
+		logger.ExitIfError(err)
 	}
 
 	// Check deployment status of IFlows
 	for i, id := range ids {
-		checkDeploymentStatus(rt, delayLength, maxCheckLimit, id)
+		err := checkDeploymentStatus(rt, delayLength, maxCheckLimit, id)
+		logger.ExitIfError(err)
 
 		logger.Info(fmt.Sprintf("IFlow %d - %v deployed successfully", i+1, id))
 	}
@@ -91,15 +91,19 @@ func deployArtifacts(iFlows string) {
 	logger.Info("🏆 IFlow(s) deployment completed successfully")
 }
 
-func deploySingle(artifact odata.DesignArtifact, runtime *odata.Runtime, id string, compareVersions bool) {
+func deploySingle(artifact odata.DesignArtifact, runtime *odata.Runtime, id string, compareVersions bool) error {
 	logger.Info("Getting designtime version of IFlow")
 	designtimeVer, err := artifact.GetVersion(id, "active")
-	logger.ExitIfError(err) // TODO - move this to higher level
+	if err != nil {
+		return err
+	}
 
 	if compareVersions == true {
 		logger.Info("Getting runtime version of IFlow")
 		runtimeVer, err := runtime.GetVersion(id)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 
 		// Compare designtime version with runtime version to determine if deployment is needed
 		logger.Info("Comparing designtime version with runtime version")
@@ -109,18 +113,23 @@ func deploySingle(artifact odata.DesignArtifact, runtime *odata.Runtime, id stri
 		} else {
 			logger.Info(fmt.Sprintf("🚀 IFlow previously not deployed, or versions differ. Proceeding to deploy IFlow %v with version %v", id, designtimeVer))
 			err = artifact.Deploy(id)
-			logger.ExitIfError(err)
+			if err != nil {
+				return err
+			}
 			logger.Info(fmt.Sprintf("IFlow %v deployment triggered", id))
 		}
 	} else {
 		logger.Info(fmt.Sprintf("🚀 Proceeding to deploy IFlow %v with version %v", id, designtimeVer))
 		err = artifact.Deploy(id)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 		logger.Info(fmt.Sprintf("IFlow %v deployment triggered", id))
 	}
+	return nil
 }
 
-func checkDeploymentStatus(runtime *odata.Runtime, delayLength int, maxCheckLimit int, id string) {
+func checkDeploymentStatus(runtime *odata.Runtime, delayLength int, maxCheckLimit int, id string) error {
 	logger.Info(fmt.Sprintf("Checking deployment status for IFlow %v every %d seconds up to %d times", id, delayLength, maxCheckLimit))
 
 	for i := 0; i < maxCheckLimit; i++ {
@@ -128,7 +137,9 @@ func checkDeploymentStatus(runtime *odata.Runtime, delayLength int, maxCheckLimi
 		time.Sleep(time.Duration(delayLength) * time.Second)
 
 		status, err := runtime.GetStatus(id)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 
 		logger.Info(fmt.Sprintf("Check %d - Current IFlow status = %s", i, status))
 		if status != "STARTING" {
@@ -136,15 +147,15 @@ func checkDeploymentStatus(runtime *odata.Runtime, delayLength int, maxCheckLimi
 				break
 			} else {
 				errorMessage, err := runtime.GetErrorInfo(id)
-				logger.ExitIfError(err)
-				logger.Error(fmt.Sprintf("IFlow deployment unsuccessful, ended with status %s", status))
-				logger.Error(fmt.Sprintf("Error message = %s", errorMessage))
-				os.Exit(1)
+				if err != nil {
+					return err
+				}
+				return errors.New(fmt.Sprintf("IFlow deployment unsuccessful, ended with status %s. Error message = %s", status, errorMessage))
 			}
 		}
 		if i == (maxCheckLimit-1) && status != "STARTED" {
-			logger.Error(fmt.Sprintf("IFlow status remained in %s after %d checks", status, maxCheckLimit))
-			os.Exit(1)
+			return errors.New(fmt.Sprintf("IFlow status remained in %s after %d checks", status, maxCheckLimit))
 		}
 	}
+	return nil
 }
