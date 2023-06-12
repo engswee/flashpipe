@@ -16,6 +16,13 @@ var mavenRepoLocation string
 var flashpipeLocation string
 var log4jFile string
 var rootViper = viper.New()
+var tmnHost string
+var oauthHost string
+var oauthClientId string
+var oauthClientSecret string
+var oauthTokenPath string
+var basicUserId string
+var basicPassword string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -107,16 +114,17 @@ func initConfig() {
 	rootViper.BindEnv("location.flashpipe", "FLASHPIPE_LOCATION")
 	flashpipeLocation = rootViper.GetString("location.flashpipe")
 
-	setMandatoryVariable(rootViper, "tmn.host", "HOST_TMN")
-	if setOptionalVariable(rootViper, "oauth.host", "HOST_OAUTH") == "" {
+	tmnHost = setMandatoryVariable(rootViper, "tmn.host", "HOST_TMN")
+	oauthHost = setOptionalVariable(rootViper, "oauth.host", "HOST_OAUTH")
+	if oauthHost == "" {
 		// Basic Authentication
-		setMandatoryVariable(rootViper, "tmn.userid", "BASIC_USERID")
-		setMandatoryVariable(rootViper, "tmn.password", "BASIC_PASSWORD")
+		basicUserId = setMandatoryVariable(rootViper, "tmn.userid", "BASIC_USERID")
+		basicPassword = setMandatoryVariable(rootViper, "tmn.password", "BASIC_PASSWORD")
 	} else {
 		// OAuth
-		setMandatoryVariable(rootViper, "oauth.clientid", "OAUTH_CLIENTID")
-		setMandatoryVariable(rootViper, "oauth.clientsecret", "OAUTH_CLIENTSECRET")
-		setOptionalVariable(rootViper, "oauth.path", "HOST_OAUTH_PATH")
+		oauthClientId = setMandatoryVariable(rootViper, "oauth.clientid", "OAUTH_CLIENTID")
+		oauthClientSecret = setMandatoryVariable(rootViper, "oauth.clientsecret", "OAUTH_CLIENTSECRET")
+		oauthTokenPath = setOptionalVariable(rootViper, "oauth.path", "HOST_OAUTH_PATH")
 	}
 
 	rootViper.SetDefault("debug.flashpipe", "/tmp/log4j2-config/log4j2-debug-flashpipe.xml")
