@@ -67,27 +67,13 @@ func deployArtifacts(iFlows string) {
 	compareVersions := deployViper.GetBool("compareversions")
 
 	// Initialise HTTP executer
-	var exe = &httpclnt.HTTPExecuter{
-		OauthHost:         oauthHost,
-		OauthTokenPath:    oauthTokenPath,
-		OauthClientId:     oauthClientId,
-		OauthClientSecret: oauthClientSecret,
-		BasicUserId:       basicUserId,
-		BasicPassword:     basicPassword,
-	}
-	exe.InitClient()
+	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost)
 
 	// Initialise designtime artifact
-	var dt odata.DesignArtifact
-	dt = &odata.Integration{
-		HttpExecuter: exe,
-		TmnHost:      tmnHost,
-	}
+	dt := odata.NewIntegration(exe)
+
 	// Initialised runtime artifact
-	rt := odata.Runtime{
-		HttpExecuter: exe,
-		TmnHost:      tmnHost,
-	}
+	rt := odata.NewRuntime(exe)
 
 	// Loop and deploy each IFlow
 	for i, id := range ids {
@@ -105,7 +91,7 @@ func deployArtifacts(iFlows string) {
 	logger.Info("🏆 IFlow(s) deployment completed successfully")
 }
 
-func deploySingle(artifact odata.DesignArtifact, runtime odata.Runtime, id string, compareVersions bool) {
+func deploySingle(artifact odata.DesignArtifact, runtime *odata.Runtime, id string, compareVersions bool) {
 	logger.Info("Getting designtime version of IFlow")
 	designtimeVer, err := artifact.GetVersion(id, "active")
 	logger.ExitIfError(err) // TODO - move this to higher level
@@ -134,7 +120,7 @@ func deploySingle(artifact odata.DesignArtifact, runtime odata.Runtime, id strin
 	}
 }
 
-func checkDeploymentStatus(runtime odata.Runtime, delayLength int, maxCheckLimit int, id string) {
+func checkDeploymentStatus(runtime *odata.Runtime, delayLength int, maxCheckLimit int, id string) {
 	logger.Info(fmt.Sprintf("Checking deployment status for IFlow %v every %d seconds up to %d times", id, delayLength, maxCheckLimit))
 
 	for i := 0; i < maxCheckLimit; i++ {

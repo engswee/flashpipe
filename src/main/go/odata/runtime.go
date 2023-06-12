@@ -8,8 +8,7 @@ import (
 )
 
 type Runtime struct {
-	HttpExecuter *httpclnt.HTTPExecuter
-	TmnHost      string
+	exe *httpclnt.HTTPExecuter
 }
 
 type runtimeArtifact struct {
@@ -26,13 +25,20 @@ type runtimeError struct {
 	} `json:"childInstances"`
 }
 
+// NewRuntime returns an initialised Runtime instance.
+func NewRuntime(exe *httpclnt.HTTPExecuter) *Runtime {
+	r := new(Runtime)
+	r.exe = exe
+	return r
+}
+
 func (r *Runtime) Get(id string) (resp *http.Response, err error) {
-	url := fmt.Sprintf("https://%v/api/v1/IntegrationRuntimeArtifacts('%v')", r.TmnHost, id)
+	url := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')", id)
 
 	headers := map[string]string{
 		"Accept": "application/json",
 	}
-	return r.HttpExecuter.ExecGetRequest(url, headers)
+	return r.exe.ExecGetRequest(url, headers)
 }
 
 func (r *Runtime) GetVersion(id string) (string, error) {
@@ -43,10 +49,10 @@ func (r *Runtime) GetVersion(id string) (string, error) {
 	if resp.StatusCode == 404 { // artifact not deployed to runtime
 		return "", nil
 	} else if resp.StatusCode != 200 { // TODO - in Java > (code.startsWith('2'))
-		return "", r.HttpExecuter.LogError(resp, "Get runtime artifact")
+		return "", r.exe.LogError(resp, "Get runtime artifact")
 	} else {
 		var jsonData *runtimeArtifact
-		respBody, err := r.HttpExecuter.ReadRespBody(resp)
+		respBody, err := r.exe.ReadRespBody(resp)
 		err = json.Unmarshal(respBody, &jsonData)
 		if err != nil {
 			return "", err
@@ -65,10 +71,10 @@ func (r *Runtime) GetStatus(id string) (string, error) {
 		return "", err
 	}
 	if resp.StatusCode != 200 { // TODO - in Java > (code.startsWith('2'))
-		return "", r.HttpExecuter.LogError(resp, "Get runtime artifact")
+		return "", r.exe.LogError(resp, "Get runtime artifact")
 	} else {
 		var jsonData *runtimeArtifact
-		respBody, err := r.HttpExecuter.ReadRespBody(resp)
+		respBody, err := r.exe.ReadRespBody(resp)
 		err = json.Unmarshal(respBody, &jsonData)
 		if err != nil {
 			return "", err
@@ -79,20 +85,20 @@ func (r *Runtime) GetStatus(id string) (string, error) {
 }
 
 func (r *Runtime) GetErrorInfo(id string) (string, error) {
-	url := fmt.Sprintf("https://%v/api/v1/IntegrationRuntimeArtifacts('%v')/ErrorInformation/$value", r.TmnHost, id)
+	url := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')/ErrorInformation/$value", id)
 
 	headers := map[string]string{
 		"Accept": "application/json",
 	}
-	resp, err := r.HttpExecuter.ExecGetRequest(url, headers)
+	resp, err := r.exe.ExecGetRequest(url, headers)
 	if err != nil {
 		return "", nil
 	}
 	if resp.StatusCode != 200 { // TODO - in Java > (code.startsWith('2'))
-		return "", r.HttpExecuter.LogError(resp, "Get runtime artifact error information")
+		return "", r.exe.LogError(resp, "Get runtime artifact error information")
 	} else {
 		var jsonData *runtimeError
-		respBody, err := r.HttpExecuter.ReadRespBody(resp)
+		respBody, err := r.exe.ReadRespBody(resp)
 		err = json.Unmarshal(respBody, &jsonData)
 		if err != nil {
 			return "", err
