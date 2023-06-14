@@ -11,14 +11,14 @@ type Runtime struct {
 	exe *httpclnt.HTTPExecuter
 }
 
-type runtimeArtifact struct {
+type artifactData struct {
 	Root struct {
 		Version string `json:"Version"`
 		Status  string `json:"Status"`
 	} `json:"d"`
 }
 
-type runtimeError struct {
+type artifactError struct {
 	Parameter      []string `json:"parameter"`
 	ChildInstances []struct {
 		Parameter []string `json:"parameter"`
@@ -51,7 +51,7 @@ func (r *Runtime) GetVersion(id string) (string, error) {
 	} else if resp.StatusCode != 200 { // TODO - in Java > (code.startsWith('2'))
 		return "", r.exe.LogError(resp, "Get runtime artifact")
 	} else {
-		var jsonData *runtimeArtifact
+		var jsonData *artifactData
 		respBody, err := r.exe.ReadRespBody(resp)
 		err = json.Unmarshal(respBody, &jsonData)
 		if err != nil {
@@ -73,7 +73,7 @@ func (r *Runtime) GetStatus(id string) (string, error) {
 	if resp.StatusCode != 200 { // TODO - in Java > (code.startsWith('2'))
 		return "", r.exe.LogError(resp, "Get runtime artifact")
 	} else {
-		var jsonData *runtimeArtifact
+		var jsonData *artifactData
 		respBody, err := r.exe.ReadRespBody(resp)
 		err = json.Unmarshal(respBody, &jsonData)
 		if err != nil {
@@ -97,8 +97,11 @@ func (r *Runtime) GetErrorInfo(id string) (string, error) {
 	if resp.StatusCode != 200 { // TODO - in Java > (code.startsWith('2'))
 		return "", r.exe.LogError(resp, "Get runtime artifact error information")
 	} else {
-		var jsonData *runtimeError
+		var jsonData *artifactError
 		respBody, err := r.exe.ReadRespBody(resp)
+		if err != nil {
+			return "", err
+		}
 		err = json.Unmarshal(respBody, &jsonData)
 		if err != nil {
 			return "", err

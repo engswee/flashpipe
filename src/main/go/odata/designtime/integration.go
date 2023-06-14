@@ -1,4 +1,4 @@
-package odata
+package designtime
 
 import (
 	"encoding/json"
@@ -9,26 +9,27 @@ import (
 
 type Integration struct {
 	exe *httpclnt.HTTPExecuter
+	typ string
 }
 
-type designtimeArtifact struct {
+type artifactData struct {
 	Root struct {
 		Version string `json:"Version"`
 	} `json:"d"`
 }
 
 // NewIntegration returns an initialised Integration instance.
-func NewIntegration(exe *httpclnt.HTTPExecuter) DesignArtifact {
+func NewIntegration(exe *httpclnt.HTTPExecuter) DesigntimeArtifact {
 	i := new(Integration)
 	i.exe = exe
+	i.typ = "Integration"
 	return i
 }
 
 func (int *Integration) Deploy(id string) (err error) {
 	// TODO - csrf token
 
-	url := fmt.Sprintf("/api/v1/DeployIntegrationDesigntimeArtifact?Id='%s'&Version='active'", id)
-	//url := fmt.Sprintf("https://%v/api/v1/DeployMessageMappingDesigntimeArtifact?Id='%s'&Version='active'", int.host, id)
+	url := fmt.Sprintf("/api/v1/Deploy%vDesigntimeArtifact?Id='%s'&Version='active'", int.typ, id)
 
 	headers := map[string]string{
 		"Accept": "application/json",
@@ -38,14 +39,13 @@ func (int *Integration) Deploy(id string) (err error) {
 		return
 	}
 	if resp.StatusCode != 202 {
-		return int.exe.LogError(resp, "Deploy designtime artifact")
+		return int.exe.LogError(resp, fmt.Sprintf("Deploy %v designtime artifact", int.typ))
 	}
 	return nil
 }
 
 func (int *Integration) Get(id string, version string) (resp *http.Response, err error) {
-	url := fmt.Sprintf("/api/v1/IntegrationDesigntimeArtifacts(Id='%v',Version='%v')", id, version)
-	//url := fmt.Sprintf("https://%v/api/v1/MessageMappingDesigntimeArtifacts(Id='%v',Version='%v')", int.host, id, version)
+	url := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", int.typ, id, version)
 
 	headers := map[string]string{
 		"Accept": "application/json",
@@ -59,10 +59,13 @@ func (int *Integration) GetVersion(id string, version string) (string, error) {
 		return "", err
 	}
 	if resp.StatusCode != 200 {
-		return "", int.exe.LogError(resp, "Get designtime artifact")
+		return "", int.exe.LogError(resp, fmt.Sprintf("Get %v designtime artifact", int.typ))
 	} else {
-		var jsonData *designtimeArtifact
+		var jsonData *artifactData
 		respBody, err := int.exe.ReadRespBody(resp)
+		if err != nil {
+			return "", err
+		}
 		err = json.Unmarshal(respBody, &jsonData)
 		if err != nil {
 			return "", err
