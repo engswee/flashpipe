@@ -33,12 +33,12 @@ func NewRuntime(exe *httpclnt.HTTPExecuter) *Runtime {
 }
 
 func (r *Runtime) Get(id string) (resp *http.Response, err error) {
-	url := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')", id)
+	path := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')", id)
 
 	headers := map[string]string{
 		"Accept": "application/json",
 	}
-	return r.exe.ExecGetRequest(url, headers)
+	return r.exe.ExecGetRequest(path, headers)
 }
 
 func (r *Runtime) GetVersion(id string) (string, error) {
@@ -85,12 +85,12 @@ func (r *Runtime) GetStatus(id string) (string, error) {
 }
 
 func (r *Runtime) GetErrorInfo(id string) (string, error) {
-	url := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')/ErrorInformation/$value", id)
+	path := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')/ErrorInformation/$value", id)
 
 	headers := map[string]string{
 		"Accept": "application/json",
 	}
-	resp, err := r.exe.ExecGetRequest(url, headers)
+	resp, err := r.exe.ExecGetRequest(path, headers)
 	if err != nil {
 		return "", nil
 	}

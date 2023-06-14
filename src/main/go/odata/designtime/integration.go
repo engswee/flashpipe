@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
+	"github.com/engswee/flashpipe/odata"
 	"net/http"
 )
 
@@ -27,14 +28,19 @@ func NewIntegration(exe *httpclnt.HTTPExecuter) DesigntimeArtifact {
 }
 
 func (int *Integration) Deploy(id string) (err error) {
-	// TODO - csrf token
+	csrf := odata.NewCsrf(int.exe)
+	token, cookies, err := csrf.GetToken()
+	if err != nil {
+		return
+	}
 
-	url := fmt.Sprintf("/api/v1/Deploy%vDesigntimeArtifact?Id='%s'&Version='active'", int.typ, id)
+	path := fmt.Sprintf("/api/v1/Deploy%vDesigntimeArtifact?Id='%s'&Version='active'", int.typ, id)
 
 	headers := map[string]string{
-		"Accept": "application/json",
+		"x-csrf-token": token,
+		"Accept":       "application/json",
 	}
-	resp, err := int.exe.ExecRequest("POST", url, http.NoBody, headers)
+	resp, err := int.exe.ExecRequestWithCookies("POST", path, http.NoBody, headers, cookies)
 	if err != nil {
 		return
 	}
@@ -45,12 +51,12 @@ func (int *Integration) Deploy(id string) (err error) {
 }
 
 func (int *Integration) Get(id string, version string) (resp *http.Response, err error) {
-	url := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", int.typ, id, version)
+	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", int.typ, id, version)
 
 	headers := map[string]string{
 		"Accept": "application/json",
 	}
-	return int.exe.ExecGetRequest(url, headers)
+	return int.exe.ExecGetRequest(path, headers)
 }
 
 func (int *Integration) GetVersion(id string, version string) (string, error) {

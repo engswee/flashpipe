@@ -42,12 +42,11 @@ func New(oauthHost string, oauthPath string, clientId string, clientSecret strin
 		e.httpClient = &http.Client{Timeout: 5 * time.Second}
 		e.basicUserId = userId
 		e.basicPassword = password
-		// TODO - handle x-csrf-token for basic auth
 	}
 	return e
 }
 
-func (e *HTTPExecuter) ExecRequest(method string, path string, body io.Reader, headers map[string]string) (resp *http.Response, err error) {
+func (e *HTTPExecuter) ExecRequestWithCookies(method string, path string, body io.Reader, headers map[string]string, cookies []*http.Cookie) (resp *http.Response, err error) {
 
 	url := fmt.Sprintf("https://%v%v", e.host, path)
 	logger.Debug(fmt.Sprintf("Executing HTTP request: %v %v", method, url))
@@ -68,12 +67,23 @@ func (e *HTTPExecuter) ExecRequest(method string, path string, body io.Reader, h
 		req.Header.Set(k, v)
 	}
 
+	// Set cookies
+	if len(cookies) > 0 {
+		for _, cookie := range cookies {
+			req.AddCookie(cookie)
+		}
+	}
+
 	// Execute HTTP request
 	return e.httpClient.Do(req)
 }
 
+func (e *HTTPExecuter) ExecRequest(method string, path string, body io.Reader, headers map[string]string) (resp *http.Response, err error) {
+	return e.ExecRequestWithCookies(method, path, body, headers, nil)
+}
+
 func (e *HTTPExecuter) ExecGetRequest(path string, headers map[string]string) (resp *http.Response, err error) {
-	return e.ExecRequest(http.MethodGet, path, http.NoBody, headers)
+	return e.ExecRequestWithCookies(http.MethodGet, path, http.NoBody, headers, nil)
 }
 
 func (e *HTTPExecuter) ReadRespBody(resp *http.Response) ([]byte, error) {
