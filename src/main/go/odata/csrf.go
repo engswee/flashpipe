@@ -41,3 +41,16 @@ func (c *Csrf) GetToken() (string, []*http.Cookie, error) {
 	}
 	return c.token, c.csrfCookies, nil
 }
+
+func InitHeadersAndCookies(exe *httpclnt.HTTPExecuter) (headers map[string]string, cookies []*http.Cookie, err error) {
+	headers = map[string]string{}
+	cookies = []*http.Cookie{}
+
+	if exe.AuthType == "BASIC" {
+		csrf := NewCsrf(exe)
+		var token string
+		token, cookies, err = csrf.GetToken()
+		headers["x-csrf-token"] = token
+	}
+	return
+}

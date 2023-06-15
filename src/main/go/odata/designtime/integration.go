@@ -28,18 +28,14 @@ func NewIntegration(exe *httpclnt.HTTPExecuter) DesigntimeArtifact {
 }
 
 func (int *Integration) Deploy(id string) (err error) {
-	csrf := odata.NewCsrf(int.exe)
-	token, cookies, err := csrf.GetToken()
+	path := fmt.Sprintf("/api/v1/Deploy%vDesigntimeArtifact?Id='%s'&Version='active'", int.typ, id)
+
+	headers, cookies, err := odata.InitHeadersAndCookies(int.exe)
 	if err != nil {
 		return
 	}
+	headers["Accept"] = "application/json"
 
-	path := fmt.Sprintf("/api/v1/Deploy%vDesigntimeArtifact?Id='%s'&Version='active'", int.typ, id)
-
-	headers := map[string]string{
-		"x-csrf-token": token,
-		"Accept":       "application/json",
-	}
 	resp, err := int.exe.ExecRequestWithCookies("POST", path, http.NoBody, headers, cookies)
 	if err != nil {
 		return

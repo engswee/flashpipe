@@ -16,6 +16,7 @@ type HTTPExecuter struct {
 	basicPassword string
 	host          string
 	httpClient    *http.Client
+	AuthType      string
 }
 
 // New returns an initialised HTTPExecuter instance.
@@ -37,11 +38,13 @@ func New(oauthHost string, oauthPath string, clientId string, clientSecret strin
 
 		ctx := context.Background()
 		e.httpClient = conf.Client(ctx)
+		e.AuthType = "OAUTH"
 	} else {
 		logger.Debug("Initialising HTTP client with Basic Authentication")
 		e.httpClient = &http.Client{Timeout: 5 * time.Second}
 		e.basicUserId = userId
 		e.basicPassword = password
+		e.AuthType = "BASIC"
 	}
 	return e
 }
