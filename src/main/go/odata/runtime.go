@@ -19,10 +19,7 @@ type artifactData struct {
 }
 
 type artifactError struct {
-	Parameter      []string `json:"parameter"`
-	ChildInstances []struct {
-		Parameter []string `json:"parameter"`
-	} `json:"childInstances"`
+	Parameter []string `json:"parameter"`
 }
 
 // NewRuntime returns an initialised Runtime instance.
@@ -106,11 +103,6 @@ func (r *Runtime) GetErrorInfo(id string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-
-		if len(jsonData.Parameter) > 0 {
-			return jsonData.Parameter[0], nil
-		} else {
-			return jsonData.ChildInstances[0].Parameter[0], nil
-		}
+		return jsonData.Parameter[0], nil
 	}
 }
