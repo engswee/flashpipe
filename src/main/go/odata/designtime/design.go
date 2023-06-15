@@ -23,7 +23,9 @@ func GetDesigntimeArtifactByType(artifactType string, exe *httpclnt.HTTPExecuter
 		return NewMessageMapping(exe)
 	case "SCRIPT_COLLECTION":
 		return NewScriptCollection(exe)
-	default:
+	case "INTEGRATION_FLOW":
 		return NewIntegration(exe)
+	default:
+		return nil
 	}
 }
