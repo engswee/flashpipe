@@ -1,0 +1,71 @@
+package designtime
+
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/engswee/flashpipe/httpclnt"
+	"github.com/engswee/flashpipe/odata"
+	"net/http"
+)
+
+type MessageMapping struct {
+	exe *httpclnt.HTTPExecuter
+	typ string
+}
+
+// NewMessageMapping returns an initialised MessageMapping instance.
+func NewMessageMapping(exe *httpclnt.HTTPExecuter) DesigntimeArtifact {
+	mm := new(MessageMapping)
+	mm.exe = exe
+	mm.typ = "MessageMapping"
+	return mm
+}
+
+func (mm *MessageMapping) Deploy(id string) (err error) {
+	path := fmt.Sprintf("/api/v1/Deploy%vDesigntimeArtifact?Id='%s'&Version='active'", mm.typ, id)
+
+	headers, cookies, err := odata.InitHeadersAndCookies(mm.exe)
+	if err != nil {
+		return
+	}
+	headers["Accept"] = "application/json"
+
+	resp, err := mm.exe.ExecRequestWithCookies("POST", path, http.NoBody, headers, cookies)
+	if err != nil {
+		return
+	}
+	if resp.StatusCode != 202 {
+		return mm.exe.LogError(resp, fmt.Sprintf("Deploy %v designtime artifact", mm.typ))
+	}
+	return nil
+}
+
+func (mm *MessageMapping) Get(id string, version string) (resp *http.Response, err error) {
+	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", mm.typ, id, version)
+
+	headers := map[string]string{
+		"Accept": "application/json",
+	}
+	return mm.exe.ExecGetRequest(path, headers)
+}
+
+func (mm *MessageMapping) GetVersion(id string, version string) (string, error) {
+	resp, err := mm.Get(id, version)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != 200 {
+		return "", mm.exe.LogError(resp, fmt.Sprintf("Get %v designtime artifact", mm.typ))
+	} else {
+		var jsonData *designtimeArtifactData
+		respBody, err := mm.exe.ReadRespBody(resp)
+		if err != nil {
+			return "", err
+		}
+		err = json.Unmarshal(respBody, &jsonData)
+		if err != nil {
+			return "", err
+		}
+		return jsonData.Root.Version, nil
+	}
+}

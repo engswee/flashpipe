@@ -48,15 +48,10 @@ func init() {
 	setIntFlagAndBind(deployViper, deployCmd, "delaylength", 30, "Delay (in seconds) between each check of IFlow deployment status [or set environment DELAY_LENGTH]")
 	setIntFlagAndBind(deployViper, deployCmd, "maxchecklimit", 10, "Max number of times to check for IFlow deployment status [or set environment MAX_CHECK_LIMIT]")
 	setBoolFlagAndBind(deployViper, deployCmd, "compareversions", true, "Perform version comparison of design time against runtime before deployment [or set environment COMPARE_VERSIONS]")
+	setStringFlagAndBind(deployViper, deployCmd, "artifact.type", "integration", "Artifact type - INTEGRATION_FLOW, MESSAGE_MAPPING, SCRIPT_COLLECTION")
 }
 
 func deployArtifacts(iFlows string) {
-	//https://www.digitalocean.com/community/tutorials/how-to-use-json-in-go
-	//https://www.digitalocean.com/community/tutorials/how-to-make-http-requests-in-go
-	//https://pkg.go.dev/net/http
-	//https://www.alexedwards.net/blog/basic-authentication-in-go
-	//https://github.com/golang/oauth2
-	//https://www.sohamkamani.com/golang/oauth/
 
 	// Extract IDs from delimited values
 	ids := str.ExtractDelimitedValues(iFlows, ",")
@@ -69,7 +64,8 @@ func deployArtifacts(iFlows string) {
 	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost)
 
 	// Initialise designtime artifact
-	dt := designtime.NewIntegration(exe)
+	artifactType := deployViper.GetString("artifact.type")
+	dt := designtime.GetDesigntimeArtifactByType(artifactType, exe)
 
 	// Initialised runtime artifact
 	rt := odata.NewRuntime(exe)
