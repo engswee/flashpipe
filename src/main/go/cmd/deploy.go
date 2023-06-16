@@ -25,10 +25,10 @@ runtime of SAP Integration Suite tenant.`,
 		artifactType := deployViper.GetString("artifact.type")
 		switch artifactType {
 		case "MESSAGE_MAPPING", "SCRIPT_COLLECTION", "INTEGRATION_FLOW":
-			return nil
 		default:
-			return fmt.Errorf("Invalid value for --artifact-type - %v", artifactType)
+			return fmt.Errorf("invalid value for --artifact-type = %v", artifactType)
 		}
+		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		artifactType := deployViper.GetString("artifact.type")

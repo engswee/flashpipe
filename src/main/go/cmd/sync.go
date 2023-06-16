@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/repo"
 	"github.com/engswee/flashpipe/runner"
@@ -16,6 +17,43 @@ var syncCmd = &cobra.Command{
 	Short: "Sync integration flows from tenant to Git",
 	Long: `Synchronise integration flows from SAP Integration Suite
 tenant to a Git repository.`,
+	Args: func(cmd *cobra.Command, args []string) error {
+		// Validate Directory Naming Type
+		dirNamingType := syncViper.GetString("dirnamingtype")
+		switch dirNamingType {
+		case "ID", "NAME":
+		default:
+			return fmt.Errorf("invalid value for --dirnamingtype = %v", dirNamingType)
+		}
+		// Validate Draft Handling
+		draftHandling := syncViper.GetString("drafthandling")
+		switch draftHandling {
+		case "SKIP", "ADD", "ERROR":
+		default:
+			return fmt.Errorf("invalid value for --drafthandling = %v", draftHandling)
+		}
+		// Validate Normalize Manifest Action
+		normalizeManifestAction := syncViper.GetString("normalize.manifest.action")
+		switch normalizeManifestAction {
+		case "NONE", "ADD_PREFIX", "ADD_SUFFIX", "DELETE_PREFIX", "DELETE_SUFFIX":
+		default:
+			return fmt.Errorf("invalid value for --normalize-manifest-action = %v", normalizeManifestAction)
+		}
+		// Validate Normalize Package Action
+		normalizePackageAction := syncViper.GetString("normalize.package.action")
+		switch normalizePackageAction {
+		case "NONE", "ADD_PREFIX", "ADD_SUFFIX", "DELETE_PREFIX", "DELETE_SUFFIX":
+		default:
+			return fmt.Errorf("invalid value for --normalize-package-action = %v", normalizePackageAction)
+		}
+		// Validate Include/Exclude IDs
+		includedIds := syncViper.GetString("ids.include")
+		excludedIds := syncViper.GetString("ids.exclude")
+		if includedIds != "" && excludedIds != "" {
+			return fmt.Errorf("--ids.include and --ids.exclude are mutually exclusive - use only one of them")
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		logger.Info("Executing sync command")
 
