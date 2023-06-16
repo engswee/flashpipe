@@ -2,7 +2,6 @@ package httpclnt
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/engswee/flashpipe/logger"
 	"golang.org/x/oauth2/clientcredentials"
@@ -106,5 +105,5 @@ func (e *HTTPExecuter) LogError(resp *http.Response, callType string) (err error
 		logger.Error(fmt.Sprintf("Response Body = %s", body))
 	}
 
-	return errors.New(fmt.Sprintf("%v call failed with response code = %d", callType, resp.StatusCode))
+	return fmt.Errorf("%v call failed with response code = %d", callType, resp.StatusCode)
 }

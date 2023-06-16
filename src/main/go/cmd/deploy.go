@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
@@ -10,7 +9,6 @@ import (
 	"github.com/engswee/flashpipe/str"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
 	"time"
 )
 
@@ -22,16 +20,19 @@ var deployCmd = &cobra.Command{
 	Short: "Deploy designtime artifact to runtime",
 	Long: `Deploy artifact from designtime to
 runtime of SAP Integration Suite tenant.`,
+	Args: func(cmd *cobra.Command, args []string) error {
+		// Validate the artifact type
+		artifactType := deployViper.GetString("artifact.type")
+		switch artifactType {
+		case "MESSAGE_MAPPING", "SCRIPT_COLLECTION", "INTEGRATION_FLOW":
+			return nil
+		default:
+			return fmt.Errorf("Invalid value for --artifact-type - %v", artifactType)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		artifactType := deployViper.GetString("artifact.type")
 		logger.Info(fmt.Sprintf("Executing deploy %v command", artifactType))
-
-		switch artifactType {
-		case "MESSAGE_MAPPING", "SCRIPT_COLLECTION", "INTEGRATION_FLOW":
-		default:
-			logger.Error(fmt.Sprintf("Invalid artifact type - %v", artifactType))
-			os.Exit(1)
-		}
 
 		artifactIds := setMandatoryVariable(deployViper, "ids", "IFLOW_ID")
 		setOptionalVariable(deployViper, "delaylength", "DELAY_LENGTH")
@@ -158,11 +159,11 @@ func checkDeploymentStatus(runtime *odata.Runtime, delayLength int, maxCheckLimi
 				if err != nil {
 					return err
 				}
-				return errors.New(fmt.Sprintf("Artifact deployment unsuccessful, ended with status %s. Error message = %s", status, errorMessage))
+				return fmt.Errorf("Artifact deployment unsuccessful, ended with status %s. Error message = %s", status, errorMessage)
 			}
 		}
 		if i == (maxCheckLimit-1) && status != "STARTED" {
-			return errors.New(fmt.Sprintf("Artifact status remained in %s after %d checks", status, maxCheckLimit))
+			return fmt.Errorf("Artifact status remained in %s after %d checks", status, maxCheckLimit)
 		}
 		time.Sleep(time.Duration(delayLength) * time.Second)
 	}
