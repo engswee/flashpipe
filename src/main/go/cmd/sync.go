@@ -2,11 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
+	"github.com/engswee/flashpipe/odata"
 	"github.com/engswee/flashpipe/repo"
-	"github.com/engswee/flashpipe/runner"
+	"github.com/engswee/flashpipe/str"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
 )
 
 var syncViper = viper.New()
@@ -14,8 +17,8 @@ var syncViper = viper.New()
 // syncCmd represents the sync command
 var syncCmd = &cobra.Command{
 	Use:   "sync",
-	Short: "Sync integration flows from tenant to Git",
-	Long: `Synchronise integration flows from SAP Integration Suite
+	Short: "Sync designtime artifacts from tenant to Git",
+	Long: `Synchronise designtime artifacts from SAP Integration Suite
 tenant to a Git repository.`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		// Validate Directory Naming Type
@@ -57,13 +60,13 @@ tenant to a Git repository.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		logger.Info("Executing sync command")
 
-		setMandatoryVariable(syncViper, "packageid", "PACKAGE_ID")
+		packageId := setMandatoryVariable(syncViper, "packageid", "PACKAGE_ID")
 		gitSrcDir := setMandatoryVariable(syncViper, "dir.gitsrc", "GIT_SRC_DIR")
 		setOptionalVariable(syncViper, "dir.work", "WORK_DIR")
 		setOptionalVariable(syncViper, "dirnamingtype", "DIR_NAMING_TYPE")
-		setOptionalVariable(syncViper, "drafthandling", "DRAFT_HANDLING")
-		setOptionalVariable(syncViper, "ids.include", "INCLUDE_IDS")
-		setOptionalVariable(syncViper, "ids.exclude", "EXCLUDE_IDS")
+		draftHandling := setOptionalVariable(syncViper, "drafthandling", "DRAFT_HANDLING")
+		delimitedIdsInclude := setOptionalVariable(syncViper, "ids.include", "INCLUDE_IDS")
+		delimitedIdsExclude := setOptionalVariable(syncViper, "ids.exclude", "EXCLUDE_IDS")
 		commitMsg := setOptionalVariable(syncViper, "git.commitmsg", "COMMIT_MESSAGE")
 		setOptionalVariable(syncViper, "scriptmap", "SCRIPT_COLLECTION_MAP")
 		setOptionalVariable(syncViper, "normalize.manifest.action", "NORMALIZE_MANIFEST_ACTION")
@@ -73,10 +76,12 @@ tenant to a Git repository.`,
 		setOptionalVariable(syncViper, "normalize.package.prefixsuffix.id", "NORMALIZE_PACKAGE_ID_PREFIX_SUFFIX")
 		setOptionalVariable(syncViper, "normalize.package.prefixsuffix.name", "NORMALIZE_PACKAGE_NAME_PREFIX_SUFFIX")
 
-		_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.DownloadIntegrationPackageContent", mavenRepoLocation, flashpipeLocation, log4jFile)
-		logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+		//_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.DownloadIntegrationPackageContent", mavenRepoLocation, flashpipeLocation, log4jFile)
+		//logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
-		err = repo.CommitToRepo(gitSrcDir, commitMsg)
+		syncPackage(packageId, draftHandling, delimitedIdsInclude, delimitedIdsExclude)
+
+		err := repo.CommitToRepo(gitSrcDir, commitMsg)
 		logger.ExitIfError(err)
 	},
 }
@@ -107,4 +112,50 @@ func init() {
 	setStringFlagAndBind(syncViper, syncCmd, "normalize.package.action", "NONE", "Action for normalizing Package ID & Name package file. Allowed values: NONE, ADD_PREFIX, ADD_SUFFIX, DELETE_PREFIX, DELETE_SUFFIX [or set environment NORMALIZE_PACKAGE_ACTION]")
 	setStringFlagAndBind(syncViper, syncCmd, "normalize.package.prefixsuffix.id", "", "Prefix/suffix used for normalizing Package ID [or set environment NORMALIZE_PACKAGE_ID_PREFIX_SUFFIX]")
 	setStringFlagAndBind(syncViper, syncCmd, "normalize.package.prefixsuffix.name", "", "Prefix/suffix used for normalizing Package Name [or set environment NORMALIZE_PACKAGE_NAME_PREFIX_SUFFIX]")
+}
+
+func syncPackage(packageId string, draftHandling string, delimitedIdsInclude string, delimitedIdsExclude string) {
+	// Extract IDs from delimited values
+	includedIds := str.ExtractDelimitedValues(delimitedIdsInclude, ",")
+	excludedIds := str.ExtractDelimitedValues(delimitedIdsExclude, ",")
+
+	// TODO
+	_ = includedIds
+	_ = excludedIds
+
+	// Initialise HTTP executer
+	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost)
+
+	// Get all design time artifacts of package
+	logger.Info(fmt.Sprintf("Getting artifacts in integration package %v", packageId))
+	// Verify the package is downloadable
+	ip := odata.NewIntegrationPackage(exe)
+	readOnly, err := ip.IsReadOnly(packageId)
+	logger.ExitIfError(err)
+	if readOnly {
+		logger.Warn(fmt.Sprintf("Skipping package %v as it is Configure-only and cannot be downloaded", packageId))
+		return
+	}
+	artifacts, err := ip.GetAllArtifacts(packageId)
+	logger.ExitIfError(err)
+
+	for _, artifact := range artifacts {
+		logger.Info("---------------------------------------------------------------------------------")
+		logger.Info(fmt.Sprintf("📢 Begin processing for artifact %v", artifact.Id))
+		if artifact.IsDraft {
+			switch draftHandling {
+			case "SKIP":
+				logger.Warn(fmt.Sprintf("Artifact %v is in draft version, and will be skipped", artifact.Id))
+				continue
+			case "ADD":
+				logger.Info(fmt.Sprintf("Artifact %v is in draft version, and will be added", artifact.Id))
+			case "ERROR":
+				logger.Error(fmt.Sprintf("Artifact %v is in draft version. Save Version in Web UI first!", artifact.Id))
+				os.Exit(1)
+			}
+		}
+		logger.Info(fmt.Sprintf("Downloading artifact %v from tenant for comparison", artifact.Id))
+	}
+	logger.Info("---------------------------------------------------------------------------------")
+	logger.Info(fmt.Sprintf("🏆 Completed processing of artifacts in integration package %v", packageId))
 }
