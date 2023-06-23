@@ -69,3 +69,17 @@ func (int *Integration) GetVersion(id string, version string) (string, error) {
 		return jsonData.Root.Version, nil
 	}
 }
+
+func (int *Integration) Download(id string, version string) ([]byte, error) {
+	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')/$value", int.typ, id, version)
+
+	resp, err := int.exe.ExecGetRequest(path, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, int.exe.LogError(resp, fmt.Sprintf("Download %v designtime artifact", int.typ))
+	} else {
+		return int.exe.ReadRespBody(resp)
+	}
+}

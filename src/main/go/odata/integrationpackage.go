@@ -40,15 +40,12 @@ type artifactData struct {
 	} `json:"d"`
 }
 
-type artifactDetails struct {
-	Id      string
-	Name    string
-	IsDraft bool
+type ArtifactDetails struct {
+	Id           string
+	Name         string
+	IsDraft      bool
+	ArtifactType string
 }
-
-//type artifactError struct {
-//	Parameter []string `json:"parameter"`
-//}
 
 // NewIntegrationPackage returns an initialised IntegrationPackage instance.
 func NewIntegrationPackage(exe *httpclnt.HTTPExecuter) *IntegrationPackage {
@@ -98,7 +95,7 @@ func (ip *IntegrationPackage) GetArtifactsByType(id string, artifactType string)
 	return ip.exe.ExecGetRequest(path, headers)
 }
 
-func (ip *IntegrationPackage) GetArtifactsData(id string, artifactType string) ([]*artifactDetails, error) {
+func (ip *IntegrationPackage) GetArtifactsData(id string, artifactType string) ([]*ArtifactDetails, error) {
 	//logger.Info("Checking if package is marked as read only")
 	resp, err := ip.GetArtifactsByType(id, artifactType)
 	if err != nil {
@@ -112,8 +109,9 @@ func (ip *IntegrationPackage) GetArtifactsData(id string, artifactType string) (
 		err = json.Unmarshal(respBody, &jsonData)
 		if err != nil {
 			return nil, err
+			panic(err)
 		}
-		var details []*artifactDetails
+		var details []*ArtifactDetails
 		for _, result := range jsonData.Root.Results {
 			var draft bool
 			if result.Version == "Active" {
@@ -121,18 +119,19 @@ func (ip *IntegrationPackage) GetArtifactsData(id string, artifactType string) (
 			} else {
 				draft = false
 			}
-			details = append(details, &artifactDetails{
-				Id:      result.Id,
-				Name:    result.Name,
-				IsDraft: draft,
+			details = append(details, &ArtifactDetails{
+				Id:           result.Id,
+				Name:         result.Name,
+				IsDraft:      draft,
+				ArtifactType: artifactType,
 			})
 		}
 		return details, nil
 	}
 }
 
-func (ip *IntegrationPackage) GetAllArtifacts(id string) ([]*artifactDetails, error) {
-	var details []*artifactDetails
+func (ip *IntegrationPackage) GetAllArtifacts(id string) ([]*ArtifactDetails, error) {
+	var details []*ArtifactDetails
 	integrations, err := ip.GetArtifactsData(id, "Integration")
 	if err != nil {
 		return nil, err

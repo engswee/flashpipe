@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/engswee/flashpipe/file"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/odata"
+	"github.com/engswee/flashpipe/odata/designtime"
 	"github.com/engswee/flashpipe/repo"
 	"github.com/engswee/flashpipe/str"
 	"github.com/spf13/cobra"
@@ -62,7 +64,7 @@ tenant to a Git repository.`,
 
 		packageId := setMandatoryVariable(syncViper, "packageid", "PACKAGE_ID")
 		gitSrcDir := setMandatoryVariable(syncViper, "dir.gitsrc", "GIT_SRC_DIR")
-		setOptionalVariable(syncViper, "dir.work", "WORK_DIR")
+		workDir := setOptionalVariable(syncViper, "dir.work", "WORK_DIR")
 		setOptionalVariable(syncViper, "dirnamingtype", "DIR_NAMING_TYPE")
 		draftHandling := setOptionalVariable(syncViper, "drafthandling", "DRAFT_HANDLING")
 		delimitedIdsInclude := setOptionalVariable(syncViper, "ids.include", "INCLUDE_IDS")
@@ -78,8 +80,10 @@ tenant to a Git repository.`,
 
 		//_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.DownloadIntegrationPackageContent", mavenRepoLocation, flashpipeLocation, log4jFile)
 		//logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
-
-		syncPackage(packageId, draftHandling, delimitedIdsInclude, delimitedIdsExclude)
+		// Extract IDs from delimited values
+		includedIds := str.ExtractDelimitedValues(delimitedIdsInclude, ",")
+		excludedIds := str.ExtractDelimitedValues(delimitedIdsExclude, ",")
+		syncPackage(packageId, workDir, gitSrcDir, draftHandling, includedIds, excludedIds)
 
 		err := repo.CommitToRepo(gitSrcDir, commitMsg)
 		logger.ExitIfError(err)
@@ -114,14 +118,7 @@ func init() {
 	setStringFlagAndBind(syncViper, syncCmd, "normalize.package.prefixsuffix.name", "", "Prefix/suffix used for normalizing Package Name [or set environment NORMALIZE_PACKAGE_NAME_PREFIX_SUFFIX]")
 }
 
-func syncPackage(packageId string, draftHandling string, delimitedIdsInclude string, delimitedIdsExclude string) {
-	// Extract IDs from delimited values
-	includedIds := str.ExtractDelimitedValues(delimitedIdsInclude, ",")
-	excludedIds := str.ExtractDelimitedValues(delimitedIdsExclude, ",")
-
-	// TODO
-	_ = includedIds
-	_ = excludedIds
+func syncPackage(packageId string, workDir string, gitSrcDir string, draftHandling string, includedIds []string, excludedIds []string) {
 
 	// Initialise HTTP executer
 	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost)
@@ -139,9 +136,22 @@ func syncPackage(packageId string, draftHandling string, delimitedIdsInclude str
 	artifacts, err := ip.GetAllArtifacts(packageId)
 	logger.ExitIfError(err)
 
-	for _, artifact := range artifacts {
+	// Create temp directories in working dir
+	err = os.MkdirAll(workDir+"/download", os.ModePerm)
+	logger.ExitIfError(err)
+	//err = os.MkdirAll(workDir+"/from_git", os.ModePerm)
+	//logger.ExitIfError(err)
+	//err = os.MkdirAll(workDir+"/from_tenant", os.ModePerm)
+	//logger.ExitIfError(err)
+
+	filtered, err := filterArtifacts(artifacts, includedIds, excludedIds)
+	logger.ExitIfError(err)
+
+	// Process through the artifacts
+	for _, artifact := range filtered {
 		logger.Info("---------------------------------------------------------------------------------")
 		logger.Info(fmt.Sprintf("📢 Begin processing for artifact %v", artifact.Id))
+		// Check if artifact is in draft version
 		if artifact.IsDraft {
 			switch draftHandling {
 			case "SKIP":
@@ -154,8 +164,141 @@ func syncPackage(packageId string, draftHandling string, delimitedIdsInclude str
 				os.Exit(1)
 			}
 		}
+		// Download IFlow
 		logger.Info(fmt.Sprintf("Downloading artifact %v from tenant for comparison", artifact.Id))
+		dt := designtime.GetDesigntimeArtifactByType(artifact.ArtifactType, exe)
+		bytes, err := dt.Download(artifact.Id, "active")
+		logger.ExitIfError(err)
+		targetDownloadFile := fmt.Sprintf("%v/download/%v.zip", workDir, artifact.Id)
+		err = os.WriteFile(targetDownloadFile, bytes, os.ModePerm)
+		logger.ExitIfError(err)
+		logger.Info(fmt.Sprintf("Artifact %v downloaded to %v", artifact.Id, targetDownloadFile))
+		//logger.Info(string(bytes))
+
+		// Normalise ID and Name
+
+		// Unzip artifact contents
+		directoryName := artifact.Id // TODO - normalise
+		logger.Debug(fmt.Sprintf("Target artifact directory name - %v", directoryName))
+		downloadedArtifactPath := fmt.Sprintf("%v/download/%v", workDir, directoryName)
+		err = file.UnzipSource(targetDownloadFile, downloadedArtifactPath)
+		logger.ExitIfError(err)
+		logger.Info(fmt.Sprintf("Downloaded artifact unzipped to %v", downloadedArtifactPath))
+
+		// Normalize MANIFEST.MF before sync to Git
+
+		// Normalize the script collection in IFlow BPMN2 XML before syncing to Git
+		gitArtifactPath := fmt.Sprintf("%v/%v", gitSrcDir, directoryName)
+		artifactManifest := fmt.Sprintf("%v/%v/META-INF/MANIFEST.MF", gitSrcDir, directoryName)
+		if file.CheckFileExists(artifactManifest) {
+			// (1) If IFlow already exists in Git, then compare and update
+			logger.Info("Comparing content from tenant against Git")
+
+			// Copy to temp directory for diff comparison
+
+			// Remove comments from parameters.prop before comparison only if it exists
+
+			// Diff directories excluding parameters.prop
+			dirDiffer := diffDirectories(downloadedArtifactPath, gitSrcDir+"/"+directoryName)
+			// Diff parameters.prop ignoring commented lines
+			downloadedParams := fmt.Sprintf("%v/src/main/resources/parameters.prop", downloadedArtifactPath)
+			gitParams := fmt.Sprintf("%v/src/main/resources/parameters.prop", gitArtifactPath)
+			var paramDiffer bool
+			if file.CheckFileExists(downloadedParams) && file.CheckFileExists(gitParams) {
+				paramDiffer = diffParams(downloadedParams, gitParams)
+			} else if !file.CheckFileExists(downloadedParams) && !file.CheckFileExists(gitParams) {
+				logger.Warn("Skipping diff of parameters.prop as it does not exist in both source and target")
+			} else {
+				paramDiffer = true
+				logger.Info("Update required since parameters.prop does not exist in either source or target")
+			}
+
+			if dirDiffer || paramDiffer {
+				logger.Info("🏆 Changes detected and will be updated to Git")
+				// Update the changes into the Git directory
+				if file.CheckFileExists(gitArtifactPath) {
+					err = os.RemoveAll(gitArtifactPath)
+					logger.ExitIfError(err)
+				}
+				err = file.CopyDir(downloadedArtifactPath, gitArtifactPath)
+				logger.ExitIfError(err)
+			} else {
+				logger.Info("🏆 No changes detected. Update to Git not required")
+			}
+
+		} else {
+			// (2) If IFlow does not exist in Git, then add it
+			logger.Info(fmt.Sprintf("🏆 Artifact %v does not exist, and will be added to Git", artifact.Id))
+			if !file.CheckFileExists(gitSrcDir) {
+				err = os.MkdirAll(gitSrcDir, os.ModePerm)
+				logger.ExitIfError(err)
+			}
+
+			if file.CheckFileExists(gitArtifactPath) {
+				err = os.RemoveAll(gitArtifactPath)
+				logger.ExitIfError(err)
+			}
+			err = file.CopyDir(downloadedArtifactPath, gitArtifactPath)
+			logger.ExitIfError(err)
+		}
 	}
+
+	// TODO - write error wrapper - https://go.dev/blog/errors-are-values
+	// Clean up working directory
+	err = os.RemoveAll(workDir + "/download")
+	logger.ExitIfError(err)
+	//err = os.RemoveAll(workDir + "/from_git")
+	//logger.ExitIfError(err)
+	//err = os.RemoveAll(workDir + "/from_tenant")
+	//logger.ExitIfError(err)
+
 	logger.Info("---------------------------------------------------------------------------------")
 	logger.Info(fmt.Sprintf("🏆 Completed processing of artifacts in integration package %v", packageId))
+}
+
+func filterArtifacts(artifacts []*odata.ArtifactDetails, includedIds []string, excludedIds []string) ([]*odata.ArtifactDetails, error) {
+	var output []*odata.ArtifactDetails
+	if len(includedIds) > 0 {
+		for _, id := range includedIds {
+			artifact := findArtifactById(id, artifacts)
+			if artifact != nil {
+				output = append(output, artifact)
+			} else {
+				return nil, fmt.Errorf("Artifact %v in INCLUDE_IDS does not exist", id)
+			}
+		}
+		return output, nil
+	} else if len(excludedIds) > 0 {
+		for _, id := range excludedIds {
+			artifact := findArtifactById(id, artifacts)
+			if artifact == nil {
+				return nil, fmt.Errorf("Artifact %v in EXCLUDE_IDS does not exist", id)
+			}
+		}
+		for _, artifact := range artifacts {
+			if !contains(artifact.Id, excludedIds) {
+				output = append(output, artifact)
+			}
+		}
+		return output, nil
+	}
+	return artifacts, nil
+}
+
+func findArtifactById(key string, list []*odata.ArtifactDetails) *odata.ArtifactDetails {
+	for _, s := range list {
+		if s.Id == key {
+			return s
+		}
+	}
+	return nil
+}
+
+func contains(key string, list []string) bool {
+	for _, s := range list {
+		if s == key {
+			return true
+		}
+	}
+	return false
 }

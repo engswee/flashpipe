@@ -40,7 +40,7 @@ func New(oauthHost string, oauthPath string, clientId string, clientSecret strin
 		e.AuthType = "OAUTH"
 	} else {
 		logger.Debug("Initialising HTTP client with Basic Authentication")
-		e.httpClient = &http.Client{Timeout: 5 * time.Second}
+		e.httpClient = &http.Client{Timeout: 10 * time.Second} // TODO - compare with Apache HTTP default timeout
 		e.basicUserId = userId
 		e.basicPassword = password
 		e.AuthType = "BASIC"

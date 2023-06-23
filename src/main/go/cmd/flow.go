@@ -175,19 +175,25 @@ func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflo
 }
 
 func diffDirectories(firstDir string, secondDir string) bool {
-	//https: //pkg.go.dev/github.com/udhos/equalfile
-	//https: //github.com/sergi/go-diff
-	//https://github.com/spcau/godiff
-	//	dmp := diffmatchpatch.New()
-	//
-	//	diffs := dmp.DiffMain("text1", "text2", false)
-	//
-	//	fmt.Println(dmp.DiffPrettyText(diffs))
-
 	// Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
 	// Therefore diff of parameters.prop may come up with false differences
-	logger.Info("Executing command:", "diff", "--ignore-matching-lines=^Origin.*", "--strip-trailing-cr", "--recursive", "--ignore-all-space", "--ignore-blank-lines", "--exclude=parameters.prop", "--exclude=.DS_Store", firstDir, secondDir)
-	cmd := exec.Command("diff", "--ignore-matching-lines=^Origin.*", "--strip-trailing-cr", "--recursive", "--ignore-all-space", "--ignore-blank-lines", "--exclude=parameters.prop", "--exclude=.DS_Store", firstDir, secondDir)
+	logger.Info("Executing command:", "diff", "--ignore-matching-lines=^Origin.*", "--strip-trailing-cr", "--recursive", "--ignore-all-space", "--ignore-blank-lines", "--exclude=parameters.prop", "--exclude=metainfo.prop", "--exclude=.DS_Store", firstDir, secondDir)
+	cmd := exec.Command("diff", "--ignore-matching-lines=^Origin.*", "--strip-trailing-cr", "--recursive", "--ignore-all-space", "--ignore-blank-lines", "--exclude=parameters.prop", "--exclude=metainfo.prop", "--exclude=.DS_Store", firstDir, secondDir)
+
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Println(string(stdoutStderr))
+	}
+
+	return err != nil
+}
+
+func diffParams(firstFile string, secondFile string) bool {
+	// Compare parameters.prop
+	// - ignoring commented lines (beginning with #)
+	// - ignorring blank lines and extra white space
+	logger.Info("Executing command:", "diff", "--ignore-matching-lines=^#.*", "--strip-trailing-cr", "--ignore-all-space", "--ignore-blank-lines", firstFile, secondFile)
+	cmd := exec.Command("diff", "--ignore-matching-lines=^#.*", "--strip-trailing-cr", "--ignore-all-space", "--ignore-blank-lines", firstFile, secondFile)
 
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {

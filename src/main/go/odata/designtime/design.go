@@ -9,6 +9,7 @@ type DesigntimeArtifact interface {
 	Deploy(id string) error
 	Get(id string, version string) (*http.Response, error)
 	GetVersion(id string, version string) (string, error)
+	Download(id string, version string) ([]byte, error)
 }
 
 type designtimeArtifactData struct {
@@ -19,11 +20,11 @@ type designtimeArtifactData struct {
 
 func GetDesigntimeArtifactByType(artifactType string, exe *httpclnt.HTTPExecuter) DesigntimeArtifact {
 	switch artifactType {
-	case "MESSAGE_MAPPING":
+	case "MessageMapping":
 		return NewMessageMapping(exe)
-	case "SCRIPT_COLLECTION":
+	case "ScriptCollection":
 		return NewScriptCollection(exe)
-	case "INTEGRATION_FLOW":
+	case "Integration":
 		return NewIntegration(exe)
 	default:
 		return nil

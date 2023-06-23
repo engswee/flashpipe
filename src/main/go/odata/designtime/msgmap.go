@@ -69,3 +69,17 @@ func (mm *MessageMapping) GetVersion(id string, version string) (string, error) 
 		return jsonData.Root.Version, nil
 	}
 }
+
+func (mm *MessageMapping) Download(id string, version string) ([]byte, error) {
+	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')/$value", mm.typ, id, version)
+
+	resp, err := mm.exe.ExecGetRequest(path, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, mm.exe.LogError(resp, fmt.Sprintf("Download %v designtime artifact", mm.typ))
+	} else {
+		return mm.exe.ReadRespBody(resp)
+	}
+}

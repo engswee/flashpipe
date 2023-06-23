@@ -69,3 +69,17 @@ func (sc *ScriptCollection) GetVersion(id string, version string) (string, error
 		return jsonData.Root.Version, nil
 	}
 }
+
+func (sc *ScriptCollection) Download(id string, version string) ([]byte, error) {
+	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')/$value", sc.typ, id, version)
+
+	resp, err := sc.exe.ExecGetRequest(path, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, sc.exe.LogError(resp, fmt.Sprintf("Download %v designtime artifact", sc.typ))
+	} else {
+		return sc.exe.ReadRespBody(resp)
+	}
+}
