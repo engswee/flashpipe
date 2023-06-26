@@ -24,7 +24,7 @@ runtime of SAP Integration Suite tenant.`,
 		// Validate the artifact type
 		artifactType := deployViper.GetString("artifact.type")
 		switch artifactType {
-		case "MESSAGE_MAPPING", "SCRIPT_COLLECTION", "INTEGRATION_FLOW":
+		case "MessageMapping", "ScriptCollection", "Integration":
 		default:
 			return fmt.Errorf("invalid value for --artifact-type = %v", artifactType)
 		}
@@ -58,7 +58,7 @@ func init() {
 	setIntFlagAndBind(deployViper, deployCmd, "delaylength", 30, "Delay (in seconds) between each check of artifact deployment status [or set environment DELAY_LENGTH]")
 	setIntFlagAndBind(deployViper, deployCmd, "maxchecklimit", 10, "Max number of times to check for artifact deployment status [or set environment MAX_CHECK_LIMIT]")
 	setBoolFlagAndBind(deployViper, deployCmd, "compareversions", true, "Perform version comparison of design time against runtime before deployment [or set environment COMPARE_VERSIONS]")
-	setStringFlagAndBind(deployViper, deployCmd, "artifact.type", "INTEGRATION_FLOW", "Artifact type. Allowed values: INTEGRATION_FLOW, MESSAGE_MAPPING, SCRIPT_COLLECTION")
+	setStringFlagAndBind(deployViper, deployCmd, "artifact.type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection")
 }
 
 func deployArtifacts(delimitedIds string, artifactType string) {
@@ -71,7 +71,7 @@ func deployArtifacts(delimitedIds string, artifactType string) {
 	compareVersions := deployViper.GetBool("compareversions")
 
 	// Initialise HTTP executer
-	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost)
+	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost, "https", "443")
 
 	// Initialise designtime artifact
 	dt := designtime.GetDesigntimeArtifactByType(artifactType, exe)
@@ -85,6 +85,7 @@ func deployArtifacts(delimitedIds string, artifactType string) {
 		err := deploySingle(dt, rt, id, compareVersions)
 		logger.ExitIfError(err)
 	}
+	// TODO - write error wrapper - https://go.dev/blog/errors-are-values
 
 	// Delay to allow deployment to start before checking the status
 	// Only applicable if there is only 1 artifact, because if there are many, then there is an inherent delay already
@@ -96,6 +97,7 @@ func deployArtifacts(delimitedIds string, artifactType string) {
 	for i, id := range ids {
 		err := checkDeploymentStatus(rt, delayLength, maxCheckLimit, id)
 		logger.ExitIfError(err)
+		// TODO - write error wrapper - https://go.dev/blog/errors-are-values
 
 		logger.Info(fmt.Sprintf("Artifact %d - %v deployed successfully", i+1, id))
 	}

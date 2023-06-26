@@ -37,19 +37,19 @@ tenant to a Git repository.`,
 		default:
 			return fmt.Errorf("invalid value for --drafthandling = %v", draftHandling)
 		}
-		// Validate Normalize Manifest Action
-		normalizeManifestAction := syncViper.GetString("normalize.manifest.action")
-		switch normalizeManifestAction {
+		// Validate Normalise Manifest Action
+		normaliseManifestAction := syncViper.GetString("normalize.manifest.action")
+		switch normaliseManifestAction {
 		case "NONE", "ADD_PREFIX", "ADD_SUFFIX", "DELETE_PREFIX", "DELETE_SUFFIX":
 		default:
-			return fmt.Errorf("invalid value for --normalize-manifest-action = %v", normalizeManifestAction)
+			return fmt.Errorf("invalid value for --normalize-manifest-action = %v", normaliseManifestAction)
 		}
-		// Validate Normalize Package Action
-		normalizePackageAction := syncViper.GetString("normalize.package.action")
-		switch normalizePackageAction {
+		// Validate Normalise Package Action
+		normalisePackageAction := syncViper.GetString("normalize.package.action")
+		switch normalisePackageAction {
 		case "NONE", "ADD_PREFIX", "ADD_SUFFIX", "DELETE_PREFIX", "DELETE_SUFFIX":
 		default:
-			return fmt.Errorf("invalid value for --normalize-package-action = %v", normalizePackageAction)
+			return fmt.Errorf("invalid value for --normalize-package-action = %v", normalisePackageAction)
 		}
 		// Validate Include/Exclude IDs
 		includedIds := syncViper.GetString("ids.include")
@@ -65,14 +65,14 @@ tenant to a Git repository.`,
 		packageId := setMandatoryVariable(syncViper, "packageid", "PACKAGE_ID")
 		gitSrcDir := setMandatoryVariable(syncViper, "dir.gitsrc", "GIT_SRC_DIR")
 		workDir := setOptionalVariable(syncViper, "dir.work", "WORK_DIR")
-		setOptionalVariable(syncViper, "dirnamingtype", "DIR_NAMING_TYPE")
+		dirNamingType := setOptionalVariable(syncViper, "dirnamingtype", "DIR_NAMING_TYPE")
 		draftHandling := setOptionalVariable(syncViper, "drafthandling", "DRAFT_HANDLING")
 		delimitedIdsInclude := setOptionalVariable(syncViper, "ids.include", "INCLUDE_IDS")
 		delimitedIdsExclude := setOptionalVariable(syncViper, "ids.exclude", "EXCLUDE_IDS")
 		commitMsg := setOptionalVariable(syncViper, "git.commitmsg", "COMMIT_MESSAGE")
 		setOptionalVariable(syncViper, "scriptmap", "SCRIPT_COLLECTION_MAP")
-		setOptionalVariable(syncViper, "normalize.manifest.action", "NORMALIZE_MANIFEST_ACTION")
-		setOptionalVariable(syncViper, "normalize.manifest.prefixsuffix", "NORMALIZE_MANIFEST_PREFIX_SUFFIX")
+		normaliseManifestAction := setOptionalVariable(syncViper, "normalize.manifest.action", "NORMALIZE_MANIFEST_ACTION")
+		normaliseManifestPrefixOrSuffix := setOptionalVariable(syncViper, "normalize.manifest.prefixsuffix", "NORMALIZE_MANIFEST_PREFIX_SUFFIX")
 		setOptionalVariable(syncViper, "syncpackagedetails", "SYNC_PACKAGE_LEVEL_DETAILS")
 		setOptionalVariable(syncViper, "normalize.package.action", "NORMALIZE_PACKAGE_ACTION")
 		setOptionalVariable(syncViper, "normalize.package.prefixsuffix.id", "NORMALIZE_PACKAGE_ID_PREFIX_SUFFIX")
@@ -83,7 +83,7 @@ tenant to a Git repository.`,
 		// Extract IDs from delimited values
 		includedIds := str.ExtractDelimitedValues(delimitedIdsInclude, ",")
 		excludedIds := str.ExtractDelimitedValues(delimitedIdsExclude, ",")
-		syncPackage(packageId, workDir, gitSrcDir, draftHandling, includedIds, excludedIds)
+		syncPackage(packageId, workDir, gitSrcDir, includedIds, excludedIds, draftHandling, dirNamingType, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
 
 		err := repo.CommitToRepo(gitSrcDir, commitMsg)
 		logger.ExitIfError(err)
@@ -118,10 +118,10 @@ func init() {
 	setStringFlagAndBind(syncViper, syncCmd, "normalize.package.prefixsuffix.name", "", "Prefix/suffix used for normalizing Package Name [or set environment NORMALIZE_PACKAGE_NAME_PREFIX_SUFFIX]")
 }
 
-func syncPackage(packageId string, workDir string, gitSrcDir string, draftHandling string, includedIds []string, excludedIds []string) {
+func syncPackage(packageId string, workDir string, gitSrcDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, normaliseManifestAction string, normaliseManifestPrefixOrSuffix string) {
 
 	// Initialise HTTP executer
-	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost)
+	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost, "https", "443")
 
 	// Get all design time artifacts of package
 	logger.Info(fmt.Sprintf("Getting artifacts in integration package %v", packageId))
@@ -139,6 +139,7 @@ func syncPackage(packageId string, workDir string, gitSrcDir string, draftHandli
 	// Create temp directories in working dir
 	err = os.MkdirAll(workDir+"/download", os.ModePerm)
 	logger.ExitIfError(err)
+	// TODO - collect error for handling
 	//err = os.MkdirAll(workDir+"/from_git", os.ModePerm)
 	//logger.ExitIfError(err)
 	//err = os.MkdirAll(workDir+"/from_tenant", os.ModePerm)
@@ -160,8 +161,7 @@ func syncPackage(packageId string, workDir string, gitSrcDir string, draftHandli
 			case "ADD":
 				logger.Info(fmt.Sprintf("Artifact %v is in draft version, and will be added", artifact.Id))
 			case "ERROR":
-				logger.Error(fmt.Sprintf("Artifact %v is in draft version. Save Version in Web UI first!", artifact.Id))
-				os.Exit(1)
+				logger.ExitIfError(fmt.Errorf("Artifact %v is in draft version. Save Version in Web UI first!", artifact.Id))
 			}
 		}
 		// Download IFlow
@@ -173,33 +173,53 @@ func syncPackage(packageId string, workDir string, gitSrcDir string, draftHandli
 		err = os.WriteFile(targetDownloadFile, bytes, os.ModePerm)
 		logger.ExitIfError(err)
 		logger.Info(fmt.Sprintf("Artifact %v downloaded to %v", artifact.Id, targetDownloadFile))
-		//logger.Info(string(bytes))
 
 		// Normalise ID and Name
+		normalisedId := str.Normalise(artifact.Id, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
+		normalisedName := str.Normalise(artifact.Name, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
+		logger.Debug(fmt.Sprintf("Normalized artifact ID - %v", normalisedId))
+		logger.Debug(fmt.Sprintf("Normalized artifact name - %v", normalisedName))
 
+		var directoryName string
+		if dirNamingType == "NAME" {
+			directoryName = normalisedName
+		} else {
+			directoryName = normalisedId
+		}
 		// Unzip artifact contents
-		directoryName := artifact.Id // TODO - normalise
 		logger.Debug(fmt.Sprintf("Target artifact directory name - %v", directoryName))
 		downloadedArtifactPath := fmt.Sprintf("%v/download/%v", workDir, directoryName)
 		err = file.UnzipSource(targetDownloadFile, downloadedArtifactPath)
 		logger.ExitIfError(err)
 		logger.Info(fmt.Sprintf("Downloaded artifact unzipped to %v", downloadedArtifactPath))
 
-		// Normalize MANIFEST.MF before sync to Git
+		// Normalize MANIFEST.MF before sync to Git - TODO
+		// https://github.com/gnewton/jargo/blob/master/jar.go
+		//https://pkg.go.dev/github.com/quay/claircore/java/jar
+		//https://github.com/quay/claircore/blob/v1.5.8/java/jar/jar.go
+		//https://pkg.go.dev/net/textproto#Reader.ReadMIMEHeader
 
-		// Normalize the script collection in IFlow BPMN2 XML before syncing to Git
+		//ScriptCollection scriptCollection = ScriptCollection.newInstance(scriptCollectionMap)
+		//Map collections = scriptCollection.getCollections()
+		//ManifestHandler.newInstance("${workDir}/download/${directoryName}/META-INF/MANIFEST.MF").normalizeAttributesInFile(normalizedIFlowID, normalizedIFlowName, scriptCollection.getTargetCollectionValues())
+
+		// Normalize the script collection in IFlow BPMN2 XML before syncing to Git - TODO
+		//if (collections.size()) {
+		//	BPMN2Handler bpmn2Handler = new BPMN2Handler()
+		//	bpmn2Handler.updateFiles(collections, "${workDir}/download/${directoryName}")
+		//}
+
 		gitArtifactPath := fmt.Sprintf("%v/%v", gitSrcDir, directoryName)
-		artifactManifest := fmt.Sprintf("%v/%v/META-INF/MANIFEST.MF", gitSrcDir, directoryName)
-		if file.CheckFileExists(artifactManifest) {
+		if file.CheckFileExists(fmt.Sprintf("%v/META-INF/MANIFEST.MF", gitArtifactPath)) {
 			// (1) If IFlow already exists in Git, then compare and update
 			logger.Info("Comparing content from tenant against Git")
 
+			// TODO - no longer required?
 			// Copy to temp directory for diff comparison
-
 			// Remove comments from parameters.prop before comparison only if it exists
 
 			// Diff directories excluding parameters.prop
-			dirDiffer := diffDirectories(downloadedArtifactPath, gitSrcDir+"/"+directoryName)
+			dirDiffer := diffDirectories(downloadedArtifactPath, gitArtifactPath)
 			// Diff parameters.prop ignoring commented lines
 			downloadedParams := fmt.Sprintf("%v/src/main/resources/parameters.prop", downloadedArtifactPath)
 			gitParams := fmt.Sprintf("%v/src/main/resources/parameters.prop", gitArtifactPath)
@@ -216,29 +236,16 @@ func syncPackage(packageId string, workDir string, gitSrcDir string, draftHandli
 			if dirDiffer || paramDiffer {
 				logger.Info("🏆 Changes detected and will be updated to Git")
 				// Update the changes into the Git directory
-				if file.CheckFileExists(gitArtifactPath) {
-					err = os.RemoveAll(gitArtifactPath)
-					logger.ExitIfError(err)
-				}
-				err = file.CopyDir(downloadedArtifactPath, gitArtifactPath)
+				err = file.ReplaceDir(downloadedArtifactPath, gitArtifactPath)
 				logger.ExitIfError(err)
 			} else {
 				logger.Info("🏆 No changes detected. Update to Git not required")
 			}
 
-		} else {
-			// (2) If IFlow does not exist in Git, then add it
+		} else { // (2) If IFlow does not exist in Git, then add it
 			logger.Info(fmt.Sprintf("🏆 Artifact %v does not exist, and will be added to Git", artifact.Id))
-			if !file.CheckFileExists(gitSrcDir) {
-				err = os.MkdirAll(gitSrcDir, os.ModePerm)
-				logger.ExitIfError(err)
-			}
 
-			if file.CheckFileExists(gitArtifactPath) {
-				err = os.RemoveAll(gitArtifactPath)
-				logger.ExitIfError(err)
-			}
-			err = file.CopyDir(downloadedArtifactPath, gitArtifactPath)
+			err = file.ReplaceDir(downloadedArtifactPath, gitArtifactPath)
 			logger.ExitIfError(err)
 		}
 	}

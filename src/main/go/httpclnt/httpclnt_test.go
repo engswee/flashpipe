@@ -12,7 +12,7 @@ func TestOauth(t *testing.T) {
 	oauthPath := os.Getenv("HOST_OAUTH_PATH")
 	clientId := os.Getenv("OAUTH_CLIENTID")
 	clientSecret := os.Getenv("OAUTH_CLIENTSECRET")
-	exe := New(oauthHost, oauthPath, clientId, clientSecret, "", "", host)
+	exe := New(oauthHost, oauthPath, clientId, clientSecret, "", "", host, "https", "443")
 	path := fmt.Sprintf("/api/v1/IntegrationDesigntimeArtifacts(Id='%v',Version='Active')", "Hello")
 
 	headers := map[string]string{
@@ -28,7 +28,7 @@ func TestBasicAuth(t *testing.T) {
 	host := os.Getenv("HOST_TMN")
 	userId := os.Getenv("BASIC_USERID")
 	password := os.Getenv("BASIC_PASSWORD")
-	exe := New("", "", "", "", userId, password, host)
+	exe := New("", "", "", "", userId, password, host, "https", "443")
 	path := fmt.Sprintf("/api/v1/IntegrationDesigntimeArtifacts(Id='%v',Version='Active')", "Hello")
 
 	headers := map[string]string{

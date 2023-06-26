@@ -13,7 +13,7 @@ func TestRuntime_GetErrorInfo(t *testing.T) {
 	oauthPath := os.Getenv("HOST_OAUTH_PATH")
 	clientId := os.Getenv("OAUTH_CLIENTID")
 	clientSecret := os.Getenv("OAUTH_CLIENTSECRET")
-	exe := httpclnt.New(oauthHost, oauthPath, clientId, clientSecret, "", "", host)
+	exe := httpclnt.New(oauthHost, oauthPath, clientId, clientSecret, "", "", host, "https", "443")
 	rt := NewRuntime(exe)
 	errorMessage, err := rt.GetErrorInfo("Mapping1")
 	if err != nil {

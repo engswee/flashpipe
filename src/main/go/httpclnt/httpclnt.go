@@ -14,14 +14,18 @@ type HTTPExecuter struct {
 	basicUserId   string
 	basicPassword string
 	host          string
+	scheme        string
+	port          string
 	httpClient    *http.Client
 	AuthType      string
 }
 
 // New returns an initialised HTTPExecuter instance.
-func New(oauthHost string, oauthPath string, clientId string, clientSecret string, userId string, password string, host string) *HTTPExecuter {
+func New(oauthHost string, oauthPath string, clientId string, clientSecret string, userId string, password string, host string, scheme string, port string) *HTTPExecuter {
 	e := new(HTTPExecuter)
 	e.host = host
+	e.scheme = scheme
+	e.port = port
 	if oauthHost != "" {
 		logger.Debug("Initialising HTTP client with OAuth 2.0")
 
@@ -50,7 +54,7 @@ func New(oauthHost string, oauthPath string, clientId string, clientSecret strin
 
 func (e *HTTPExecuter) ExecRequestWithCookies(method string, path string, body io.Reader, headers map[string]string, cookies []*http.Cookie) (resp *http.Response, err error) {
 
-	url := fmt.Sprintf("https://%v%v", e.host, path)
+	url := fmt.Sprintf("%v://%v:%v%v", e.scheme, e.host, e.port, path)
 	logger.Debug(fmt.Sprintf("Executing HTTP request: %v %v", method, url))
 
 	// Create new HTTP request

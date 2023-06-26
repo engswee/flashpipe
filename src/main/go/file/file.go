@@ -198,3 +198,11 @@ func CheckFileExists(filePath string) bool {
 	_, err := os.Stat(filePath)
 	return !errors.Is(err, os.ErrNotExist)
 }
+
+func ReplaceDir(src string, dst string) (err error) {
+	err = os.RemoveAll(dst)
+	if err != nil {
+		return
+	}
+	return CopyDir(src, dst)
+}

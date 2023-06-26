@@ -114,10 +114,10 @@ func prepareUploadDir(workDir string, gitSrcDir string) (err error) {
 		return
 	}
 
-	err = os.MkdirAll(iFlowDir+"/src/main", os.ModePerm)
-	if err != nil {
-		return
-	}
+	//err = os.MkdirAll(iFlowDir+"/src/main", os.ModePerm)
+	//if err != nil {
+	//	return
+	//}
 
 	err = file.CopyDir(gitSrcDir+"/META-INF", iFlowDir+"/META-INF")
 	if err != nil {
@@ -128,7 +128,7 @@ func prepareUploadDir(workDir string, gitSrcDir string) (err error) {
 	if err != nil {
 		return
 	}
-	os.Setenv("IFLOW_DIR", iFlowDir)
+	os.Setenv("IFLOW_DIR", iFlowDir) // TODO - remove when Java call no longer used
 	return
 }
 

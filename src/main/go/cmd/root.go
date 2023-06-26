@@ -12,6 +12,7 @@ import (
 
 var cfgFile string
 var version = "2.7.2-SNAPSHOT" // FLASHPIPE_VERSION
+// TODO - move some of these into a struct
 var mavenRepoLocation string
 var flashpipeLocation string
 var log4jFile string
