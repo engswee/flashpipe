@@ -74,7 +74,7 @@ func deployArtifacts(delimitedIds string, artifactType string, delayLength int, 
 	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost, "https", 443)
 
 	// Initialise designtime artifact
-	dt := designtime.GetDesigntimeArtifactByType(artifactType, exe)
+	dt := designtime.NewDesigntimeArtifact(artifactType, exe)
 
 	// Initialised runtime artifact
 	rt := odata.NewRuntime(exe)

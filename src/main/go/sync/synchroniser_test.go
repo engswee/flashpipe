@@ -1,4 +1,4 @@
-package cmd
+package sync
 
 import (
 	"github.com/engswee/flashpipe/odata"

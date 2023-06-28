@@ -52,5 +52,5 @@ func init() {
 	setStringFlagAndBind(snapshotViper, snapshotCmd, "dir.work", "/tmp", "Working directory for in-transit files [or set environment WORK_DIR]")
 	setStringFlagAndBind(snapshotViper, snapshotCmd, "drafthandling", "SKIP", "Handling when IFlow is in draft version. Allowed values: SKIP, ADD, ERROR [or set environment DRAFT_HANDLING]")
 	setStringFlagAndBind(snapshotViper, snapshotCmd, "git.commitmsg", "Tenant snapshot of "+time.Now().Format(time.UnixDate), "Message used in commit [or set environment COMMIT_MESSAGE]")
-	setStringFlagAndBind(snapshotViper, snapshotCmd, "syncpackagedetails", "NO", "Sync details of Integration Packages. Allowed values: NO, YES [or set environment SYNC_PACKAGE_LEVEL_DETAILS]")
+	setBoolFlagAndBind(snapshotViper, snapshotCmd, "syncpackagedetails", false, "Sync details of Integration Packages [or set environment SYNC_PACKAGE_LEVEL_DETAILS]")
 }

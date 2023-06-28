@@ -18,7 +18,7 @@ type designtimeArtifactData struct {
 	} `json:"d"`
 }
 
-func GetDesigntimeArtifactByType(artifactType string, exe *httpclnt.HTTPExecuter) DesigntimeArtifact {
+func NewDesigntimeArtifact(artifactType string, exe *httpclnt.HTTPExecuter) DesigntimeArtifact {
 	switch artifactType {
 	case "MessageMapping":
 		return NewMessageMapping(exe)
