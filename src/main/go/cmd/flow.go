@@ -23,16 +23,23 @@ SAP Integration Suite tenant.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		logger.Info("Executing update flow command")
 
-		iflowId := setMandatoryVariable(flowViper, "iflow.id", "IFLOW_ID")
-		iflowName := setMandatoryVariable(flowViper, "iflow.name", "IFLOW_NAME")
+		setMandatoryVariable(flowViper, "iflow.id", "IFLOW_ID")
+		setMandatoryVariable(flowViper, "iflow.name", "IFLOW_NAME")
 		setMandatoryVariable(flowViper, "package.id", "PACKAGE_ID")
 		setMandatoryVariable(flowViper, "package.name", "PACKAGE_NAME")
-		gitSrcDir := setMandatoryVariable(flowViper, "dir.gitsrc", "GIT_SRC_DIR")
+		setMandatoryVariable(flowViper, "dir.gitsrc", "GIT_SRC_DIR")
+		setOptionalVariable(flowViper, "file.param", "PARAM_FILE")
+		setOptionalVariable(flowViper, "dir.work", "WORK_DIR")
+		setOptionalVariable(flowViper, "scriptmap", "SCRIPT_COLLECTION_MAP")
+
+		iflowId := flowViper.GetString("iflow.id")
+		iflowName := flowViper.GetString("iflow.name")
+		gitSrcDir := flowViper.GetString("dir.gitsrc")
 		defaultParamFile := gitSrcDir + "/src/main/resources/parameters.prop"
 		flowViper.SetDefault("file.param", defaultParamFile)
-		parametersFile := setOptionalVariable(flowViper, "file.param", "PARAM_FILE")
-		workDir := setOptionalVariable(flowViper, "dir.work", "WORK_DIR")
-		scriptMap := setOptionalVariable(flowViper, "scriptmap", "SCRIPT_COLLECTION_MAP")
+		parametersFile := flowViper.GetString("file.param")
+		workDir := flowViper.GetString("dir.work")
+		scriptMap := flowViper.GetString("scriptmap")
 
 		if parametersFile != defaultParamFile {
 			logger.Info("Using", parametersFile, "as parameters.prop file")

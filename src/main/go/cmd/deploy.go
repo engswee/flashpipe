@@ -34,12 +34,16 @@ runtime of SAP Integration Suite tenant.`,
 		artifactType := deployViper.GetString("artifact.type")
 		logger.Info(fmt.Sprintf("Executing deploy %v command", artifactType))
 
-		artifactIds := setMandatoryVariable(deployViper, "ids", "IFLOW_ID")
+		setMandatoryVariable(deployViper, "ids", "IFLOW_ID")
 		setOptionalVariable(deployViper, "delaylength", "DELAY_LENGTH")
 		setOptionalVariable(deployViper, "maxchecklimit", "MAX_CHECK_LIMIT")
 		setOptionalVariable(deployViper, "compareversions", "COMPARE_VERSIONS")
 
-		deployArtifacts(artifactIds, artifactType)
+		artifactIds := deployViper.GetString("ids")
+		delayLength := deployViper.GetInt("delaylength")
+		maxCheckLimit := deployViper.GetInt("maxchecklimit")
+		compareVersions := deployViper.GetBool("compareversions")
+		deployArtifacts(artifactIds, artifactType, delayLength, maxCheckLimit, compareVersions)
 	},
 }
 
@@ -61,14 +65,10 @@ func init() {
 	setStringFlagAndBind(deployViper, deployCmd, "artifact.type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection")
 }
 
-func deployArtifacts(delimitedIds string, artifactType string) {
+func deployArtifacts(delimitedIds string, artifactType string, delayLength int, maxCheckLimit int, compareVersions bool) {
 
 	// Extract IDs from delimited values
 	ids := str.ExtractDelimitedValues(delimitedIds, ",")
-
-	delayLength := deployViper.GetInt("delaylength")
-	maxCheckLimit := deployViper.GetInt("maxchecklimit")
-	compareVersions := deployViper.GetBool("compareversions")
 
 	// Initialise HTTP executer
 	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost, "https", 443)

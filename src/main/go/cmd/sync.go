@@ -62,17 +62,17 @@ tenant to a Git repository.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		logger.Info("Executing sync command")
 
-		packageId := setMandatoryVariable(syncViper, "packageid", "PACKAGE_ID")
-		gitSrcDir := setMandatoryVariable(syncViper, "dir.gitsrc", "GIT_SRC_DIR")
-		workDir := setOptionalVariable(syncViper, "dir.work", "WORK_DIR")
-		dirNamingType := setOptionalVariable(syncViper, "dirnamingtype", "DIR_NAMING_TYPE")
-		draftHandling := setOptionalVariable(syncViper, "drafthandling", "DRAFT_HANDLING")
-		delimitedIdsInclude := setOptionalVariable(syncViper, "ids.include", "INCLUDE_IDS")
-		delimitedIdsExclude := setOptionalVariable(syncViper, "ids.exclude", "EXCLUDE_IDS")
-		commitMsg := setOptionalVariable(syncViper, "git.commitmsg", "COMMIT_MESSAGE")
+		setMandatoryVariable(syncViper, "packageid", "PACKAGE_ID")
+		setMandatoryVariable(syncViper, "dir.gitsrc", "GIT_SRC_DIR")
+		setOptionalVariable(syncViper, "dir.work", "WORK_DIR")
+		setOptionalVariable(syncViper, "dirnamingtype", "DIR_NAMING_TYPE")
+		setOptionalVariable(syncViper, "drafthandling", "DRAFT_HANDLING")
+		setOptionalVariable(syncViper, "ids.include", "INCLUDE_IDS")
+		setOptionalVariable(syncViper, "ids.exclude", "EXCLUDE_IDS")
+		setOptionalVariable(syncViper, "git.commitmsg", "COMMIT_MESSAGE")
 		setOptionalVariable(syncViper, "scriptmap", "SCRIPT_COLLECTION_MAP")
-		normaliseManifestAction := setOptionalVariable(syncViper, "normalize.manifest.action", "NORMALIZE_MANIFEST_ACTION")
-		normaliseManifestPrefixOrSuffix := setOptionalVariable(syncViper, "normalize.manifest.prefixsuffix", "NORMALIZE_MANIFEST_PREFIX_SUFFIX")
+		setOptionalVariable(syncViper, "normalize.manifest.action", "NORMALIZE_MANIFEST_ACTION")
+		setOptionalVariable(syncViper, "normalize.manifest.prefixsuffix", "NORMALIZE_MANIFEST_PREFIX_SUFFIX")
 		setOptionalVariable(syncViper, "syncpackagedetails", "SYNC_PACKAGE_LEVEL_DETAILS")
 		setOptionalVariable(syncViper, "normalize.package.action", "NORMALIZE_PACKAGE_ACTION")
 		setOptionalVariable(syncViper, "normalize.package.prefixsuffix.id", "NORMALIZE_PACKAGE_ID_PREFIX_SUFFIX")
@@ -80,10 +80,25 @@ tenant to a Git repository.`,
 
 		//_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.DownloadIntegrationPackageContent", mavenRepoLocation, flashpipeLocation, log4jFile)
 		//logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+
+		//if
+
+		packageId := syncViper.GetString("packageid")
+		gitSrcDir := syncViper.GetString("dir.gitsrc")
+		workDir := syncViper.GetString("dir.work")
+		dirNamingType := syncViper.GetString("dirnamingtype")
+		draftHandling := syncViper.GetString("drafthandling")
+		normaliseManifestAction := syncViper.GetString("normalize.manifest.action")
+		//normalisePackageAction := syncViper.GetString("normalize.package.action")
+		delimitedIdsInclude := syncViper.GetString("ids.include")
+		delimitedIdsExclude := syncViper.GetString("ids.exclude")
+		commitMsg := syncViper.GetString("git.commitmsg")
+		normaliseManifestPrefixOrSuffix := syncViper.GetString("normalize.manifest.prefixsuffix")
+
 		// Extract IDs from delimited values
 		includedIds := str.ExtractDelimitedValues(delimitedIdsInclude, ",")
 		excludedIds := str.ExtractDelimitedValues(delimitedIdsExclude, ",")
-		syncPackage(packageId, workDir, gitSrcDir, includedIds, excludedIds, draftHandling, dirNamingType, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
+		syncArtifacts(packageId, workDir, gitSrcDir, includedIds, excludedIds, draftHandling, dirNamingType, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
 
 		err := repo.CommitToRepo(gitSrcDir, commitMsg)
 		logger.ExitIfError(err)
@@ -118,7 +133,7 @@ func init() {
 	setStringFlagAndBind(syncViper, syncCmd, "normalize.package.prefixsuffix.name", "", "Prefix/suffix used for normalizing Package Name [or set environment NORMALIZE_PACKAGE_NAME_PREFIX_SUFFIX]")
 }
 
-func syncPackage(packageId string, workDir string, gitSrcDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, normaliseManifestAction string, normaliseManifestPrefixOrSuffix string) {
+func syncArtifacts(packageId string, workDir string, gitSrcDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, normaliseManifestAction string, normaliseManifestPrefixOrSuffix string) {
 
 	// Initialise HTTP executer
 	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost, "https", 443)
@@ -308,4 +323,8 @@ func contains(key string, list []string) bool {
 		}
 	}
 	return false
+}
+
+func syncPackageDetails() {
+
 }
