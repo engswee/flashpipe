@@ -71,7 +71,7 @@ func deployArtifacts(delimitedIds string, artifactType string) {
 	compareVersions := deployViper.GetBool("compareversions")
 
 	// Initialise HTTP executer
-	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost, "https", "443")
+	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost, "https", 443)
 
 	// Initialise designtime artifact
 	dt := designtime.GetDesigntimeArtifactByType(artifactType, exe)

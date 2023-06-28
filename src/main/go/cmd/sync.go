@@ -121,7 +121,7 @@ func init() {
 func syncPackage(packageId string, workDir string, gitSrcDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, normaliseManifestAction string, normaliseManifestPrefixOrSuffix string) {
 
 	// Initialise HTTP executer
-	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost, "https", "443")
+	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost, "https", 443)
 
 	// Get all design time artifacts of package
 	logger.Info(fmt.Sprintf("Getting artifacts in integration package %v", packageId))

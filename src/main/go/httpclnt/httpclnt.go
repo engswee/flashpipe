@@ -15,13 +15,13 @@ type HTTPExecuter struct {
 	basicPassword string
 	host          string
 	scheme        string
-	port          string
+	port          int
 	httpClient    *http.Client
 	AuthType      string
 }
 
 // New returns an initialised HTTPExecuter instance.
-func New(oauthHost string, oauthPath string, clientId string, clientSecret string, userId string, password string, host string, scheme string, port string) *HTTPExecuter {
+func New(oauthHost string, oauthPath string, clientId string, clientSecret string, userId string, password string, host string, scheme string, port int) *HTTPExecuter {
 	e := new(HTTPExecuter)
 	e.host = host
 	e.scheme = scheme
@@ -29,7 +29,7 @@ func New(oauthHost string, oauthPath string, clientId string, clientSecret strin
 	if oauthHost != "" {
 		logger.Debug("Initialising HTTP client with OAuth 2.0")
 
-		tokenURL := fmt.Sprintf("https://%v%v", oauthHost, oauthPath)
+		tokenURL := fmt.Sprintf("%v://%v:%d%v", scheme, oauthHost, port, oauthPath)
 		logger.Debug(fmt.Sprintf("Getting OAuth 2.0 client with token URL %v", tokenURL))
 
 		// Reference https://pkg.go.dev/golang.org/x/oauth2/clientcredentials#pkg-overview
@@ -54,7 +54,7 @@ func New(oauthHost string, oauthPath string, clientId string, clientSecret strin
 
 func (e *HTTPExecuter) ExecRequestWithCookies(method string, path string, body io.Reader, headers map[string]string, cookies []*http.Cookie) (resp *http.Response, err error) {
 
-	url := fmt.Sprintf("%v://%v:%v%v", e.scheme, e.host, e.port, path)
+	url := fmt.Sprintf("%v://%v:%d%v", e.scheme, e.host, e.port, path)
 	logger.Debug(fmt.Sprintf("Executing HTTP request: %v %v", method, url))
 
 	// Create new HTTP request
