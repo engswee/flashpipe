@@ -149,13 +149,15 @@ func TestMockBasicAuthIDNotFound(t *testing.T) {
 }
 
 func TestOauth(t *testing.T) {
+	const artifactId = "IFlow1"
+
 	host := os.Getenv("HOST_TMN")
 	oauthHost := os.Getenv("HOST_OAUTH")
 	oauthPath := os.Getenv("HOST_OAUTH_PATH")
 	clientId := os.Getenv("OAUTH_CLIENTID")
 	clientSecret := os.Getenv("OAUTH_CLIENTSECRET")
 	exe := New(oauthHost, oauthPath, clientId, clientSecret, "", "", host, "https", 443)
-	path := fmt.Sprintf("/api/v1/IntegrationDesigntimeArtifacts(Id='%v',Version='Active')", "Hello")
+	path := fmt.Sprintf("/api/v1/IntegrationDesigntimeArtifacts(Id='%v',Version='Active')", artifactId)
 
 	headers := map[string]string{
 		"Accept": "application/json",
@@ -170,11 +172,13 @@ func TestOauth(t *testing.T) {
 }
 
 func TestBasicAuth(t *testing.T) {
+	const artifactId = "IFlow1"
+
 	host := os.Getenv("HOST_TMN")
 	userId := os.Getenv("BASIC_USERID")
 	password := os.Getenv("BASIC_PASSWORD")
 	exe := New("", "", "", "", userId, password, host, "https", 443)
-	path := fmt.Sprintf("/api/v1/IntegrationDesigntimeArtifacts(Id='%v',Version='Active')", "Hello")
+	path := fmt.Sprintf("/api/v1/IntegrationDesigntimeArtifacts(Id='%v',Version='Active')", artifactId)
 
 	headers := map[string]string{
 		"Accept": "application/json",

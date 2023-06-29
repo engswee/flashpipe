@@ -10,6 +10,8 @@ import (
 )
 
 func TestIntegrationDeployOauth(t *testing.T) {
+	const artifactId = "IFlow1"
+
 	host := os.Getenv("HOST_TMN")
 	oauthHost := os.Getenv("HOST_OAUTH")
 	oauthPath := os.Getenv("HOST_OAUTH_PATH")
@@ -18,20 +20,22 @@ func TestIntegrationDeployOauth(t *testing.T) {
 	exe := httpclnt.New(oauthHost, oauthPath, clientId, clientSecret, "", "", host, "https", 443)
 	dt := NewIntegration(exe)
 
-	err := dt.Deploy("Hello")
+	err := dt.Deploy(artifactId)
 	if err != nil {
 		t.Fatalf("Deployment failed with error - %v", err)
 	}
 }
 
 func TestIntegrationDeployBasicAuth(t *testing.T) {
+	const artifactId = "IFlow1"
+
 	host := os.Getenv("HOST_TMN")
 	userId := os.Getenv("BASIC_USERID")
 	password := os.Getenv("BASIC_PASSWORD")
 	exe := httpclnt.New("", "", "", "", userId, password, host, "https", 443)
 	dt := NewIntegration(exe)
 
-	err := dt.Deploy("Hello")
+	err := dt.Deploy(artifactId)
 	if err != nil {
 		t.Fatalf("Deployment failed with error - %v", err)
 	}
@@ -39,7 +43,7 @@ func TestIntegrationDeployBasicAuth(t *testing.T) {
 
 func TestMockDeployBasic(t *testing.T) {
 	const csrfToken = "mytoken"
-	const artifactId = "Hello"
+	const artifactId = "IFlow1"
 
 	// Set up local server with mock HTTP responses
 	mux := http.NewServeMux()
@@ -80,7 +84,7 @@ func TestMockDeployBasic(t *testing.T) {
 
 func TestMockDeployOauth(t *testing.T) {
 	const oauthToken = "token123"
-	const artifactId = "Hello"
+	const artifactId = "IFlow1"
 
 	// Set up local server with mock HTTP responses
 	mux := http.NewServeMux()
