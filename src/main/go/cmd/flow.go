@@ -52,6 +52,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	// TODO - remove
 	mavenRepoLocation := config.GetString(cmd, "location.mavenrepo")
 	flashpipeLocation := config.GetString(cmd, "location.flashpipe")
+	log4jFile := config.GetString(cmd, "debug.flashpipe")
 	os.Setenv("HOST_TMN", config.GetMandatoryString(cmd, "tmn-host"))
 	os.Setenv("HOST_OAUTH", config.GetMandatoryString(cmd, "oauth-host"))
 	os.Setenv("OAUTH_CLIENTID", config.GetMandatoryString(cmd, "oauth-clientid"))
@@ -90,9 +91,9 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		logger.Info("Checking if IFlow design needs to be updated")
 		// 1 - Download IFlow from tenant
 		zipFile := fmt.Sprintf("%v/%v.zip", workDir, iflowId)
-		downloadIFlow(zipFile, mavenRepoLocation, flashpipeLocation)
+		downloadIFlow(zipFile, mavenRepoLocation, flashpipeLocation, log4jFile)
 		// 2 - Diff contents from tenant against Git
-		changesFound, err := compareIFlowContents(workDir, zipFile, gitSrcDir, iflowId, iflowName, scriptMap, mavenRepoLocation, flashpipeLocation)
+		changesFound, err := compareIFlowContents(workDir, zipFile, gitSrcDir, iflowId, iflowName, scriptMap, mavenRepoLocation, flashpipeLocation, log4jFile)
 		logger.ExitIfError(err)
 
 		if changesFound == true {
@@ -138,7 +139,7 @@ func prepareUploadDir(workDir string, gitSrcDir string) (err error) {
 	return
 }
 
-func downloadIFlow(targetZipFile string, mavenRepoLocation string, flashpipeLocation string) {
+func downloadIFlow(targetZipFile string, mavenRepoLocation string, flashpipeLocation string, log4jFile string) {
 	logger.Info("Download existing IFlow from tenant for comparison")
 	os.Setenv("OUTPUT_FILE", targetZipFile)
 	os.Setenv("IFLOW_VER", "active")
@@ -146,7 +147,7 @@ func downloadIFlow(targetZipFile string, mavenRepoLocation string, flashpipeLoca
 	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 }
 
-func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflowId string, iflowName string, scriptMap string, mavenRepoLocation string, flashpipeLocation string) (changesFound bool, err error) {
+func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflowId string, iflowName string, scriptMap string, mavenRepoLocation string, flashpipeLocation string, log4jFile string) (changesFound bool, err error) {
 	err = os.RemoveAll(workDir + "/download")
 	if err != nil {
 		return

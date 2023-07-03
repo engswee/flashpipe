@@ -39,6 +39,7 @@ func runUpdatePackage(cmd *cobra.Command) {
 	// TODO - remove
 	mavenRepoLocation := config.GetString(cmd, "location.mavenrepo")
 	flashpipeLocation := config.GetString(cmd, "location.flashpipe")
+	log4jFile := config.GetString(cmd, "debug.flashpipe")
 	os.Setenv("HOST_TMN", config.GetMandatoryString(cmd, "tmn-host"))
 	os.Setenv("HOST_OAUTH", config.GetMandatoryString(cmd, "oauth-host"))
 	os.Setenv("OAUTH_CLIENTID", config.GetMandatoryString(cmd, "oauth-clientid"))

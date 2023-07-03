@@ -14,9 +14,6 @@ import (
 var cfgFile string
 var version = "2.7.2-SNAPSHOT" // FLASHPIPE_VERSION
 // TODO - move some of these into a struct
-var mavenRepoLocation string
-var flashpipeLocation string
-var log4jFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -76,6 +73,7 @@ func init() {
 	updateCmd.AddCommand(NewArtifactCommand())
 	updateCmd.AddCommand(NewPackageCommand())
 	rootCmd.AddCommand(updateCmd)
+	rootCmd.AddCommand(NewSnapshotCommand())
 
 	// Execution sequence
 	//deploy init() -> execute init() in alphabetically order of file - init bind flags to viper config
