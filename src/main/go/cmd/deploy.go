@@ -2,76 +2,70 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/engswee/flashpipe/httpclnt"
+	"github.com/engswee/flashpipe/config"
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/odata"
 	"github.com/engswee/flashpipe/odata/designtime"
 	"github.com/engswee/flashpipe/str"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"time"
 )
 
-var deployViper = viper.New()
+//var deployViper = viper.New()
 
-// deployCmd represents the deploy command
-var deployCmd = &cobra.Command{
-	Use:   "deploy",
-	Short: "Deploy designtime artifact to runtime",
-	Long: `Deploy artifact from designtime to
+func NewDeployCommand() *cobra.Command {
+	deployCmd := &cobra.Command{
+		Use:   "deploy",
+		Short: "Deploy designtime artifact to runtime",
+		Long: `Deploy artifact from designtime to
 runtime of SAP Integration Suite tenant.`,
-	Args: func(cmd *cobra.Command, args []string) error {
-		// Validate the artifact type
-		artifactType := deployViper.GetString("artifact.type")
-		switch artifactType {
-		case "MessageMapping", "ScriptCollection", "Integration":
-		default:
-			return fmt.Errorf("invalid value for --artifact-type = %v", artifactType)
-		}
-		return nil
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		artifactType := deployViper.GetString("artifact.type")
-		logger.Info(fmt.Sprintf("Executing deploy %v command", artifactType))
+		Args: func(cmd *cobra.Command, args []string) error {
+			//  TODO - Flags are not bind to Viper at this point ??
+			// Validate the artifact type
+			artifactType, _ := cmd.Flags().GetString("artifact-type")
+			switch artifactType {
+			case "MessageMapping", "ScriptCollection", "Integration":
+			default:
+				return fmt.Errorf("invalid value for --artifact-type = %v", artifactType)
+			}
+			return nil
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			deploy(cmd)
+		},
+	}
 
-		setMandatoryVariable(deployViper, "ids", "IFLOW_ID")
-		setOptionalVariable(deployViper, "delaylength", "DELAY_LENGTH")
-		setOptionalVariable(deployViper, "maxchecklimit", "MAX_CHECK_LIMIT")
-		setOptionalVariable(deployViper, "compareversions", "COMPARE_VERSIONS")
+	// Define cobra flags, the default value has the lowest (least significant) precedence
+	deployCmd.Flags().String("artifact-ids", "", "Comma separated list of artifact IDs [or set environment IFLOW_ID]")
+	deployCmd.Flags().Int("delaylength", 30, "Delay (in seconds) between each check of artifact deployment status [or set environment DELAY_LENGTH]\"")
+	deployCmd.Flags().Int("maxchecklimit", 10, "Max number of times to check for artifact deployment status [or set environment MAX_CHECK_LIMIT]")
+	deployCmd.Flags().Bool("compareversions", true, "Perform version comparison of design time against runtime before deployment [or set environment COMPARE_VERSIONS]")
+	deployCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection")
 
-		artifactIds := deployViper.GetString("ids")
-		delayLength := deployViper.GetInt("delaylength")
-		maxCheckLimit := deployViper.GetInt("maxchecklimit")
-		compareVersions := deployViper.GetBool("compareversions")
-		deployArtifacts(artifactIds, artifactType, delayLength, maxCheckLimit, compareVersions)
-	},
+	return deployCmd
 }
 
-func init() {
-	rootCmd.AddCommand(deployCmd)
+func deploy(cmd *cobra.Command) {
+	serviceDetails := odata.GetServiceDetails(cmd)
 
-	// Here you will define your flags and configuration settings.
+	artifactType := config.GetFlagAsString(cmd, "artifact-type")
+	logger.Info(fmt.Sprintf("Executing deploy %v command", artifactType))
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// deployCmd.PersistentFlags().String("foo", "", "A help for foo")
+	artifactIds := config.GetRequiredFlagAsString(cmd, "artifact-ids") // TODO- mandatory check
+	delayLength := config.GetFlagAsInt(cmd, "delaylength")
+	maxCheckLimit := config.GetFlagAsInt(cmd, "maxchecklimit")
+	compareVersions := config.GetFlagAsBool(cmd, "compareversions")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	setStringFlagAndBind(deployViper, deployCmd, "ids", "", "Comma separated list of artifact IDs [or set environment IFLOW_ID]")
-	setIntFlagAndBind(deployViper, deployCmd, "delaylength", 30, "Delay (in seconds) between each check of artifact deployment status [or set environment DELAY_LENGTH]")
-	setIntFlagAndBind(deployViper, deployCmd, "maxchecklimit", 10, "Max number of times to check for artifact deployment status [or set environment MAX_CHECK_LIMIT]")
-	setBoolFlagAndBind(deployViper, deployCmd, "compareversions", true, "Perform version comparison of design time against runtime before deployment [or set environment COMPARE_VERSIONS]")
-	setStringFlagAndBind(deployViper, deployCmd, "artifact.type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection")
+	deployArtifacts(artifactIds, artifactType, delayLength, maxCheckLimit, compareVersions, serviceDetails)
 }
 
-func deployArtifacts(delimitedIds string, artifactType string, delayLength int, maxCheckLimit int, compareVersions bool) {
+func deployArtifacts(delimitedIds string, artifactType string, delayLength int, maxCheckLimit int, compareVersions bool, serviceDetails *odata.ServiceDetails) {
 
 	// Extract IDs from delimited values
 	ids := str.ExtractDelimitedValues(delimitedIds, ",")
 
 	// Initialise HTTP executer
-	exe := httpclnt.New(oauthHost, oauthTokenPath, oauthClientId, oauthClientSecret, basicUserId, basicPassword, tmnHost, "https", 443)
+	exe := odata.InitHTTPExecuter(serviceDetails)
 
 	// Initialise designtime artifact
 	dt := designtime.NewDesigntimeArtifact(artifactType, exe)

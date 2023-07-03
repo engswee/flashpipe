@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/engswee/flashpipe/logger"
+	"github.com/spf13/pflag"
 	"os"
 	"strings"
 
@@ -16,14 +17,16 @@ var version = "2.7.2-SNAPSHOT" // FLASHPIPE_VERSION
 var mavenRepoLocation string
 var flashpipeLocation string
 var log4jFile string
+
 var rootViper = viper.New()
-var tmnHost string
-var oauthHost string
-var oauthClientId string
-var oauthClientSecret string
-var oauthTokenPath string
-var basicUserId string
-var basicPassword string
+
+//var tmnHost string
+//var oauthHost string
+//var oauthClientId string
+//var oauthClientSecret string
+//var oauthTokenPath string
+//var basicUserId string
+//var basicPassword string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -37,11 +40,35 @@ for SAP Integration Suite by providing CI/CD capabilities for
 automating time-consuming manual tasks like:
 - synchronising integration artifacts to Git
 - uploading/updating integration artifacts to SAP Integration Suite
-- deploy integration artifacts on SAP Integration Suite`,
+- deploying integration artifacts on SAP Integration Suite`,
+	//PersistentPreRun: func(cmd *cobra.Command, args []string) {
+	//	ctx := context.WithValue(cmd.Context(), "PersistentPreRun", "val-PersistentPreRun")
+	//	cmd.SetContext(ctx)
+	//	//ctx := context.WithValue(cmd.Context(), "key", "val")
+	//	//cmd.SetContext(ctx)
+	//},
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
+		return initializeConfig(cmd)
+	},
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
 }
+
+//https://stackoverflow.com/questions/67642066/cobra-providing-context-to-subcommands-without-using-package-globals
+//func NewCmdRoot() *cobra.Command {
+//	cmd := &cobra.Command{
+//		...
+//	}
+//
+//	return cmd
+//}
+//
+//func main() {
+//	rootCmd := NewCmdRoot()
+//	rootCmd.Execute()
+//}
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
@@ -53,29 +80,55 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
+	rootCmd.AddCommand(NewDeployCommand())
+	// Execution sequence
+	//deploy init() -> execute init() in alphabetically order of file - init bind flags to viper config
+	//root init()
+	//root Execute()
+	//root initconfig()
+	//rootCmd PersistentPreRun - runs with the called command, i.e. sync, deploy
+	//deployCmd Run
 
+	//https://github.com/carolynvs/stingoftheviper/blob/main/main.go
+	//https://carolynvanslyck.com/blog/2020/08/sting-of-the-viper/
+
+	cobra.OnInitialize(initConfig)
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
+	//rootCmd.SetContext(context.WithValue(context.Background(), "rootinit", "val"))
+
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/flashpipe.yaml)")
 
-	setPersistentStringFlagAndBind(rootViper, rootCmd, "location.mavenrepo", "", "Maven Repository Location [or set environment MVN_REPO_LOCATION]")
-	setPersistentStringFlagAndBind(rootViper, rootCmd, "location.flashpipe", "", "FlashPipe Location [or set environment FLASHPIPE_LOCATION]")
-	setPersistentStringFlagAndBind(rootViper, rootCmd, "tmn.host", "", "Host for tenant management node of Cloud Integration excluding https:// [or set environment HOST_TMN]")
-	setPersistentStringFlagAndBind(rootViper, rootCmd, "tmn.userid", "", "User ID for Basic Auth [or set environment BASIC_USERID]")
-	setPersistentStringFlagAndBind(rootViper, rootCmd, "tmn.password", "", "Password for Basic Auth [or set environment BASIC_PASSWORD]")
-	setPersistentStringFlagAndBind(rootViper, rootCmd, "oauth.host", "", "Host for OAuth token server excluding https:// [or set environment HOST_OAUTH]")
-	setPersistentStringFlagAndBind(rootViper, rootCmd, "oauth.clientid", "", "Client ID for using OAuth [or set environment OAUTH_CLIENTID]")
-	setPersistentStringFlagAndBind(rootViper, rootCmd, "oauth.clientsecret", "", "Client Secret for using OAuth [or set environment OAUTH_CLIENTSECRET]")
-	setPersistentStringFlagAndBind(rootViper, rootCmd, "oauth.path", "/oauth/token", "Path for OAuth token server, e.g /oauth2/api/v1/token for Neo [or set environment HOST_OAUTH_PATH]")
-	setPersistentStringFlagAndBind(rootViper, rootCmd, "debug.level", "", "Debug level - FLASHPIPE, APACHE, ALL")
+	// Define cobra flags, the default value has the lowest (least significant) precedence
+	//var r = rootData{}
+	rootCmd.PersistentFlags().String("tmn.host", "", "Host for tenant management node of Cloud Integration excluding https:// [or set environment HOST_TMN]")
+	rootCmd.PersistentFlags().String("tmn.userid", "", "User ID for Basic Auth [or set environment BASIC_USERID]")
+	rootCmd.PersistentFlags().String("tmn.password", "", "Password for Basic Auth [or set environment BASIC_PASSWORD]")
+	rootCmd.PersistentFlags().String("oauth.host", "", "Host for OAuth token server excluding https:// [or set environment HOST_OAUTH]")
+	rootCmd.PersistentFlags().String("oauth.clientid", "", "Client ID for using OAuth [or set environment OAUTH_CLIENTID]")
+	rootCmd.PersistentFlags().String("oauth.clientsecret", "", "Client Secret for using OAuth [or set environment OAUTH_CLIENTSECRET]")
+	rootCmd.PersistentFlags().String("oauth.path", "/oauth/token", "Path for OAuth token server, e.g /oauth2/api/v1/token for Neo [or set environment HOST_OAUTH_PATH]")
+	//flagName := strings.ReplaceAll("location.mavenrepo", ".", "-")
+	//rootCmd.PersistentFlags().String(flagName, "", "Maven Repository Location [or set environment MVN_REPO_LOCATION]")
+	//rootViper.BindPFlag("location.mavenrepo", rootCmd.PersistentFlags().Lookup(flagName))
 
-	rootCmd.PersistentFlags().MarkHidden("config")
-	rootCmd.PersistentFlags().MarkHidden("location-mavenrepo")
-	rootCmd.PersistentFlags().MarkHidden("location-flashpipe")
-	rootCmd.PersistentFlags().MarkHidden("debug-level")
+	//setPersistentStringFlagAndBind(rootViper, rootCmd, "location.mavenrepo", "", "Maven Repository Location [or set environment MVN_REPO_LOCATION]")
+	//setPersistentStringFlagAndBind(rootViper, rootCmd, "location.flashpipe", "", "FlashPipe Location [or set environment FLASHPIPE_LOCATION]")
+	//setPersistentStringFlagAndBind(rootViper, rootCmd, "tmn.host", "", "Host for tenant management node of Cloud Integration excluding https:// [or set environment HOST_TMN]")
+	//setPersistentStringFlagAndBind(rootViper, rootCmd, "tmn.userid", "", "User ID for Basic Auth [or set environment BASIC_USERID]")
+	//setPersistentStringFlagAndBind(rootViper, rootCmd, "tmn.password", "", "Password for Basic Auth [or set environment BASIC_PASSWORD]")
+	//setPersistentStringFlagAndBind(rootViper, rootCmd, "oauth.host", "", "Host for OAuth token server excluding https:// [or set environment HOST_OAUTH]")
+	//setPersistentStringFlagAndBind(rootViper, rootCmd, "oauth.clientid", "", "Client ID for using OAuth [or set environment OAUTH_CLIENTID]")
+	//setPersistentStringFlagAndBind(rootViper, rootCmd, "oauth.clientsecret", "", "Client Secret for using OAuth [or set environment OAUTH_CLIENTSECRET]")
+	//setPersistentStringFlagAndBind(rootViper, rootCmd, "oauth.path", "/oauth/token", "Path for OAuth token server, e.g /oauth2/api/v1/token for Neo [or set environment HOST_OAUTH_PATH]")
+	//setPersistentStringFlagAndBind(rootViper, rootCmd, "debug.level", "", "Debug level - FLASHPIPE, APACHE, ALL")
+
+	//rootCmd.PersistentFlags().MarkHidden("config")
+	//rootCmd.PersistentFlags().MarkHidden("location-mavenrepo")
+	//rootCmd.PersistentFlags().MarkHidden("location-flashpipe")
+	//rootCmd.PersistentFlags().MarkHidden("debug-level")
 
 	//rootCmd.MarkFlagsRequiredTogether("tmn.userid", "tmn.password")
 	//rootCmd.MarkFlagsRequiredTogether("oauth.host", "oauth.clientid", "oauth.clientsecret")
@@ -84,58 +137,122 @@ func init() {
 	// when this action is called directly.
 }
 
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
+func initializeConfig(cmd *cobra.Command) error {
+	v := viper.New()
 	if cfgFile != "" {
 		// Use config file from the flag.
-		rootViper.SetConfigFile(cfgFile)
+		v.SetConfigFile(cfgFile)
 	} else {
 		// Find home directory.
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
 		// Search config in home directory with name "flashpipe" (without extension).
-		rootViper.AddConfigPath(home)
-		rootViper.SetConfigType("yaml")
-		rootViper.SetConfigName("flashpipe")
+		v.AddConfigPath(home)
+		v.SetConfigType("yaml")
+		v.SetConfigName("flashpipe")
 	}
 
 	// If a config file is found, read it in.
-	if err := rootViper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", rootViper.ConfigFileUsed())
+	//if err := v.ReadInConfig(); err == nil {
+	//	fmt.Fprintln(os.Stderr, "Using config file:", v.ConfigFileUsed())
+	//}
+	if err := v.ReadInConfig(); err != nil {
+		// It's okay if there isn't a config file
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return err
+		}
 	}
 
-	// Order config is read - CLI flag, env, config file, default
+	v.SetEnvPrefix("FP")
 
-	rootViper.SetDefault("location.mavenrepo", "/usr/share/maven/ref/repository")
-	rootViper.BindEnv("location.mavenrepo", "MVN_REPO_LOCATION")
-	mavenRepoLocation = rootViper.GetString("location.mavenrepo")
+	// Environment variables can't have dashes in them, so bind them to their equivalent
+	// keys with underscores, e.g. --favorite-color to STING_FAVORITE_COLOR
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
-	rootViper.SetDefault("location.flashpipe", fmt.Sprintf("%v/io/github/engswee/flashpipe/%v/flashpipe-%v.jar", mavenRepoLocation, version, version))
-	rootViper.BindEnv("location.flashpipe", "FLASHPIPE_LOCATION")
-	flashpipeLocation = rootViper.GetString("location.flashpipe")
+	// Bind to environment variables
+	// Works great for simple config names, but needs help for names
+	// like --favorite-color which we fix in the bindFlags function
+	v.AutomaticEnv()
 
-	tmnHost = setMandatoryVariable(rootViper, "tmn.host", "HOST_TMN")
-	oauthHost = setOptionalVariable(rootViper, "oauth.host", "HOST_OAUTH")
-	if oauthHost == "" {
-		// Basic Authentication
-		basicUserId = setMandatoryVariable(rootViper, "tmn.userid", "BASIC_USERID")
-		basicPassword = setMandatoryVariable(rootViper, "tmn.password", "BASIC_PASSWORD")
-	} else {
-		// OAuth
-		oauthClientId = setMandatoryVariable(rootViper, "oauth.clientid", "OAUTH_CLIENTID")
-		oauthClientSecret = setMandatoryVariable(rootViper, "oauth.clientsecret", "OAUTH_CLIENTSECRET")
-		oauthTokenPath = setOptionalVariable(rootViper, "oauth.path", "HOST_OAUTH_PATH")
-	}
+	//fmt.Println("ARTIFACT_IDS =", v.GetString("ARTIFACT_IDS"))
+	//
+	//for _, key := range v.AllKeys() {
+	//	fmt.Println(key, "=", v.GetString(key))
+	//}
 
-	rootViper.SetDefault("debug.flashpipe", "/tmp/log4j2-config/log4j2-debug-flashpipe.xml")
-	rootViper.SetDefault("debug.apache", "/tmp/log4j2-config/log4j2-debug-apache.xml")
-	rootViper.SetDefault("debug.all", "/tmp/log4j2-config/log4j2-debug-all.xml")
+	// Bind the current command's flags to viper
+	bindFlags(cmd, v)
+	return nil
+}
 
-	debugLevel := rootViper.GetString("debug.level")
-	if debugLevel != "" {
-		log4jFile = rootViper.GetString("debug." + strings.ToLower(debugLevel))
-	}
+// Bind each cobra flag to its associated viper configuration (config file and environment variable)
+func bindFlags(cmd *cobra.Command, v *viper.Viper) {
+	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		// Determine the naming convention of the flags when represented in the config file
+		configName := f.Name
+
+		// Apply the viper config value to the flag when the flag is not set and viper has a value
+		if !f.Changed && v.IsSet(configName) {
+			val := v.Get(configName)
+			cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+		}
+	})
+}
+
+// initConfig reads in config file and ENV variables if set.
+func initConfig() {
+	// This is only executed after root.Execute() is called
+	//if cfgFile != "" {
+	//	// Use config file from the flag.
+	//	rootViper.SetConfigFile(cfgFile)
+	//} else {
+	//	// Find home directory.
+	//	home, err := os.UserHomeDir()
+	//	cobra.CheckErr(err)
+	//
+	//	// Search config in home directory with name "flashpipe" (without extension).
+	//	rootViper.AddConfigPath(home)
+	//	rootViper.SetConfigType("yaml")
+	//	rootViper.SetConfigName("flashpipe")
+	//}
+	//
+	//// If a config file is found, read it in.
+	//if err := rootViper.ReadInConfig(); err == nil {
+	//	fmt.Fprintln(os.Stderr, "Using config file:", rootViper.ConfigFileUsed())
+	//}
+	//
+	//// Order config is read - CLI flag, env, config file, default
+	//
+	//rootViper.SetDefault("location.mavenrepo", "/usr/share/maven/ref/repository")
+	//rootViper.BindEnv("location.mavenrepo", "MVN_REPO_LOCATION")
+	//mavenRepoLocation = rootViper.GetString("location.mavenrepo")
+	//
+	//rootViper.SetDefault("location.flashpipe", fmt.Sprintf("%v/io/github/engswee/flashpipe/%v/flashpipe-%v.jar", mavenRepoLocation, version, version))
+	//rootViper.BindEnv("location.flashpipe", "FLASHPIPE_LOCATION")
+	//flashpipeLocation = rootViper.GetString("location.flashpipe")
+	//
+	////tmnHost = setMandatoryVariable(rootViper, "tmn.host", "HOST_TMN")
+	//oauthHost = setOptionalVariable(rootViper, "oauth.host", "HOST_OAUTH")
+	//if oauthHost == "" {
+	//	// Basic Authentication
+	//	basicUserId = setMandatoryVariable(rootViper, "tmn.userid", "BASIC_USERID")
+	//	basicPassword = setMandatoryVariable(rootViper, "tmn.password", "BASIC_PASSWORD")
+	//} else {
+	//	// OAuth
+	//	oauthClientId = setMandatoryVariable(rootViper, "oauth.clientid", "OAUTH_CLIENTID")
+	//	oauthClientSecret = setMandatoryVariable(rootViper, "oauth.clientsecret", "OAUTH_CLIENTSECRET")
+	//	oauthTokenPath = setOptionalVariable(rootViper, "oauth.path", "HOST_OAUTH_PATH")
+	//}
+	//
+	//rootViper.SetDefault("debug.flashpipe", "/tmp/log4j2-config/log4j2-debug-flashpipe.xml")
+	//rootViper.SetDefault("debug.apache", "/tmp/log4j2-config/log4j2-debug-apache.xml")
+	//rootViper.SetDefault("debug.all", "/tmp/log4j2-config/log4j2-debug-all.xml")
+	//
+	//debugLevel := rootViper.GetString("debug.level")
+	//if debugLevel != "" {
+	//	log4jFile = rootViper.GetString("debug." + strings.ToLower(debugLevel))
+	//}
 
 	//for _, key := range rootViper.AllKeys() {
 	//	fmt.Println(key, "=", rootViper.GetString(key))
@@ -163,11 +280,11 @@ func setOptionalVariable(viperInstance *viper.Viper, viperKey string, envVarName
 	return val
 }
 
-func setPersistentStringFlagAndBind(viperInstance *viper.Viper, cmd *cobra.Command, viperKey string, defaultValue string, usage string) {
-	flagName := strings.ReplaceAll(viperKey, ".", "-")
-	cmd.PersistentFlags().String(flagName, defaultValue, usage)
-	viperInstance.BindPFlag(viperKey, cmd.PersistentFlags().Lookup(flagName))
-}
+//func setPersistentStringFlagAndBind(viperInstance *viper.Viper, cmd *cobra.Command, viperKey string, defaultValue string, usage string) {
+//	flagName := strings.ReplaceAll(viperKey, ".", "-")
+//	cmd.PersistentFlags().String(flagName, defaultValue, usage)
+//	viperInstance.BindPFlag(viperKey, cmd.PersistentFlags().Lookup(flagName))
+//}
 
 func setStringFlagAndBind(viperInstance *viper.Viper, cmd *cobra.Command, viperKey string, defaultValue string, usage string) {
 	flagName := strings.ReplaceAll(viperKey, ".", "-")
@@ -175,11 +292,11 @@ func setStringFlagAndBind(viperInstance *viper.Viper, cmd *cobra.Command, viperK
 	viperInstance.BindPFlag(viperKey, cmd.Flags().Lookup(flagName))
 }
 
-func setIntFlagAndBind(viperInstance *viper.Viper, cmd *cobra.Command, viperKey string, defaultValue int, usage string) {
-	flagName := strings.ReplaceAll(viperKey, ".", "-")
-	cmd.Flags().Int(flagName, defaultValue, usage)
-	viperInstance.BindPFlag(viperKey, cmd.Flags().Lookup(flagName))
-}
+//func setIntFlagAndBind(viperInstance *viper.Viper, cmd *cobra.Command, viperKey string, defaultValue int, usage string) {
+//	flagName := strings.ReplaceAll(viperKey, ".", "-")
+//	cmd.Flags().Int(flagName, defaultValue, usage)
+//	viperInstance.BindPFlag(viperKey, cmd.Flags().Lookup(flagName))
+//}
 
 func setBoolFlagAndBind(viperInstance *viper.Viper, cmd *cobra.Command, viperKey string, defaultValue bool, usage string) {
 	flagName := strings.ReplaceAll(viperKey, ".", "-")
