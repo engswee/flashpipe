@@ -1,12 +1,14 @@
 package cmd
 
 import (
+	"errors"
+	"fmt"
 	"github.com/engswee/flashpipe/config"
 	"github.com/engswee/flashpipe/logger"
+	"github.com/engswee/flashpipe/odata"
 	"github.com/engswee/flashpipe/repo"
-	"github.com/engswee/flashpipe/runner"
+	"github.com/engswee/flashpipe/sync"
 	"github.com/spf13/cobra"
-	"os"
 	"time"
 )
 
@@ -17,6 +19,16 @@ func NewSnapshotCommand() *cobra.Command {
 		Short: "Snapshot integration packages from tenant to Git",
 		Long: `Snapshot all editable integration packages from SAP Integration Suite
 tenant to a Git repository.`,
+		Args: func(cmd *cobra.Command, args []string) error {
+			// Validate Draft Handling
+			draftHandling := config.GetString(cmd, "drafthandling")
+			switch draftHandling {
+			case "SKIP", "ADD", "ERROR":
+			default:
+				return fmt.Errorf("invalid value for --drafthandling = %v", draftHandling)
+			}
+			return nil
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			runSnapshot(cmd)
 		},
@@ -41,22 +53,41 @@ func runSnapshot(cmd *cobra.Command) {
 	commitMsg := config.GetString(cmd, "git-commitmsg")
 	syncPackageLevelDetails := config.GetBool(cmd, "syncpackagedetails")
 
-	// TODO - remove
-	mavenRepoLocation := config.GetString(cmd, "location.mavenrepo")
-	flashpipeLocation := config.GetString(cmd, "location.flashpipe")
-	log4jFile := config.GetString(cmd, "debug.flashpipe")
-	os.Setenv("HOST_TMN", config.GetMandatoryString(cmd, "tmn-host"))
-	os.Setenv("HOST_OAUTH", config.GetMandatoryString(cmd, "oauth-host"))
-	os.Setenv("OAUTH_CLIENTID", config.GetMandatoryString(cmd, "oauth-clientid"))
-	os.Setenv("OAUTH_CLIENTSECRET", config.GetMandatoryString(cmd, "oauth-clientsecret"))
-	os.Setenv("GIT_SRC_DIR", gitSrcDir)
-	os.Setenv("WORK_DIR", workDir)
-	_ = draftHandling
-	_ = syncPackageLevelDetails
-
-	_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.GetTenantSnapshot", mavenRepoLocation, flashpipeLocation, log4jFile)
-	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+	serviceDetails := odata.GetServiceDetails(cmd)
+	err := getTenantSnapshot(serviceDetails, gitSrcDir, workDir, draftHandling, syncPackageLevelDetails)
+	logger.ExitIfError(err)
 
 	err = repo.CommitToRepo(gitSrcDir, commitMsg)
 	logger.ExitIfError(err)
+}
+
+func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitSrcDir string, workDir string, draftHandling string, syncPackageLevelDetails bool) error {
+	logger.Info("---------------------------------------------------------------------------------")
+	logger.Info("📢 Begin taking a snapshot of the tenant")
+
+	// Initialise HTTP executer
+	exe := odata.InitHTTPExecuter(serviceDetails)
+
+	// Get packages from the tenant
+	ip := odata.NewIntegrationPackage(exe)
+	ids, err := ip.GetPackagesList()
+	logger.ExitIfError(err)
+	if len(ids) == 0 {
+		return errors.New("No packages found in the tenant")
+	}
+
+	logger.Info(fmt.Sprintf("Processing %d packages", len(ids)))
+	synchroniser := sync.New(exe)
+	for i, id := range ids {
+		logger.Info("---------------------------------------------------------------------------------")
+		logger.Info(fmt.Sprintf("Processing package %d/%d - ID: %v", i+1, len(ids), id))
+		if syncPackageLevelDetails {
+			synchroniser.SyncPackageDetails(id)
+		}
+		synchroniser.SyncArtifacts(id, fmt.Sprintf("%v/%v", workDir, id), fmt.Sprintf("%v/%v", gitSrcDir, id), nil, nil, draftHandling, "ID", "NONE", "")
+	}
+
+	logger.Info("---------------------------------------------------------------------------------")
+	logger.Info("🏆 Completed taking a snapshot of the tenant")
+	return nil
 }

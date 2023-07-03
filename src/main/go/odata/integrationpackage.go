@@ -12,7 +12,7 @@ type IntegrationPackage struct {
 	exe *httpclnt.HTTPExecuter
 }
 
-type packageData struct {
+type packageSingleData struct {
 	Root struct {
 		Id                string `json:"Id"`
 		Name              string `json:"Name"`
@@ -40,6 +40,14 @@ type artifactData struct {
 	} `json:"d"`
 }
 
+type packageMultipleData struct {
+	Root struct {
+		Results []struct {
+			Id string `json:"Id"`
+		} `json:"results"`
+	} `json:"d"`
+}
+
 type ArtifactDetails struct {
 	Id           string
 	Name         string
@@ -52,6 +60,36 @@ func NewIntegrationPackage(exe *httpclnt.HTTPExecuter) *IntegrationPackage {
 	ip := new(IntegrationPackage)
 	ip.exe = exe
 	return ip
+}
+
+func (ip *IntegrationPackage) GetPackagesList() ([]string, error) {
+	// Get the list of packages of the current tenant
+	logger.Info("Getting the list of IntegrationPackages")
+	path := "/api/v1/IntegrationPackages"
+
+	headers := map[string]string{
+		"Accept": "application/json",
+	}
+	resp, err := ip.exe.ExecGetRequest(path, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, ip.exe.LogError(resp, "Get IntegrationPackages list")
+	} else {
+		var jsonData *packageMultipleData
+		respBody, err := ip.exe.ReadRespBody(resp)
+		err = json.Unmarshal(respBody, &jsonData)
+		if err != nil {
+			return nil, err
+		}
+		var packageIds []string
+		for _, result := range jsonData.Root.Results {
+			packageIds = append(packageIds, result.Id)
+		}
+		return packageIds, nil
+	}
 }
 
 func (ip *IntegrationPackage) Get(id string) (resp *http.Response, err error) {
@@ -72,7 +110,7 @@ func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
 	if resp.StatusCode != 200 {
 		return false, ip.exe.LogError(resp, "Get IntegrationPackages by ID")
 	} else {
-		var jsonData *packageData
+		var jsonData *packageSingleData
 		respBody, err := ip.exe.ReadRespBody(resp)
 		err = json.Unmarshal(respBody, &jsonData)
 		if err != nil {
