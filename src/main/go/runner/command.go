@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+// TODO - to be removed when fully ported to Go
+
 func constructClassPath(prefix string, flashpipeLocation string) (string, error) {
 	paths := []string{
 		"/org/codehaus/groovy/groovy-all/2.4.21/groovy-all-2.4.21.jar",

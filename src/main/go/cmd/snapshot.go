@@ -11,6 +11,7 @@ import (
 )
 
 func NewSnapshotCommand() *cobra.Command {
+
 	snapshotCmd := &cobra.Command{
 		Use:   "snapshot",
 		Short: "Snapshot integration packages from tenant to Git",

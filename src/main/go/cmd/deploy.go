@@ -35,7 +35,7 @@ runtime of SAP Integration Suite tenant.`,
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	deployCmd.Flags().String("artifact-ids", "", "Comma separated list of artifact IDs [or set environment IFLOW_ID]")
+	deployCmd.Flags().String("artifact-ids", "", "Comma separated list of artifact IDs [or set environment ARTIFACT_IDS]")
 	deployCmd.Flags().Int("delaylength", 30, "Delay (in seconds) between each check of artifact deployment status [or set environment DELAY_LENGTH]\"")
 	deployCmd.Flags().Int("maxchecklimit", 10, "Max number of times to check for artifact deployment status [or set environment MAX_CHECK_LIMIT]")
 	deployCmd.Flags().Bool("compareversions", true, "Perform version comparison of design time against runtime before deployment [or set environment COMPARE_VERSIONS]")

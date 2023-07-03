@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/engswee/flashpipe/logger"
+	"github.com/engswee/flashpipe/config"
 	"github.com/spf13/pflag"
 	"os"
 	"strings"
@@ -11,16 +11,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-var cfgFile string
-var version = "2.7.2-SNAPSHOT" // FLASHPIPE_VERSION
-// TODO - move some of these into a struct
+func NewCmdRoot() *cobra.Command {
+	var version = "3.0.0" // FLASHPIPE_VERSION
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:     "flashpipe",
-	Version: version,
-	Short:   "FlashPipe - The CI/CD Companion for SAP Integration Suite",
-	Long: `FlashPipe - The CI/CD Companion for SAP Integration Suite
+	// rootCmd represents the base command when called without any subcommands
+	rootCmd := &cobra.Command{
+		Use:     "flashpipe",
+		Version: version,
+		Short:   "FlashPipe - The CI/CD Companion for SAP Integration Suite",
+		Long: `FlashPipe - The CI/CD Companion for SAP Integration Suite
 
 FlashPipe is a CLI that is used to simplify the Build-To-Deploy cycle
 for SAP Integration Suite by providing CI/CD capabilities for 
@@ -28,75 +27,15 @@ automating time-consuming manual tasks like:
 - synchronising integration artifacts to Git
 - uploading/updating integration artifacts to SAP Integration Suite
 - deploying integration artifacts on SAP Integration Suite`,
-	//PersistentPreRun: func(cmd *cobra.Command, args []string) {
-	//	ctx := context.WithValue(cmd.Context(), "PersistentPreRun", "val-PersistentPreRun")
-	//	cmd.SetContext(ctx)
-	//	//ctx := context.WithValue(cmd.Context(), "key", "val")
-	//	//cmd.SetContext(ctx)
-	//},
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
-		return initializeConfig(cmd)
-	},
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
-}
-
-//https://stackoverflow.com/questions/67642066/cobra-providing-context-to-subcommands-without-using-package-globals
-//func NewCmdRoot() *cobra.Command {
-//	cmd := &cobra.Command{
-//		...
-//	}
-//
-//	return cmd
-//}
-//
-//func main() {
-//	rootCmd := NewCmdRoot()
-//	rootCmd.Execute()
-//}
-
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
+			return initializeConfig(cmd)
+		},
 	}
-}
 
-func init() {
-	rootCmd.AddCommand(NewDeployCommand())
-	rootCmd.AddCommand(NewSyncCommand())
-	updateCmd := NewUpdateCommand()
-	updateCmd.AddCommand(NewArtifactCommand())
-	updateCmd.AddCommand(NewPackageCommand())
-	rootCmd.AddCommand(updateCmd)
-	rootCmd.AddCommand(NewSnapshotCommand())
-
-	// Execution sequence
-	//deploy init() -> execute init() in alphabetically order of file - init bind flags to viper config
-	//root init()
-	//root Execute()
-	//root initconfig()
-	//rootCmd PersistentPreRun - runs with the called command, i.e. sync, deploy
-	//deployCmd Run
-
-	//https://github.com/carolynvs/stingoftheviper/blob/main/main.go
-	//https://carolynvanslyck.com/blog/2020/08/sting-of-the-viper/
-
-	cobra.OnInitialize(initConfig)
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	//rootCmd.SetContext(context.WithValue(context.Background(), "rootinit", "val"))
-
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/flashpipe.yaml)")
+	rootCmd.PersistentFlags().String("config", "", "config file (default is $HOME/flashpipe.yaml)")
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	//var r = rootData{}
 	rootCmd.PersistentFlags().String("tmn-host", "", "Host for tenant management node of Cloud Integration excluding https:// [or set environment HOST_TMN]")
 	rootCmd.PersistentFlags().String("tmn-userid", "", "User ID for Basic Auth [or set environment BASIC_USERID]")
 	rootCmd.PersistentFlags().String("tmn-password", "", "Password for Basic Auth [or set environment BASIC_PASSWORD]")
@@ -109,28 +48,81 @@ func init() {
 	rootCmd.PersistentFlags().String("location.mavenrepo", "", "Maven Repository Location [or set environment MVN_REPO_LOCATION]")
 	rootCmd.PersistentFlags().String("location.flashpipe", "", "FlashPipe Location [or set environment FLASHPIPE_LOCATION]")
 
-	//flagName := strings.ReplaceAll("location.mavenrepo", ".", "-")
-	//rootCmd.PersistentFlags().String(flagName, "", "Maven Repository Location [or set environment MVN_REPO_LOCATION]")
-	//rootViper.BindPFlag("location.mavenrepo", rootCmd.PersistentFlags().Lookup(flagName))
-
-	//setPersistentStringFlagAndBind(rootViper, rootCmd, "location.mavenrepo", "", "Maven Repository Location [or set environment MVN_REPO_LOCATION]")
-	//setPersistentStringFlagAndBind(rootViper, rootCmd, "location.flashpipe", "", "FlashPipe Location [or set environment FLASHPIPE_LOCATION]")
-	//setPersistentStringFlagAndBind(rootViper, rootCmd, "debug.level", "", "Debug level - FLASHPIPE, APACHE, ALL")
-
-	//rootCmd.PersistentFlags().MarkHidden("config")
-	//rootCmd.PersistentFlags().MarkHidden("location-mavenrepo")
-	//rootCmd.PersistentFlags().MarkHidden("location-flashpipe")
-	//rootCmd.PersistentFlags().MarkHidden("debug-level")
-
-	//rootCmd.MarkFlagsRequiredTogether("tmn.userid", "tmn.password")
-	//rootCmd.MarkFlagsRequiredTogether("oauth.host", "oauth.clientid", "oauth.clientsecret")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
+	return rootCmd
 }
+
+// Execute adds all child commands to the root command and sets flags appropriately.
+// This is called by main.main(). It only needs to happen once to the rootCmd.
+func Execute() {
+
+	rootCmd := NewCmdRoot()
+	rootCmd.AddCommand(NewDeployCommand())
+	rootCmd.AddCommand(NewSyncCommand())
+	updateCmd := NewUpdateCommand()
+	updateCmd.AddCommand(NewArtifactCommand())
+	updateCmd.AddCommand(NewPackageCommand())
+	rootCmd.AddCommand(updateCmd)
+	rootCmd.AddCommand(NewSnapshotCommand())
+
+	err := rootCmd.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
+//func init() {
+
+// Execution sequence
+//deploy init() -> execute init() in alphabetically order of file - init bind flags to viper config
+//root init()
+//root Execute()
+//root initconfig()
+//rootCmd PersistentPreRun - runs with the called command, i.e. sync, deploy
+//deployCmd Run
+
+//https://github.com/carolynvs/stingoftheviper/blob/main/main.go
+//https://carolynvanslyck.com/blog/2020/08/sting-of-the-viper/
+
+//cobra.OnInitialize(initConfig)
+// Here you will define your flags and configuration settings.
+// Cobra supports persistent flags, which, if defined here,
+// will be global for your application.
+
+//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/flashpipe.yaml)")
+//
+//// Define cobra flags, the default value has the lowest (least significant) precedence
+//rootCmd.PersistentFlags().String("tmn-host", "", "Host for tenant management node of Cloud Integration excluding https:// [or set environment HOST_TMN]")
+//rootCmd.PersistentFlags().String("tmn-userid", "", "User ID for Basic Auth [or set environment BASIC_USERID]")
+//rootCmd.PersistentFlags().String("tmn-password", "", "Password for Basic Auth [or set environment BASIC_PASSWORD]")
+//rootCmd.PersistentFlags().String("oauth-host", "", "Host for OAuth token server excluding https:// [or set environment HOST_OAUTH]")
+//rootCmd.PersistentFlags().String("oauth-clientid", "", "Client ID for using OAuth [or set environment OAUTH_CLIENTID]")
+//rootCmd.PersistentFlags().String("oauth-clientsecret", "", "Client Secret for using OAuth [or set environment OAUTH_CLIENTSECRET]")
+//rootCmd.PersistentFlags().String("oauth-path", "/oauth/token", "Path for OAuth token server, e.g /oauth2/api/v1/token for Neo [or set environment HOST_OAUTH_PATH]")
+//
+
+//flagName := strings.ReplaceAll("location.mavenrepo", ".", "-")
+//rootCmd.PersistentFlags().String(flagName, "", "Maven Repository Location [or set environment MVN_REPO_LOCATION]")
+//rootViper.BindPFlag("location.mavenrepo", rootCmd.PersistentFlags().Lookup(flagName))
+
+//setPersistentStringFlagAndBind(rootViper, rootCmd, "location.mavenrepo", "", "Maven Repository Location [or set environment MVN_REPO_LOCATION]")
+//setPersistentStringFlagAndBind(rootViper, rootCmd, "location.flashpipe", "", "FlashPipe Location [or set environment FLASHPIPE_LOCATION]")
+//setPersistentStringFlagAndBind(rootViper, rootCmd, "debug.level", "", "Debug level - FLASHPIPE, APACHE, ALL")
+
+//rootCmd.PersistentFlags().MarkHidden("config")
+//rootCmd.PersistentFlags().MarkHidden("location-mavenrepo")
+//rootCmd.PersistentFlags().MarkHidden("location-flashpipe")
+//rootCmd.PersistentFlags().MarkHidden("debug-level")
+
+//rootCmd.MarkFlagsRequiredTogether("tmn.userid", "tmn.password")
+//rootCmd.MarkFlagsRequiredTogether("oauth.host", "oauth.clientid", "oauth.clientsecret")
+
+// Cobra also supports local flags, which will only run
+// when this action is called directly.
+//}
 
 func initializeConfig(cmd *cobra.Command) error {
 	v := viper.New()
+	cfgFile := config.GetString(cmd, "config")
 	if cfgFile != "" {
 		// Use config file from the flag.
 		v.SetConfigFile(cfgFile)
@@ -145,10 +137,6 @@ func initializeConfig(cmd *cobra.Command) error {
 		v.SetConfigName("flashpipe")
 	}
 
-	// If a config file is found, read it in.
-	//if err := v.ReadInConfig(); err == nil {
-	//	fmt.Fprintln(os.Stderr, "Using config file:", v.ConfigFileUsed())
-	//}
 	if err := v.ReadInConfig(); err != nil {
 		// It's okay if there isn't a config file
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
@@ -167,12 +155,6 @@ func initializeConfig(cmd *cobra.Command) error {
 	// Works great for simple config names, but needs help for names
 	// like --favorite-color which we fix in the bindFlags function
 	v.AutomaticEnv()
-
-	//fmt.Println("ARTIFACT_IDS =", v.GetString("ARTIFACT_IDS"))
-	//
-	//for _, key := range v.AllKeys() {
-	//	fmt.Println(key, "=", v.GetString(key))
-	//}
 
 	// Bind the current command's flags to viper
 	bindFlags(cmd, v)
@@ -251,49 +233,4 @@ func initConfig() {
 	//for _, key := range rootViper.AllKeys() {
 	//	fmt.Println(key, "=", rootViper.GetString(key))
 	//}
-}
-
-func setMandatoryVariable(viperInstance *viper.Viper, viperKey string, envVarName string) string {
-	viperInstance.BindEnv(viperKey, envVarName)
-	val := viperInstance.GetString(viperKey)
-	if val == "" {
-		logger.Error("Mandatory environment variable", envVarName, "is not populated")
-		os.Exit(1)
-	} else {
-		os.Setenv(envVarName, val) // TODO - remove when Java switch to CLI arguments
-	}
-	return val
-}
-
-func setOptionalVariable(viperInstance *viper.Viper, viperKey string, envVarName string) string {
-	viperInstance.BindEnv(viperKey, envVarName)
-	val := viperInstance.GetString(viperKey)
-	if val != "" {
-		os.Setenv(envVarName, val) // TODO - remove when Java switch to CLI arguments
-	}
-	return val
-}
-
-//func setPersistentStringFlagAndBind(viperInstance *viper.Viper, cmd *cobra.Command, viperKey string, defaultValue string, usage string) {
-//	flagName := strings.ReplaceAll(viperKey, ".", "-")
-//	cmd.PersistentFlags().String(flagName, defaultValue, usage)
-//	viperInstance.BindPFlag(viperKey, cmd.PersistentFlags().Lookup(flagName))
-//}
-
-func setStringFlagAndBind(viperInstance *viper.Viper, cmd *cobra.Command, viperKey string, defaultValue string, usage string) {
-	flagName := strings.ReplaceAll(viperKey, ".", "-")
-	cmd.Flags().String(flagName, defaultValue, usage)
-	viperInstance.BindPFlag(viperKey, cmd.Flags().Lookup(flagName))
-}
-
-//func setIntFlagAndBind(viperInstance *viper.Viper, cmd *cobra.Command, viperKey string, defaultValue int, usage string) {
-//	flagName := strings.ReplaceAll(viperKey, ".", "-")
-//	cmd.Flags().Int(flagName, defaultValue, usage)
-//	viperInstance.BindPFlag(viperKey, cmd.Flags().Lookup(flagName))
-//}
-
-func setBoolFlagAndBind(viperInstance *viper.Viper, cmd *cobra.Command, viperKey string, defaultValue bool, usage string) {
-	flagName := strings.ReplaceAll(viperKey, ".", "-")
-	cmd.Flags().Bool(flagName, defaultValue, usage)
-	viperInstance.BindPFlag(viperKey, cmd.Flags().Lookup(flagName))
 }
