@@ -1,45 +1,52 @@
 package cmd
 
 import (
+	"github.com/engswee/flashpipe/config"
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/runner"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"os"
 )
 
-var packageViper = viper.New()
+func NewPackageCommand() *cobra.Command {
 
-// packageCmd represents the package command
-var packageCmd = &cobra.Command{
-	Use:     "package",
-	Aliases: []string{"pkg"},
-	Short:   "Upload/update integration package",
-	Long: `Upload or update integration package on the
+	packageCmd := &cobra.Command{
+		Use:     "package",
+		Aliases: []string{"pkg"},
+		Short:   "Upload/update integration package",
+		Long: `Upload or update integration package on the
 SAP Integration Suite tenant.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		logger.Info("Executing update package command")
+		Run: func(cmd *cobra.Command, args []string) {
+			runUpdatePackage(cmd)
+		},
+	}
 
-		setMandatoryVariable(packageViper, "package.file", "PACKAGE_FILE")
-		setOptionalVariable(packageViper, "package.override.id", "PACKAGE_ID")
-		setOptionalVariable(packageViper, "package.override.name", "PACKAGE_NAME")
+	// Define cobra flags, the default value has the lowest (least significant) precedence
+	packageCmd.Flags().String("package-file", "", "Path to location of package file [or set environment PACKAGE_FILE]")
+	packageCmd.Flags().String("package-override-id", "", "Override package ID from file [or set environment PACKAGE_ID]")
+	packageCmd.Flags().String("package-override-name", "", "Override package name from file [or set environment PACKAGE_NAME]")
 
-		_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateIntegrationPackage", mavenRepoLocation, flashpipeLocation, log4jFile)
-		logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
-	},
+	return packageCmd
 }
 
-func init() {
-	updateCmd.AddCommand(packageCmd)
+func runUpdatePackage(cmd *cobra.Command) {
+	logger.Info("Executing update package command")
 
-	// Here you will define your flags and configuration settings.
+	packageFile := config.GetMandatoryString(cmd, "package-file")
+	packageId := config.GetString(cmd, "package-override-id")
+	packageName := config.GetString(cmd, "package-override-name")
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// packageCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// TODO - remove
+	mavenRepoLocation := config.GetString(cmd, "location.mavenrepo")
+	flashpipeLocation := config.GetString(cmd, "location.flashpipe")
+	os.Setenv("HOST_TMN", config.GetMandatoryString(cmd, "tmn-host"))
+	os.Setenv("HOST_OAUTH", config.GetMandatoryString(cmd, "oauth-host"))
+	os.Setenv("OAUTH_CLIENTID", config.GetMandatoryString(cmd, "oauth-clientid"))
+	os.Setenv("OAUTH_CLIENTSECRET", config.GetMandatoryString(cmd, "oauth-clientsecret"))
+	os.Setenv("PACKAGE_FILE", packageFile)
+	os.Setenv("PACKAGE_ID", packageId)
+	os.Setenv("PACKAGE_NAME", packageName)
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	setStringFlagAndBind(packageViper, packageCmd, "package.file", "", "Path to location of package file [or set environment PACKAGE_FILE]")
-	setStringFlagAndBind(packageViper, packageCmd, "package.override.id", "", "Override package ID from file [or set environment PACKAGE_ID]")
-	setStringFlagAndBind(packageViper, packageCmd, "package.override.name", "", "Override package name from file [or set environment PACKAGE_NAME]")
+	_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateIntegrationPackage", mavenRepoLocation, flashpipeLocation, log4jFile)
+	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 }

@@ -18,16 +18,6 @@ var mavenRepoLocation string
 var flashpipeLocation string
 var log4jFile string
 
-var rootViper = viper.New()
-
-//var tmnHost string
-//var oauthHost string
-//var oauthClientId string
-//var oauthClientSecret string
-//var oauthTokenPath string
-//var basicUserId string
-//var basicPassword string
-
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:     "flashpipe",
@@ -82,6 +72,11 @@ func Execute() {
 func init() {
 	rootCmd.AddCommand(NewDeployCommand())
 	rootCmd.AddCommand(NewSyncCommand())
+	updateCmd := NewUpdateCommand()
+	updateCmd.AddCommand(NewArtifactCommand())
+	updateCmd.AddCommand(NewPackageCommand())
+	rootCmd.AddCommand(updateCmd)
+
 	// Execution sequence
 	//deploy init() -> execute init() in alphabetically order of file - init bind flags to viper config
 	//root init()
@@ -104,26 +99,24 @@ func init() {
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
 	//var r = rootData{}
-	rootCmd.PersistentFlags().String("tmn.host", "", "Host for tenant management node of Cloud Integration excluding https:// [or set environment HOST_TMN]")
-	rootCmd.PersistentFlags().String("tmn.userid", "", "User ID for Basic Auth [or set environment BASIC_USERID]")
-	rootCmd.PersistentFlags().String("tmn.password", "", "Password for Basic Auth [or set environment BASIC_PASSWORD]")
-	rootCmd.PersistentFlags().String("oauth.host", "", "Host for OAuth token server excluding https:// [or set environment HOST_OAUTH]")
-	rootCmd.PersistentFlags().String("oauth.clientid", "", "Client ID for using OAuth [or set environment OAUTH_CLIENTID]")
-	rootCmd.PersistentFlags().String("oauth.clientsecret", "", "Client Secret for using OAuth [or set environment OAUTH_CLIENTSECRET]")
-	rootCmd.PersistentFlags().String("oauth.path", "/oauth/token", "Path for OAuth token server, e.g /oauth2/api/v1/token for Neo [or set environment HOST_OAUTH_PATH]")
+	rootCmd.PersistentFlags().String("tmn-host", "", "Host for tenant management node of Cloud Integration excluding https:// [or set environment HOST_TMN]")
+	rootCmd.PersistentFlags().String("tmn-userid", "", "User ID for Basic Auth [or set environment BASIC_USERID]")
+	rootCmd.PersistentFlags().String("tmn-password", "", "Password for Basic Auth [or set environment BASIC_PASSWORD]")
+	rootCmd.PersistentFlags().String("oauth-host", "", "Host for OAuth token server excluding https:// [or set environment HOST_OAUTH]")
+	rootCmd.PersistentFlags().String("oauth-clientid", "", "Client ID for using OAuth [or set environment OAUTH_CLIENTID]")
+	rootCmd.PersistentFlags().String("oauth-clientsecret", "", "Client Secret for using OAuth [or set environment OAUTH_CLIENTSECRET]")
+	rootCmd.PersistentFlags().String("oauth-path", "/oauth/token", "Path for OAuth token server, e.g /oauth2/api/v1/token for Neo [or set environment HOST_OAUTH_PATH]")
+
+	// TODO - to be removed once fully ported from Java to Go
+	rootCmd.PersistentFlags().String("location.mavenrepo", "", "Maven Repository Location [or set environment MVN_REPO_LOCATION]")
+	rootCmd.PersistentFlags().String("location.flashpipe", "", "FlashPipe Location [or set environment FLASHPIPE_LOCATION]")
+
 	//flagName := strings.ReplaceAll("location.mavenrepo", ".", "-")
 	//rootCmd.PersistentFlags().String(flagName, "", "Maven Repository Location [or set environment MVN_REPO_LOCATION]")
 	//rootViper.BindPFlag("location.mavenrepo", rootCmd.PersistentFlags().Lookup(flagName))
 
 	//setPersistentStringFlagAndBind(rootViper, rootCmd, "location.mavenrepo", "", "Maven Repository Location [or set environment MVN_REPO_LOCATION]")
 	//setPersistentStringFlagAndBind(rootViper, rootCmd, "location.flashpipe", "", "FlashPipe Location [or set environment FLASHPIPE_LOCATION]")
-	//setPersistentStringFlagAndBind(rootViper, rootCmd, "tmn.host", "", "Host for tenant management node of Cloud Integration excluding https:// [or set environment HOST_TMN]")
-	//setPersistentStringFlagAndBind(rootViper, rootCmd, "tmn.userid", "", "User ID for Basic Auth [or set environment BASIC_USERID]")
-	//setPersistentStringFlagAndBind(rootViper, rootCmd, "tmn.password", "", "Password for Basic Auth [or set environment BASIC_PASSWORD]")
-	//setPersistentStringFlagAndBind(rootViper, rootCmd, "oauth.host", "", "Host for OAuth token server excluding https:// [or set environment HOST_OAUTH]")
-	//setPersistentStringFlagAndBind(rootViper, rootCmd, "oauth.clientid", "", "Client ID for using OAuth [or set environment OAUTH_CLIENTID]")
-	//setPersistentStringFlagAndBind(rootViper, rootCmd, "oauth.clientsecret", "", "Client Secret for using OAuth [or set environment OAUTH_CLIENTSECRET]")
-	//setPersistentStringFlagAndBind(rootViper, rootCmd, "oauth.path", "/oauth/token", "Path for OAuth token server, e.g /oauth2/api/v1/token for Neo [or set environment HOST_OAUTH_PATH]")
 	//setPersistentStringFlagAndBind(rootViper, rootCmd, "debug.level", "", "Debug level - FLASHPIPE, APACHE, ALL")
 
 	//rootCmd.PersistentFlags().MarkHidden("config")
@@ -165,6 +158,7 @@ func initializeConfig(cmd *cobra.Command) error {
 		}
 	}
 
+	// TODO - handle environment variable prefix to FLASHPIPE?
 	v.SetEnvPrefix("FP")
 
 	// Environment variables can't have dashes in them, so bind them to their equivalent
@@ -190,6 +184,7 @@ func initializeConfig(cmd *cobra.Command) error {
 // Bind each cobra flag to its associated viper configuration (config file and environment variable)
 func bindFlags(cmd *cobra.Command, v *viper.Viper) {
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		// TODO - handle environment variable name??
 		// Determine the naming convention of the flags when represented in the config file
 		configName := f.Name
 
