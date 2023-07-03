@@ -11,9 +11,8 @@ import (
 	"time"
 )
 
-//var deployViper = viper.New()
-
 func NewDeployCommand() *cobra.Command {
+
 	deployCmd := &cobra.Command{
 		Use:   "deploy",
 		Short: "Deploy designtime artifact to runtime",
@@ -22,7 +21,7 @@ runtime of SAP Integration Suite tenant.`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			//  TODO - Flags are not bind to Viper at this point ??
 			// Validate the artifact type
-			artifactType, _ := cmd.Flags().GetString("artifact-type")
+			artifactType := config.GetString(cmd, "artifact-type")
 			switch artifactType {
 			case "MessageMapping", "ScriptCollection", "Integration":
 			default:
@@ -31,7 +30,7 @@ runtime of SAP Integration Suite tenant.`,
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			deploy(cmd)
+			runDeploy(cmd)
 		},
 	}
 
@@ -45,16 +44,16 @@ runtime of SAP Integration Suite tenant.`,
 	return deployCmd
 }
 
-func deploy(cmd *cobra.Command) {
+func runDeploy(cmd *cobra.Command) {
 	serviceDetails := odata.GetServiceDetails(cmd)
 
-	artifactType := config.GetFlagAsString(cmd, "artifact-type")
+	artifactType := config.GetString(cmd, "artifact-type")
 	logger.Info(fmt.Sprintf("Executing deploy %v command", artifactType))
 
-	artifactIds := config.GetRequiredFlagAsString(cmd, "artifact-ids") // TODO- mandatory check
-	delayLength := config.GetFlagAsInt(cmd, "delaylength")
-	maxCheckLimit := config.GetFlagAsInt(cmd, "maxchecklimit")
-	compareVersions := config.GetFlagAsBool(cmd, "compareversions")
+	artifactIds := config.GetMandatoryString(cmd, "artifact-ids")
+	delayLength := config.GetInt(cmd, "delaylength")
+	maxCheckLimit := config.GetInt(cmd, "maxchecklimit")
+	compareVersions := config.GetBool(cmd, "compareversions")
 
 	deployArtifacts(artifactIds, artifactType, delayLength, maxCheckLimit, compareVersions, serviceDetails)
 }
@@ -77,9 +76,9 @@ func deployArtifacts(delimitedIds string, artifactType string, delayLength int, 
 	for i, id := range ids {
 		logger.Info(fmt.Sprintf("Processing artifact %d - %v", i+1, id))
 		err := deploySingle(dt, rt, id, compareVersions)
+		// TODO - write error wrapper - https://go.dev/blog/errors-are-values
 		logger.ExitIfError(err)
 	}
-	// TODO - write error wrapper - https://go.dev/blog/errors-are-values
 
 	// Delay to allow deployment to start before checking the status
 	// Only applicable if there is only 1 artifact, because if there are many, then there is an inherent delay already

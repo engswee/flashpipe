@@ -90,8 +90,8 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 		// Normalise ID and Name
 		normalisedId := str.Normalise(artifact.Id, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
 		normalisedName := str.Normalise(artifact.Name, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
-		logger.Debug(fmt.Sprintf("Normalized artifact ID - %v", normalisedId))
-		logger.Debug(fmt.Sprintf("Normalized artifact name - %v", normalisedName))
+		logger.Debug(fmt.Sprintf("Normalised artifact ID - %v", normalisedId))
+		logger.Debug(fmt.Sprintf("Normalised artifact name - %v", normalisedName))
 
 		var directoryName string
 		if dirNamingType == "NAME" {
@@ -106,7 +106,7 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 		logger.ExitIfError(err)
 		logger.Info(fmt.Sprintf("Downloaded artifact unzipped to %v", downloadedArtifactPath))
 
-		// Normalize MANIFEST.MF before sync to Git - TODO
+		// Normalise MANIFEST.MF before sync to Git - TODO
 		// https://github.com/gnewton/jargo/blob/master/jar.go
 		//https://pkg.go.dev/github.com/quay/claircore/java/jar
 		//https://github.com/quay/claircore/blob/v1.5.8/java/jar/jar.go
@@ -116,7 +116,7 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 		//Map collections = scriptCollection.getCollections()
 		//ManifestHandler.newInstance("${workDir}/download/${directoryName}/META-INF/MANIFEST.MF").normalizeAttributesInFile(normalizedIFlowID, normalizedIFlowName, scriptCollection.getTargetCollectionValues())
 
-		// Normalize the script collection in IFlow BPMN2 XML before syncing to Git - TODO
+		// Normalise the script collection in IFlow BPMN2 XML before syncing to Git - TODO
 		//if (collections.size()) {
 		//	BPMN2Handler bpmn2Handler = new BPMN2Handler()
 		//	bpmn2Handler.updateFiles(collections, "${workDir}/download/${directoryName}")

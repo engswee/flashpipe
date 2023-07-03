@@ -7,8 +7,8 @@ import (
 	"os"
 )
 
-func GetRequiredFlagAsString(cmd *cobra.Command, flagName string) string {
-	val := GetFlagAsString(cmd, flagName)
+func GetMandatoryString(cmd *cobra.Command, flagName string) string {
+	val := GetString(cmd, flagName)
 	if val == "" {
 		logger.Error(fmt.Sprintf("Mandatory parameter %v is not populated", flagName))
 		os.Exit(1)
@@ -16,17 +16,17 @@ func GetRequiredFlagAsString(cmd *cobra.Command, flagName string) string {
 	return val
 }
 
-func GetFlagAsString(cmd *cobra.Command, flagName string) string {
+func GetString(cmd *cobra.Command, flagName string) string {
 	val, _ := cmd.Flags().GetString(flagName)
 	return val
 }
 
-func GetFlagAsInt(cmd *cobra.Command, flagName string) int {
+func GetInt(cmd *cobra.Command, flagName string) int {
 	val, _ := cmd.Flags().GetInt(flagName)
 	return val
 }
 
-func GetFlagAsBool(cmd *cobra.Command, flagName string) bool {
+func GetBool(cmd *cobra.Command, flagName string) bool {
 	val, _ := cmd.Flags().GetBool(flagName)
 	return val
 }

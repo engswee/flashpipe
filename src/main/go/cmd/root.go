@@ -81,6 +81,7 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(NewDeployCommand())
+	rootCmd.AddCommand(NewSyncCommand())
 	// Execution sequence
 	//deploy init() -> execute init() in alphabetically order of file - init bind flags to viper config
 	//root init()

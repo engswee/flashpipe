@@ -17,20 +17,20 @@ type ServiceDetails struct {
 }
 
 func GetServiceDetails(cmd *cobra.Command) *ServiceDetails {
-	oauthHost := config.GetFlagAsString(cmd, "oauth.host")
+	oauthHost := config.GetString(cmd, "oauth.host")
 	if oauthHost == "" {
 		return &ServiceDetails{
-			Host:     config.GetRequiredFlagAsString(cmd, "tmn.host"),
-			Userid:   config.GetRequiredFlagAsString(cmd, "tmn.userid"),
-			Password: config.GetRequiredFlagAsString(cmd, "tmn.password"),
+			Host:     config.GetMandatoryString(cmd, "tmn.host"),
+			Userid:   config.GetMandatoryString(cmd, "tmn.userid"),
+			Password: config.GetMandatoryString(cmd, "tmn.password"),
 		}
 	} else {
 		return &ServiceDetails{
-			Host:              config.GetRequiredFlagAsString(cmd, "tmn.host"),
+			Host:              config.GetMandatoryString(cmd, "tmn.host"),
 			OauthHost:         oauthHost,
-			OauthClientId:     config.GetRequiredFlagAsString(cmd, "oauth.clientid"),
-			OauthClientSecret: config.GetRequiredFlagAsString(cmd, "oauth.clientsecret"),
-			OauthPath:         config.GetFlagAsString(cmd, "oauth.path"),
+			OauthClientId:     config.GetMandatoryString(cmd, "oauth.clientid"),
+			OauthClientSecret: config.GetMandatoryString(cmd, "oauth.clientsecret"),
+			OauthPath:         config.GetString(cmd, "oauth.path"),
 		}
 	}
 }
