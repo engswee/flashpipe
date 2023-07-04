@@ -9,6 +9,7 @@ type DesigntimeArtifact interface {
 	Deploy(id string) error
 	Get(id string, version string) (*http.Response, error)
 	GetVersion(id string, version string) (string, error)
+	Exists(id string, version string) (bool, error)
 	Download(id string, version string) ([]byte, error)
 }
 

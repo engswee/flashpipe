@@ -3,13 +3,13 @@ package cmd
 import (
 	"fmt"
 	"github.com/engswee/flashpipe/config"
-	"github.com/engswee/flashpipe/diff"
 	"github.com/engswee/flashpipe/file"
 	"github.com/engswee/flashpipe/logger"
+	"github.com/engswee/flashpipe/odata"
+	"github.com/engswee/flashpipe/odata/designtime"
 	"github.com/engswee/flashpipe/runner"
 	"github.com/spf13/cobra"
 	"os"
-	"strings"
 )
 
 func NewArtifactCommand() *cobra.Command {
@@ -19,29 +19,42 @@ func NewArtifactCommand() *cobra.Command {
 		Short: "Upload/update artifacts",
 		Long: `Upload or update artifacts on the
 SAP Integration Suite tenant.`,
+		Args: func(cmd *cobra.Command, args []string) error {
+			//  TODO - Flags are not bind to Viper at this point ??
+			// Validate the artifact type
+			artifactType := config.GetString(cmd, "artifact-type")
+			switch artifactType {
+			case "MessageMapping", "ScriptCollection", "Integration":
+			default:
+				return fmt.Errorf("invalid value for --artifact-type = %v", artifactType)
+			}
+			return nil
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			runUpdateArtifact(cmd)
 		},
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	artifactCmd.Flags().String("iflow-id", "", "ID of Integration Flow [or set environment IFLOW_ID]")
-	artifactCmd.Flags().String("iflow-name", "", "Name of Integration Flow [or set environment IFLOW_NAME]")
+	artifactCmd.Flags().String("artifact-id", "", "ID of artifact [or set environment ARTIFACT_ID]")
+	artifactCmd.Flags().String("artifact-name", "", "Name of artifact [or set environment ARTIFACT_NAME]")
 	artifactCmd.Flags().String("package-id", "", "ID of Integration Package [or set environment PACKAGE_ID]")
 	artifactCmd.Flags().String("package-name", "", "Name of Integration Package [or set environment PACKAGE_NAME]")
 	artifactCmd.Flags().String("dir-gitsrc", "", "Directory containing contents of Integration Flow [or set environment GIT_SRC_DIR]")
 	artifactCmd.Flags().String("file-param", "", "Use to a different parameters.prop file instead of the default in src/main/resources/ [or set environment PARAM_FILE]")
 	artifactCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files [or set environment WORK_DIR]")
 	artifactCmd.Flags().String("scriptmap", "", "Comma-separated source-target ID pairs for converting script collection references during upload/update [or set environment SCRIPT_COLLECTION_MAP]")
+	artifactCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection")
 
 	return artifactCmd
 }
 
 func runUpdateArtifact(cmd *cobra.Command) {
-	logger.Info("Executing update artifact command")
+	artifactType := config.GetString(cmd, "artifact-type")
+	logger.Info(fmt.Sprintf("Executing update artifact %v command", artifactType))
 
-	iflowId := config.GetMandatoryString(cmd, "iflow-id")
-	iflowName := config.GetMandatoryString(cmd, "iflow-name")
+	artifactId := config.GetMandatoryString(cmd, "artifact-id")
+	artifactName := config.GetMandatoryString(cmd, "artifact-name")
 	packageId := config.GetMandatoryString(cmd, "package-id")
 	packageName := config.GetMandatoryString(cmd, "package-name")
 	gitSrcDir := config.GetMandatoryString(cmd, "dir-gitsrc")
@@ -57,8 +70,8 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	os.Setenv("HOST_OAUTH", config.GetMandatoryString(cmd, "oauth-host"))
 	os.Setenv("OAUTH_CLIENTID", config.GetMandatoryString(cmd, "oauth-clientid"))
 	os.Setenv("OAUTH_CLIENTSECRET", config.GetMandatoryString(cmd, "oauth-clientsecret"))
-	os.Setenv("IFLOW_ID", iflowId)
-	os.Setenv("IFLOW_NAME", iflowName)
+	os.Setenv("IFLOW_ID", artifactId)
+	os.Setenv("IFLOW_NAME", artifactName)
 	os.Setenv("PACKAGE_ID", packageId)
 	os.Setenv("PACKAGE_NAME", packageName)
 
@@ -73,9 +86,18 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	// TODO - used to pass to Java class UpdateConfiguration. to be removed when Java deprecated
 	os.Setenv("PARAM_FILE", parametersFile)
 
+	// Initialise HTTP executer
+	serviceDetails := odata.GetServiceDetails(cmd)
+	exe := odata.InitHTTPExecuter(serviceDetails)
+
+	// Initialise designtime artifact
+	dt := designtime.NewDesigntimeArtifact(artifactType, exe)
+	ip := odata.NewIntegrationPackage(exe)
+
 	// Check if IFlow already exist on tenant
-	output, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.QueryDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
-	if strings.Contains(output, "Active version of IFlow does not exist") {
+	exists, err := artifactExists(artifactId, artifactType, packageId, dt, ip)
+	logger.ExitIfError(err)
+	if !exists {
 		// Upload IFlow
 		logger.Info("IFlow will be uploaded to tenant")
 
@@ -86,14 +108,14 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 		logger.Info("🏆 IFlow created successfully")
 
-	} else if err == nil {
+	} else {
 		// Update IFlow
 		logger.Info("Checking if IFlow design needs to be updated")
 		// 1 - Download IFlow from tenant
-		zipFile := fmt.Sprintf("%v/%v.zip", workDir, iflowId)
+		zipFile := fmt.Sprintf("%v/%v.zip", workDir, artifactId)
 		downloadIFlow(zipFile, mavenRepoLocation, flashpipeLocation, log4jFile)
 		// 2 - Diff contents from tenant against Git
-		changesFound, err := compareIFlowContents(workDir, zipFile, gitSrcDir, iflowId, iflowName, scriptMap, mavenRepoLocation, flashpipeLocation, log4jFile)
+		changesFound, err := compareIFlowContents(workDir, zipFile, gitSrcDir, artifactId, artifactName, scriptMap, mavenRepoLocation, flashpipeLocation, log4jFile)
 		logger.ExitIfError(err)
 
 		if changesFound == true {
@@ -113,8 +135,6 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateConfiguration", mavenRepoLocation, flashpipeLocation, log4jFile)
 		logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
-	} else {
-		logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 	}
 }
 
@@ -168,10 +188,10 @@ func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflo
 
 	// Compare META-INF directory for any differences in the manifest file
 	logger.Info("Checking for changes in META-INF directory")
-	metaDirDiffer := diff.DiffDirectories(workDir+"/download/META-INF/", gitSrcDir+"/META-INF/")
+	metaDirDiffer := file.DiffDirectories(workDir+"/download/META-INF/", gitSrcDir+"/META-INF/")
 
 	logger.Info("Checking for changes in src/main/resources directory")
-	resourcesDirDiffer := diff.DiffDirectories(workDir+"/download/src/main/resources/", gitSrcDir+"/src/main/resources/")
+	resourcesDirDiffer := file.DiffDirectories(workDir+"/download/src/main/resources/", gitSrcDir+"/src/main/resources/")
 
 	if metaDirDiffer == false && resourcesDirDiffer == false {
 		changesFound = false
@@ -179,4 +199,32 @@ func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflo
 		changesFound = true
 	}
 	return
+}
+
+func artifactExists(artifactId string, artifactType string, packageId string, dt designtime.DesigntimeArtifact, ip *odata.IntegrationPackage) (bool, error) {
+	logger.Info(fmt.Sprintf("Checking if %v exists", artifactId))
+	exists, err := dt.Exists(artifactId, "active")
+	if err != nil {
+		return false, err
+	}
+	if exists {
+		logger.Info(fmt.Sprintf("Active version of artifact %v exists", artifactId))
+		//  Check if version is in draft mode
+		var details []*odata.ArtifactDetails
+		details, err = ip.GetArtifactsData(packageId, artifactType)
+		if err != nil {
+			return false, err
+		}
+		artifact := odata.FindArtifactById(artifactId, details)
+		if artifact == nil {
+			return false, fmt.Errorf("Artifact %v not found in package %v", artifactId, packageId)
+		}
+		if artifact.IsDraft {
+			return false, fmt.Errorf("Artifact %v is in Draft state. Save Version of artifact in Web UI first!", artifactId)
+		}
+		return true, nil
+	} else {
+		logger.Info(fmt.Sprintf("Active version of artifact %v does not exist", artifactId))
+		return false, nil
+	}
 }

@@ -162,7 +162,6 @@ func (ip *IntegrationPackage) GetArtifactsData(id string, artifactType string) (
 		err = json.Unmarshal(respBody, &jsonData)
 		if err != nil {
 			return nil, err
-			panic(err)
 		}
 		var details []*ArtifactDetails
 		for _, result := range jsonData.Root.Results {
@@ -265,4 +264,13 @@ func (ip *IntegrationPackage) constructBody(packageData *PackageSingleData) ([]b
 	}
 	logger.Debug(fmt.Sprintf("Request body = %s", jsonBody))
 	return jsonBody, nil
+}
+
+func FindArtifactById(key string, list []*ArtifactDetails) *ArtifactDetails {
+	for _, s := range list {
+		if s.Id == key {
+			return s
+		}
+	}
+	return nil
 }

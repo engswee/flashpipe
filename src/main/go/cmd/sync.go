@@ -99,7 +99,7 @@ func runSync(cmd *cobra.Command) {
 	normalisePackageIDPrefixOrSuffix := config.GetString(cmd, "normalise-package-prefixsuffix-id")
 	normalisePackageNamePrefixOrSuffix := config.GetString(cmd, "normalise-package-prefixsuffix-name")
 
-	// TODO
+	// TODO - implement normalisation
 	_ = scriptCollectionMap
 	_ = normalisePackageAction
 	_ = normalisePackageIDPrefixOrSuffix

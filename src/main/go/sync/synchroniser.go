@@ -2,7 +2,6 @@ package sync
 
 import (
 	"fmt"
-	"github.com/engswee/flashpipe/diff"
 	"github.com/engswee/flashpipe/file"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
@@ -32,6 +31,7 @@ func (s *Synchroniser) SyncPackageDetails(packageId string) {
 		logger.Warn(fmt.Sprintf("Skipping package %v as it is Configure-only", packageId))
 		return
 	}
+	// TODO - complete sync package details
 }
 
 func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, normaliseManifestAction string, normaliseManifestPrefixOrSuffix string) {
@@ -132,13 +132,13 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 			// Remove comments from parameters.prop before comparison only if it exists
 
 			// Diff directories excluding parameters.prop
-			dirDiffer := diff.DiffDirectories(downloadedArtifactPath, gitArtifactPath)
+			dirDiffer := file.DiffDirectories(downloadedArtifactPath, gitArtifactPath)
 			// Diff parameters.prop ignoring commented lines
 			downloadedParams := fmt.Sprintf("%v/src/main/resources/parameters.prop", downloadedArtifactPath)
 			gitParams := fmt.Sprintf("%v/src/main/resources/parameters.prop", gitArtifactPath)
 			var paramDiffer bool
 			if file.CheckFileExists(downloadedParams) && file.CheckFileExists(gitParams) {
-				paramDiffer = diff.DiffParams(downloadedParams, gitParams)
+				paramDiffer = file.DiffParams(downloadedParams, gitParams)
 			} else if !file.CheckFileExists(downloadedParams) && !file.CheckFileExists(gitParams) {
 				logger.Warn("Skipping diff of parameters.prop as it does not exist in both source and target")
 			} else {
@@ -180,7 +180,7 @@ func filterArtifacts(artifacts []*odata.ArtifactDetails, includedIds []string, e
 	var output []*odata.ArtifactDetails
 	if len(includedIds) > 0 {
 		for _, id := range includedIds {
-			artifact := findArtifactById(id, artifacts)
+			artifact := odata.FindArtifactById(id, artifacts)
 			if artifact != nil {
 				output = append(output, artifact)
 			} else {
@@ -190,7 +190,7 @@ func filterArtifacts(artifacts []*odata.ArtifactDetails, includedIds []string, e
 		return output, nil
 	} else if len(excludedIds) > 0 {
 		for _, id := range excludedIds {
-			artifact := findArtifactById(id, artifacts)
+			artifact := odata.FindArtifactById(id, artifacts)
 			if artifact == nil {
 				return nil, fmt.Errorf("Artifact %v in EXCLUDE_IDS does not exist", id)
 			}
@@ -203,15 +203,6 @@ func filterArtifacts(artifacts []*odata.ArtifactDetails, includedIds []string, e
 		return output, nil
 	}
 	return artifacts, nil
-}
-
-func findArtifactById(key string, list []*odata.ArtifactDetails) *odata.ArtifactDetails {
-	for _, s := range list {
-		if s.Id == key {
-			return s
-		}
-	}
-	return nil
 }
 
 func contains(key string, list []string) bool {

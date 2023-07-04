@@ -70,6 +70,20 @@ func (mm *MessageMapping) GetVersion(id string, version string) (string, error) 
 	}
 }
 
+func (mm *MessageMapping) Exists(id string, version string) (bool, error) {
+	resp, err := mm.Get(id, version)
+	if err != nil {
+		return false, err
+	}
+	if resp.StatusCode == 200 {
+		return true, nil
+	} else if resp.StatusCode == 404 {
+		return false, nil
+	} else {
+		return false, mm.exe.LogError(resp, fmt.Sprintf("Get %v designtime artifact", mm.typ))
+	}
+}
+
 func (mm *MessageMapping) Download(id string, version string) ([]byte, error) {
 	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')/$value", mm.typ, id, version)
 

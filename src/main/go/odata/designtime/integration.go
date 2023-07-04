@@ -70,6 +70,20 @@ func (int *Integration) GetVersion(id string, version string) (string, error) {
 	}
 }
 
+func (int *Integration) Exists(id string, version string) (bool, error) {
+	resp, err := int.Get(id, version)
+	if err != nil {
+		return false, err
+	}
+	if resp.StatusCode == 200 {
+		return true, nil
+	} else if resp.StatusCode == 404 {
+		return false, nil
+	} else {
+		return false, int.exe.LogError(resp, fmt.Sprintf("Get %v designtime artifact", int.typ))
+	}
+}
+
 func (int *Integration) Download(id string, version string) ([]byte, error) {
 	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')/$value", int.typ, id, version)
 

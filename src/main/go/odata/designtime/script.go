@@ -70,6 +70,20 @@ func (sc *ScriptCollection) GetVersion(id string, version string) (string, error
 	}
 }
 
+func (sc *ScriptCollection) Exists(id string, version string) (bool, error) {
+	resp, err := sc.Get(id, version)
+	if err != nil {
+		return false, err
+	}
+	if resp.StatusCode == 200 {
+		return true, nil
+	} else if resp.StatusCode == 404 {
+		return false, nil
+	} else {
+		return false, sc.exe.LogError(resp, fmt.Sprintf("Get %v designtime artifact", sc.typ))
+	}
+}
+
 func (sc *ScriptCollection) Download(id string, version string) ([]byte, error) {
 	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')/$value", sc.typ, id, version)
 

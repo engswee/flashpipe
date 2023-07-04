@@ -37,7 +37,7 @@ tenant to a Git repository.`,
 	// Define cobra flags, the default value has the lowest (least significant) precedence
 	snapshotCmd.Flags().String("dir-gitsrc", "", "Base directory containing contents of artifacts (grouped into packages) [or set environment GIT_SRC_DIR]")
 	snapshotCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files [or set environment WORK_DIR]")
-	snapshotCmd.Flags().String("drafthandling", "SKIP", "Handling when IFlow is in draft version. Allowed values: SKIP, ADD, ERROR [or set environment DRAFT_HANDLING]")
+	snapshotCmd.Flags().String("drafthandling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR [or set environment DRAFT_HANDLING]")
 	snapshotCmd.Flags().String("git-commitmsg", "Tenant snapshot of "+time.Now().Format(time.UnixDate), "Message used in commit [or set environment COMMIT_MESSAGE]")
 	snapshotCmd.Flags().Bool("syncpackagedetails", false, "Sync details of Integration Packages [or set environment SYNC_PACKAGE_LEVEL_DETAILS]")
 
