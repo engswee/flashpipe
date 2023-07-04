@@ -104,9 +104,8 @@ func (e *HTTPExecuter) LogError(resp *http.Response, callType string) (err error
 		return
 	}
 
-	body := string(resBody)
-	if body != "" {
-		logger.Error(fmt.Sprintf("Response Body = %s", body))
+	if resBody != nil {
+		logger.Error(fmt.Sprintf("Response body = %s", resBody))
 	}
 
 	return fmt.Errorf("%v call failed with response code = %d", callType, resp.StatusCode)

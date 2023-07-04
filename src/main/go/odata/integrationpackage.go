@@ -1,6 +1,7 @@
 package odata
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
@@ -12,21 +13,21 @@ type IntegrationPackage struct {
 	exe *httpclnt.HTTPExecuter
 }
 
-type packageSingleData struct {
+type PackageSingleData struct {
 	Root struct {
 		Id                string `json:"Id"`
 		Name              string `json:"Name"`
 		Description       string `json:"Description"`
 		ShortText         string `json:"ShortText"`
 		Version           string `json:"Version"`
-		Vendor            string `json:"Vendor"`
-		Mode              string `json:"Mode"`
+		Vendor            string `json:"Vendor,omitempty"`
+		Mode              string `json:"Mode,omitempty"`
 		SupportedPlatform string `json:"SupportedPlatform"`
-		Products          string `json:"Products"`
-		Keywords          string `json:"Keywords"`
-		Countries         string `json:"Countries"`
-		Industries        string `json:"Industries"`
-		LineOfBusiness    string `json:"LineOfBusiness"`
+		Products          string `json:"Products,omitempty"`
+		Keywords          string `json:"Keywords,omitempty"`
+		Countries         string `json:"Countries,omitempty"`
+		Industries        string `json:"Industries,omitempty"`
+		LineOfBusiness    string `json:"LineOfBusiness,omitempty"`
 	} `json:"d"`
 }
 
@@ -110,7 +111,7 @@ func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
 	if resp.StatusCode != 200 {
 		return false, ip.exe.LogError(resp, "Get IntegrationPackages by ID")
 	} else {
-		var jsonData *packageSingleData
+		var jsonData *PackageSingleData
 		respBody, err := ip.exe.ReadRespBody(resp)
 		err = json.Unmarshal(respBody, &jsonData)
 		if err != nil {
@@ -124,6 +125,21 @@ func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
 	}
 }
 
+func (ip *IntegrationPackage) Exists(id string) (bool, error) {
+	logger.Info(fmt.Sprintf("Checking existence of package %v", id))
+	resp, err := ip.Get(id)
+	if err != nil {
+		return false, err
+	}
+	if resp.StatusCode == 200 {
+		return true, nil
+	} else if resp.StatusCode == 404 {
+		return false, nil
+	} else {
+		return false, ip.exe.LogError(resp, "Get IntegrationPackages by ID")
+	}
+}
+
 func (ip *IntegrationPackage) GetArtifactsByType(id string, artifactType string) (resp *http.Response, err error) {
 	path := fmt.Sprintf("/api/v1/IntegrationPackages('%v')/%vDesigntimeArtifacts", id, artifactType)
 
@@ -134,7 +150,6 @@ func (ip *IntegrationPackage) GetArtifactsByType(id string, artifactType string)
 }
 
 func (ip *IntegrationPackage) GetArtifactsData(id string, artifactType string) ([]*ArtifactDetails, error) {
-	//logger.Info("Checking if package is marked as read only")
 	resp, err := ip.GetArtifactsByType(id, artifactType)
 	if err != nil {
 		return nil, err
@@ -187,4 +202,67 @@ func (ip *IntegrationPackage) GetAllArtifacts(id string) ([]*ArtifactDetails, er
 	details = append(details, scripts...)
 
 	return details, nil
+}
+
+func (ip *IntegrationPackage) Create(packageData *PackageSingleData) error {
+	path := "/api/v1/IntegrationPackages"
+
+	headers, cookies, err := InitHeadersAndCookies(ip.exe)
+	if err != nil {
+		return err
+	}
+	headers["Accept"] = "application/json"
+	headers["Content-Type"] = "application/json"
+
+	requestBody, err := ip.constructBody(packageData)
+	if err != nil {
+		return err
+	}
+
+	resp, err := ip.exe.ExecRequestWithCookies("POST", path, bytes.NewReader(requestBody), headers, cookies)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 201 {
+		return ip.exe.LogError(resp, "Create integration package")
+	}
+	return nil
+}
+
+func (ip *IntegrationPackage) Update(packageData *PackageSingleData) error {
+	packageId := packageData.Root.Id
+	path := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", packageId)
+
+	headers, cookies, err := InitHeadersAndCookies(ip.exe)
+	if err != nil {
+		return err
+	}
+	headers["Accept"] = "application/json"
+	headers["Content-Type"] = "application/json"
+
+	requestBody, err := ip.constructBody(packageData)
+	if err != nil {
+		return err
+	}
+
+	resp, err := ip.exe.ExecRequestWithCookies("PUT", path, bytes.NewReader(requestBody), headers, cookies)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 202 {
+		return ip.exe.LogError(resp, "Update integration package")
+	}
+	return nil
+}
+
+func (ip *IntegrationPackage) constructBody(packageData *PackageSingleData) ([]byte, error) {
+	// Clear Mode field as it is not allowed in create/update
+	packageData.Root.Mode = ""
+
+	jsonBody, err := json.Marshal(packageData)
+	if err != nil {
+		return nil, err
+	}
+	logger.Debug(fmt.Sprintf("Request body = %s", jsonBody))
+	return jsonBody, nil
 }

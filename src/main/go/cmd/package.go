@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/engswee/flashpipe/config"
 	"github.com/engswee/flashpipe/logger"
-	"github.com/engswee/flashpipe/runner"
+	"github.com/engswee/flashpipe/odata"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -33,21 +35,53 @@ func runUpdatePackage(cmd *cobra.Command) {
 	logger.Info("Executing update package command")
 
 	packageFile := config.GetMandatoryString(cmd, "package-file")
-	packageId := config.GetString(cmd, "package-override-id")
-	packageName := config.GetString(cmd, "package-override-name")
+	packageOverrideId := config.GetString(cmd, "package-override-id")
+	packageOverrideName := config.GetString(cmd, "package-override-name")
 
-	// TODO - remove
-	mavenRepoLocation := config.GetString(cmd, "location.mavenrepo")
-	flashpipeLocation := config.GetString(cmd, "location.flashpipe")
-	log4jFile := config.GetString(cmd, "debug.flashpipe")
-	os.Setenv("HOST_TMN", config.GetMandatoryString(cmd, "tmn-host"))
-	os.Setenv("HOST_OAUTH", config.GetMandatoryString(cmd, "oauth-host"))
-	os.Setenv("OAUTH_CLIENTID", config.GetMandatoryString(cmd, "oauth-clientid"))
-	os.Setenv("OAUTH_CLIENTSECRET", config.GetMandatoryString(cmd, "oauth-clientsecret"))
-	os.Setenv("PACKAGE_FILE", packageFile)
-	os.Setenv("PACKAGE_ID", packageId)
-	os.Setenv("PACKAGE_NAME", packageName)
+	// Get package details from JSON file
+	logger.Info(fmt.Sprintf("Getting package details from %v file", packageFile))
+	packageDetails, err := getPackageDetails(packageFile)
+	logger.ExitIfError(err)
 
-	_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateIntegrationPackage", mavenRepoLocation, flashpipeLocation, log4jFile)
-	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+	// Overwrite ID & Name
+	if packageOverrideId != "" {
+		packageDetails.Root.Id = packageOverrideId
+	}
+	if packageOverrideName != "" {
+		packageDetails.Root.Name = packageOverrideName
+	}
+
+	// Initialise HTTP executer
+	serviceDetails := odata.GetServiceDetails(cmd)
+	exe := odata.InitHTTPExecuter(serviceDetails)
+	ip := odata.NewIntegrationPackage(exe)
+
+	packageId := packageDetails.Root.Id
+	exists, err := ip.Exists(packageId)
+	if !exists {
+		logger.Info(fmt.Sprintf("Package %v does not exist. Creating package...", packageId))
+		err = ip.Create(packageDetails)
+		logger.ExitIfError(err)
+		logger.Info(fmt.Sprintf("Package %v created", packageId))
+	} else {
+		// Update integration package
+		logger.Info(fmt.Sprintf("Updating package %v", packageId))
+		err = ip.Update(packageDetails)
+		logger.ExitIfError(err)
+		logger.Info(fmt.Sprintf("Package %v updated", packageId))
+	}
+}
+
+func getPackageDetails(file string) (*odata.PackageSingleData, error) {
+	var jsonData *odata.PackageSingleData
+
+	fileContent, err := os.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(fileContent, &jsonData)
+	if err != nil {
+		return nil, err
+	}
+	return jsonData, nil
 }
