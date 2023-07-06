@@ -104,7 +104,7 @@ func (e *HTTPExecuter) LogError(resp *http.Response, callType string) (err error
 		return
 	}
 
-	if resBody != nil {
+	if len(resBody) != 0 {
 		logger.Error(fmt.Sprintf("Response body = %s", resBody))
 	}
 

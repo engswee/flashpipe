@@ -40,6 +40,40 @@ func (sc *ScriptCollection) Deploy(id string) (err error) {
 	return nil
 }
 
+func (sc *ScriptCollection) Create(id string, name string, packageId string, content string) (err error) {
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts", sc.typ)
+	callType := fmt.Sprintf("Create %v designtime artifact", sc.typ)
+
+	return Upsert(id, name, packageId, content, "POST", urlPath, 201, callType, sc.exe)
+}
+
+func (sc *ScriptCollection) Update(id string, name string, packageId string, content string) (err error) {
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", sc.typ, id)
+	callType := fmt.Sprintf("Update %v designtime artifact", sc.typ)
+
+	return Upsert(id, name, packageId, content, "PUT", urlPath, 200, callType, sc.exe)
+}
+
+func (sc *ScriptCollection) Delete(id string) (err error) {
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", sc.typ, id)
+	callType := fmt.Sprintf("Delete %v designtime artifact", sc.typ)
+
+	headers, cookies, err := odata.InitHeadersAndCookies(sc.exe)
+	if err != nil {
+		return
+	}
+	headers["Accept"] = "application/json"
+
+	resp, err := sc.exe.ExecRequestWithCookies("DELETE", urlPath, http.NoBody, headers, cookies)
+	if err != nil {
+		return
+	}
+	if resp.StatusCode != 200 {
+		return sc.exe.LogError(resp, callType)
+	}
+	return nil
+}
+
 func (sc *ScriptCollection) Get(id string, version string) (resp *http.Response, err error) {
 	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", sc.typ, id, version)
 
@@ -84,7 +118,7 @@ func (sc *ScriptCollection) Exists(id string, version string) (bool, error) {
 	}
 }
 
-func (sc *ScriptCollection) Download(id string, version string) ([]byte, error) {
+func (sc *ScriptCollection) GetContent(id string, version string) ([]byte, error) {
 	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')/$value", sc.typ, id, version)
 
 	resp, err := sc.exe.ExecGetRequest(path, nil)

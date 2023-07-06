@@ -40,6 +40,40 @@ func (mm *MessageMapping) Deploy(id string) (err error) {
 	return nil
 }
 
+func (mm *MessageMapping) Create(id string, name string, packageId string, content string) (err error) {
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts", mm.typ)
+	callType := fmt.Sprintf("Create %v designtime artifact", mm.typ)
+
+	return Upsert(id, name, packageId, content, "POST", urlPath, 201, callType, mm.exe)
+}
+
+func (mm *MessageMapping) Update(id string, name string, packageId string, content string) (err error) {
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", mm.typ, id)
+	callType := fmt.Sprintf("Update %v designtime artifact", mm.typ)
+
+	return Upsert(id, name, packageId, content, "PUT", urlPath, 200, callType, mm.exe)
+}
+
+func (mm *MessageMapping) Delete(id string) (err error) {
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", mm.typ, id)
+	callType := fmt.Sprintf("Delete %v designtime artifact", mm.typ)
+
+	headers, cookies, err := odata.InitHeadersAndCookies(mm.exe)
+	if err != nil {
+		return
+	}
+	headers["Accept"] = "application/json"
+
+	resp, err := mm.exe.ExecRequestWithCookies("DELETE", urlPath, http.NoBody, headers, cookies)
+	if err != nil {
+		return
+	}
+	if resp.StatusCode != 200 {
+		return mm.exe.LogError(resp, callType)
+	}
+	return nil
+}
+
 func (mm *MessageMapping) Get(id string, version string) (resp *http.Response, err error) {
 	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", mm.typ, id, version)
 
@@ -84,7 +118,7 @@ func (mm *MessageMapping) Exists(id string, version string) (bool, error) {
 	}
 }
 
-func (mm *MessageMapping) Download(id string, version string) ([]byte, error) {
+func (mm *MessageMapping) GetContent(id string, version string) ([]byte, error) {
 	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')/$value", mm.typ, id, version)
 
 	resp, err := mm.exe.ExecGetRequest(path, nil)

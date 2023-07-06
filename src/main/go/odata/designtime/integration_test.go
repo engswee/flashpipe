@@ -9,36 +9,28 @@ import (
 	"testing"
 )
 
-func TestIntegrationDeployOauth(t *testing.T) {
-	const artifactId = "IFlow1"
-
+func TestIntegration_CreateUpdateDeployDeleteOauth(t *testing.T) {
 	host := os.Getenv("HOST_TMN")
 	oauthHost := os.Getenv("HOST_OAUTH")
 	oauthPath := os.Getenv("HOST_OAUTH_PATH")
 	clientId := os.Getenv("OAUTH_CLIENTID")
 	clientSecret := os.Getenv("OAUTH_CLIENTSECRET")
 	exe := httpclnt.New(oauthHost, oauthPath, clientId, clientSecret, "", "", host, "https", 443)
-	dt := NewIntegration(exe)
+	dt := NewDesigntimeArtifact("Integration", exe)
 
-	err := dt.Deploy(artifactId)
-	if err != nil {
-		t.Fatalf("Deployment failed with error - %v", err)
-	}
+	createUpdateDeployDelete("Integration_Test_IFlow", "Integration Test IFlow", "FlashPipeIntegrationTest", dt, t)
+
 }
 
-func TestIntegrationDeployBasicAuth(t *testing.T) {
-	const artifactId = "IFlow1"
-
+func TestIntegration_CreateUpdateDeployDeleteBasicAuth(t *testing.T) {
 	host := os.Getenv("HOST_TMN")
 	userId := os.Getenv("BASIC_USERID")
 	password := os.Getenv("BASIC_PASSWORD")
 	exe := httpclnt.New("", "", "", "", userId, password, host, "https", 443)
-	dt := NewIntegration(exe)
+	dt := NewDesigntimeArtifact("Integration", exe)
 
-	err := dt.Deploy(artifactId)
-	if err != nil {
-		t.Fatalf("Deployment failed with error - %v", err)
-	}
+	createUpdateDeployDelete("Integration_Test_IFlow", "Integration Test IFlow", "FlashPipeIntegrationTest", dt, t)
+
 }
 
 func TestMockDeployBasic(t *testing.T) {
