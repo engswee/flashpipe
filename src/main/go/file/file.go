@@ -2,6 +2,7 @@ package file
 
 import (
 	"archive/zip"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -205,4 +206,85 @@ func ReplaceDir(src string, dst string) (err error) {
 		return
 	}
 	return CopyDir(src, dst)
+}
+
+// ZipDir Compress a directory into a zip file
+func ZipDir(src string, dst string, includeSrc bool) error {
+	zipfile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer zipfile.Close()
+
+	archive := zip.NewWriter(zipfile)
+	defer archive.Close()
+
+	filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		var name string
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+
+		if includeSrc {
+			name, err = filepath.Rel(filepath.Dir(src), path)
+			if err != nil {
+				return err
+			}
+		} else {
+			if path == src {
+				return nil
+			}
+			name, err = filepath.Rel(src, path)
+			if err != nil {
+				return err
+			}
+		}
+
+		header.Name = filepath.ToSlash(name)
+
+		if info.IsDir() {
+			header.Name += "/"
+		} else {
+			header.Method = zip.Deflate
+		}
+
+		writer, err := archive.CreateHeader(header)
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			file, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			_, err = io.Copy(writer, file)
+		}
+		return err
+	})
+
+	return err
+}
+
+func ZipDirToBase64(src string) (string, error) {
+	zipFile := src + ".zip"
+	err := ZipDir(src, zipFile, false)
+	if err != nil {
+		return "", err
+	}
+	fileContent, err := os.ReadFile(zipFile)
+	if err != nil {
+		return "", err
+	}
+	err = os.Remove(zipFile)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(fileContent), nil
 }

@@ -77,15 +77,11 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 				logger.ExitIfError(fmt.Errorf("Artifact %v is in draft version. Save Version in Web UI first!", artifact.Id))
 			}
 		}
-		// Download IFlow
-		logger.Info(fmt.Sprintf("Downloading artifact %v from tenant for comparison", artifact.Id))
+		// Download artifact content
 		dt := designtime.NewDesigntimeArtifact(artifact.ArtifactType, s.exe)
-		bytes, err := dt.Download(artifact.Id, "active")
-		logger.ExitIfError(err)
 		targetDownloadFile := fmt.Sprintf("%v/download/%v.zip", workDir, artifact.Id)
-		err = os.WriteFile(targetDownloadFile, bytes, os.ModePerm)
+		err = designtime.Download(targetDownloadFile, artifact.Id, dt)
 		logger.ExitIfError(err)
-		logger.Info(fmt.Sprintf("Artifact %v downloaded to %v", artifact.Id, targetDownloadFile))
 
 		// Normalise ID and Name
 		normalisedId := str.Normalise(artifact.Id, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
@@ -196,20 +192,11 @@ func filterArtifacts(artifacts []*odata.ArtifactDetails, includedIds []string, e
 			}
 		}
 		for _, artifact := range artifacts {
-			if !contains(artifact.Id, excludedIds) {
+			if !str.Contains(artifact.Id, excludedIds) {
 				output = append(output, artifact)
 			}
 		}
 		return output, nil
 	}
 	return artifacts, nil
-}
-
-func contains(key string, list []string) bool {
-	for _, s := range list {
-		if s == key {
-			return true
-		}
-	}
-	return false
 }

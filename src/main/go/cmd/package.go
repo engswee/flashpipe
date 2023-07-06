@@ -15,8 +15,8 @@ func NewPackageCommand() *cobra.Command {
 	packageCmd := &cobra.Command{
 		Use:     "package",
 		Aliases: []string{"pkg"},
-		Short:   "Upload/update integration package",
-		Long: `Upload or update integration package on the
+		Short:   "Create/update integration package",
+		Long: `Create or update integration package on the
 SAP Integration Suite tenant.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			runUpdatePackage(cmd)

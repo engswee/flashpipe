@@ -25,7 +25,7 @@ FlashPipe is a CLI that is used to simplify the Build-To-Deploy cycle
 for SAP Integration Suite by providing CI/CD capabilities for 
 automating time-consuming manual tasks like:
 - synchronising integration artifacts to Git
-- uploading/updating integration artifacts to SAP Integration Suite
+- creating/updating integration artifacts to SAP Integration Suite
 - deploying integration artifacts on SAP Integration Suite`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well

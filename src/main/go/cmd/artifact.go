@@ -16,8 +16,8 @@ func NewArtifactCommand() *cobra.Command {
 
 	artifactCmd := &cobra.Command{
 		Use:   "artifact",
-		Short: "Upload/update artifacts",
-		Long: `Upload or update artifacts on the
+		Short: "Create/update artifacts",
+		Long: `Create or update artifacts on the
 SAP Integration Suite tenant.`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			//  TODO - Flags are not bind to Viper at this point ??
@@ -43,7 +43,7 @@ SAP Integration Suite tenant.`,
 	artifactCmd.Flags().String("dir-gitsrc", "", "Directory containing contents of Integration Flow [or set environment GIT_SRC_DIR]")
 	artifactCmd.Flags().String("file-param", "", "Use to a different parameters.prop file instead of the default in src/main/resources/ [or set environment PARAM_FILE]")
 	artifactCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files [or set environment WORK_DIR]")
-	artifactCmd.Flags().String("scriptmap", "", "Comma-separated source-target ID pairs for converting script collection references during upload/update [or set environment SCRIPT_COLLECTION_MAP]")
+	artifactCmd.Flags().String("scriptmap", "", "Comma-separated source-target ID pairs for converting script collection references during create/update [or set environment SCRIPT_COLLECTION_MAP]")
 	artifactCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection")
 
 	return artifactCmd
@@ -98,23 +98,28 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	exists, err := artifactExists(artifactId, artifactType, packageId, dt, ip)
 	logger.ExitIfError(err)
 	if !exists {
-		// Upload IFlow
-		logger.Info("IFlow will be uploaded to tenant")
+		// Create artifact
+		logger.Info(fmt.Sprintf("Artifact %v will be created", artifactId))
 
 		err = prepareUploadDir(workDir, gitSrcDir)
 		logger.ExitIfError(err)
 
-		_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UploadDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
-		logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
-		logger.Info("🏆 IFlow created successfully")
+		err = createArtifact(artifactId, artifactName, packageId, workDir+"/upload", scriptMap, dt)
+		logger.ExitIfError(err)
+		//_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UploadDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
+		//logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+
+		logger.Info("🏆 Artifact created successfully")
 
 	} else {
 		// Update IFlow
-		logger.Info("Checking if IFlow design needs to be updated")
-		// 1 - Download IFlow from tenant
+		logger.Info("Checking if designtime artifact needs to be updated")
+		// 1 - Download artifact content from tenant
 		zipFile := fmt.Sprintf("%v/%v.zip", workDir, artifactId)
-		downloadIFlow(zipFile, mavenRepoLocation, flashpipeLocation, log4jFile)
+		err = designtime.Download(zipFile, artifactId, dt)
+		logger.ExitIfError(err)
 		// 2 - Diff contents from tenant against Git
+		// TODO - refactor and combine with implementation used in synchroniser
 		changesFound, err := compareIFlowContents(workDir, zipFile, gitSrcDir, artifactId, artifactName, scriptMap, mavenRepoLocation, flashpipeLocation, log4jFile)
 		logger.ExitIfError(err)
 
@@ -122,14 +127,17 @@ func runUpdateArtifact(cmd *cobra.Command) {
 			logger.Info("Changes found in IFlow. IFlow design will be updated in CPI tenant")
 			err = prepareUploadDir(workDir, gitSrcDir)
 			logger.ExitIfError(err)
+			err = updateArtifact(artifactId, artifactName, packageId, workDir+"/upload", scriptMap, dt)
+			logger.ExitIfError(err)
+			//_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
+			//logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
-			_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
-			logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 			logger.Info("🏆 IFlow design updated successfully")
 		} else {
 			logger.Info("🏆 No changes detected. IFlow design does not need to be updated")
 		}
 
+		// TODO - only applicable for Integration
 		// 4 - Update the configuration of the IFlow based on parameters.prop file
 		logger.Info("Updating configured parameter(s) of IFlow where necessary")
 		_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateConfiguration", mavenRepoLocation, flashpipeLocation, log4jFile)
@@ -159,14 +167,6 @@ func prepareUploadDir(workDir string, gitSrcDir string) (err error) {
 	return
 }
 
-func downloadIFlow(targetZipFile string, mavenRepoLocation string, flashpipeLocation string, log4jFile string) {
-	logger.Info("Download existing IFlow from tenant for comparison")
-	os.Setenv("OUTPUT_FILE", targetZipFile)
-	os.Setenv("IFLOW_VER", "active")
-	_, err := runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.DownloadDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
-	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
-}
-
 func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflowId string, iflowName string, scriptMap string, mavenRepoLocation string, flashpipeLocation string, log4jFile string) (changesFound bool, err error) {
 	err = os.RemoveAll(workDir + "/download")
 	if err != nil {
@@ -178,25 +178,45 @@ func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflo
 	if err != nil {
 		return
 	}
-	// Update the script collection in IFlow BPMN2 XML before diff comparison
+	// TODO - Update the script collection in IFlow BPMN2 XML before diff comparison
 	_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.BPMN2Handler", mavenRepoLocation, flashpipeLocation, log4jFile)
 	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
-	// Update the MANIFEST.MF file with script collection conversions
+	// TODO - Update the MANIFEST.MF file with script collection conversions
 	_, err = runner.JavaCmdWithArgs(mavenRepoLocation, flashpipeLocation, log4jFile, "io.github.engswee.flashpipe.cpi.util.ManifestHandler", gitSrcDir+"/META-INF/MANIFEST.MF", iflowId, iflowName, scriptMap)
 	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
-	// Compare META-INF directory for any differences in the manifest file
-	logger.Info("Checking for changes in META-INF directory")
-	metaDirDiffer := file.DiffDirectories(workDir+"/download/META-INF/", gitSrcDir+"/META-INF/")
-
-	logger.Info("Checking for changes in src/main/resources directory")
-	resourcesDirDiffer := file.DiffDirectories(workDir+"/download/src/main/resources/", gitSrcDir+"/src/main/resources/")
-
-	if metaDirDiffer == false && resourcesDirDiffer == false {
-		changesFound = false
+	//// Compare META-INF directory for any differences in the manifest file
+	//logger.Info("Checking for changes in META-INF directory")
+	//metaDirDiffer := file.DiffDirectories(workDir+"/download/META-INF/", gitSrcDir+"/META-INF/")
+	//
+	//logger.Info("Checking for changes in src/main/resources directory")
+	//resourcesDirDiffer := file.DiffDirectories(workDir+"/download/src/main/resources/", gitSrcDir+"/src/main/resources/")
+	//
+	//if metaDirDiffer == false && resourcesDirDiffer == false {
+	//	changesFound = false
+	//} else {
+	//	changesFound = true
+	//}
+	// Diff directories excluding parameters.prop
+	dirDiffer := file.DiffDirectories(workDir+"/download", gitSrcDir)
+	// Diff parameters.prop ignoring commented lines
+	downloadedParams := fmt.Sprintf("%v/download/src/main/resources/parameters.prop", workDir)
+	gitParams := fmt.Sprintf("%v/src/main/resources/parameters.prop", gitSrcDir)
+	var paramDiffer bool
+	if file.CheckFileExists(downloadedParams) && file.CheckFileExists(gitParams) {
+		paramDiffer = file.DiffParams(downloadedParams, gitParams)
+	} else if !file.CheckFileExists(downloadedParams) && !file.CheckFileExists(gitParams) {
+		logger.Warn("Skipping diff of parameters.prop as it does not exist in both source and target")
 	} else {
+		paramDiffer = true
+		logger.Info("Update required since parameters.prop does not exist in either source or target")
+	}
+
+	if dirDiffer || paramDiffer {
 		changesFound = true
+	} else {
+		changesFound = false
 	}
 	return
 }
@@ -227,4 +247,28 @@ func artifactExists(artifactId string, artifactType string, packageId string, dt
 		logger.Info(fmt.Sprintf("Active version of artifact %v does not exist", artifactId))
 		return false, nil
 	}
+}
+
+func createArtifact(artifactId string, artifactName string, packageId string, artifactDir string, scriptCollectionMap string, dt designtime.DesigntimeArtifact) error {
+	encoded, err := file.ZipDirToBase64(artifactDir)
+	if err != nil {
+		return err
+	}
+	err = dt.Create(artifactId, artifactName, packageId, encoded)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func updateArtifact(artifactId string, artifactName string, packageId string, artifactDir string, scriptCollectionMap string, dt designtime.DesigntimeArtifact) error {
+	encoded, err := file.ZipDirToBase64(artifactDir)
+	if err != nil {
+		return err
+	}
+	err = dt.Update(artifactId, artifactName, packageId, encoded)
+	if err != nil {
+		return err
+	}
+	return nil
 }

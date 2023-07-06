@@ -31,3 +31,12 @@ func Normalise(input string, normaliseAction string, normalisePrefixOrSuffix str
 		return input
 	}
 }
+
+func Contains(key string, list []string) bool {
+	for _, s := range list {
+		if s == key {
+			return true
+		}
+	}
+	return false
+}
