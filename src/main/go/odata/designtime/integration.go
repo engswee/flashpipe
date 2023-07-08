@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
-	"github.com/engswee/flashpipe/odata"
-	"net/http"
 )
 
 type Integration struct {
@@ -21,70 +19,21 @@ func NewIntegration(exe *httpclnt.HTTPExecuter) DesigntimeArtifact {
 	return i
 }
 
-func (int *Integration) Deploy(id string) (err error) {
-	path := fmt.Sprintf("/api/v1/Deploy%vDesigntimeArtifact?Id='%s'&Version='active'", int.typ, id)
-
-	headers, cookies, err := odata.InitHeadersAndCookies(int.exe)
-	if err != nil {
-		return
-	}
-	headers["Accept"] = "application/json"
-
-	resp, err := int.exe.ExecRequestWithCookies("POST", path, http.NoBody, headers, cookies)
-	if err != nil {
-		return
-	}
-	if resp.StatusCode != 202 {
-		return int.exe.LogError(resp, fmt.Sprintf("Deploy %v designtime artifact", int.typ))
-	}
-	return nil
+func (int *Integration) Create(id string, name string, packageId string, artifactDir string) error {
+	return create(id, name, packageId, artifactDir, int.typ, int.exe)
 }
-
-func (int *Integration) Create(id string, name string, packageId string, content string) (err error) {
-	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts", int.typ)
-	callType := fmt.Sprintf("Create %v designtime artifact", int.typ)
-
-	return Upsert(id, name, packageId, content, "POST", urlPath, 201, callType, int.exe)
+func (int *Integration) Update(id string, name string, packageId string, artifactDir string) error {
+	return update(id, name, packageId, artifactDir, int.typ, int.exe)
 }
-
-func (int *Integration) Update(id string, name string, packageId string, content string) (err error) {
-	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", int.typ, id)
-	callType := fmt.Sprintf("Update %v designtime artifact", int.typ)
-
-	return Upsert(id, name, packageId, content, "PUT", urlPath, 200, callType, int.exe)
+func (int *Integration) Deploy(id string) error {
+	return deploy(id, int.typ, int.exe)
 }
-
-func (int *Integration) Delete(id string) (err error) {
-	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", int.typ, id)
-	callType := fmt.Sprintf("Delete %v designtime artifact", int.typ)
-
-	headers, cookies, err := odata.InitHeadersAndCookies(int.exe)
-	if err != nil {
-		return
-	}
-	headers["Accept"] = "application/json"
-
-	resp, err := int.exe.ExecRequestWithCookies("DELETE", urlPath, http.NoBody, headers, cookies)
-	if err != nil {
-		return
-	}
-	if resp.StatusCode != 200 {
-		return int.exe.LogError(resp, callType)
-	}
-	return nil
-}
-
-func (int *Integration) Get(id string, version string) (resp *http.Response, err error) {
-	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", int.typ, id, version)
-
-	headers := map[string]string{
-		"Accept": "application/json",
-	}
-	return int.exe.ExecGetRequest(path, headers)
+func (int *Integration) Delete(id string) error {
+	return deleteCall(id, int.typ, int.exe)
 }
 
 func (int *Integration) GetVersion(id string, version string) (string, error) {
-	resp, err := int.Get(id, version)
+	resp, err := get(id, version, int.typ, int.exe)
 	if err != nil {
 		return "", err
 	}
@@ -105,7 +54,7 @@ func (int *Integration) GetVersion(id string, version string) (string, error) {
 }
 
 func (int *Integration) Exists(id string, version string) (bool, error) {
-	resp, err := int.Get(id, version)
+	resp, err := get(id, version, int.typ, int.exe)
 	if err != nil {
 		return false, err
 	}

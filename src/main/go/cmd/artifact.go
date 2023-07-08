@@ -250,11 +250,7 @@ func artifactExists(artifactId string, artifactType string, packageId string, dt
 }
 
 func createArtifact(artifactId string, artifactName string, packageId string, artifactDir string, scriptCollectionMap string, dt designtime.DesigntimeArtifact) error {
-	encoded, err := file.ZipDirToBase64(artifactDir)
-	if err != nil {
-		return err
-	}
-	err = dt.Create(artifactId, artifactName, packageId, encoded)
+	err := dt.Create(artifactId, artifactName, packageId, artifactDir)
 	if err != nil {
 		return err
 	}
@@ -262,11 +258,7 @@ func createArtifact(artifactId string, artifactName string, packageId string, ar
 }
 
 func updateArtifact(artifactId string, artifactName string, packageId string, artifactDir string, scriptCollectionMap string, dt designtime.DesigntimeArtifact) error {
-	encoded, err := file.ZipDirToBase64(artifactDir)
-	if err != nil {
-		return err
-	}
-	err = dt.Update(artifactId, artifactName, packageId, encoded)
+	err := dt.Update(artifactId, artifactName, packageId, artifactDir)
 	if err != nil {
 		return err
 	}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/engswee/flashpipe/file"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/odata"
@@ -12,11 +13,10 @@ import (
 )
 
 type DesigntimeArtifact interface {
+	Create(id string, name string, packageId string, artifactDir string) error
+	Update(id string, name string, packageId string, artifactDir string) error
 	Deploy(id string) error
-	Create(id string, name string, packageId string, content string) error
-	Update(id string, name string, packageId string, content string) error
 	Delete(id string) error
-	Get(id string, version string) (*http.Response, error)
 	GetVersion(id string, version string) (string, error)
 	Exists(id string, version string) (bool, error)
 	GetContent(id string, version string) ([]byte, error)
@@ -83,7 +83,27 @@ func Download(targetFile string, id string, dt DesigntimeArtifact) error {
 	return nil
 }
 
-func Upsert(id string, name string, packageId string, content string, method string, urlPath string, successCode int, callType string, exe *httpclnt.HTTPExecuter) (err error) {
+func create(id string, name string, packageId string, artifactDir string, artifactType string, exe *httpclnt.HTTPExecuter) error {
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts", artifactType)
+	return upsert(id, name, packageId, artifactDir, "POST", urlPath, 201, artifactType, "Create", exe)
+}
+
+func update(id string, name string, packageId string, artifactDir string, artifactType string, exe *httpclnt.HTTPExecuter) error {
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", artifactType, id)
+	return upsert(id, name, packageId, artifactDir, "PUT", urlPath, 200, artifactType, "Update", exe)
+}
+
+func deploy(id string, artifactType string, exe *httpclnt.HTTPExecuter) error {
+	urlPath := fmt.Sprintf("/api/v1/Deploy%vDesigntimeArtifact?Id='%s'&Version='active'", artifactType, id)
+	return modifyingCallWithNoBody("POST", urlPath, 202, artifactType, "Deploy", exe)
+}
+
+func deleteCall(id string, artifactType string, exe *httpclnt.HTTPExecuter) error {
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", artifactType, id)
+	return modifyingCallWithNoBody("DELETE", urlPath, 200, artifactType, "Delete", exe)
+}
+
+func upsert(id string, name string, packageId string, artifactDir string, method string, urlPath string, successCode int, artifactType string, callType string, exe *httpclnt.HTTPExecuter) (err error) {
 	headers, cookies, err := odata.InitHeadersAndCookies(exe)
 	if err != nil {
 		return
@@ -91,7 +111,12 @@ func Upsert(id string, name string, packageId string, content string, method str
 	headers["Accept"] = "application/json"
 	headers["Content-Type"] = "application/json"
 
-	artifactData, err := constructUpdateBody(method, id, name, packageId, content)
+	// Zip directory and encode to base64
+	encoded, err := file.ZipDirToBase64(artifactDir)
+	if err != nil {
+		return err
+	}
+	artifactData, err := constructUpdateBody(method, id, name, packageId, encoded)
 	if err != nil {
 		return
 	}
@@ -101,7 +126,33 @@ func Upsert(id string, name string, packageId string, content string, method str
 		return
 	}
 	if resp.StatusCode != successCode {
-		return exe.LogError(resp, callType)
+		return exe.LogError(resp, fmt.Sprintf("%v %v designtime artifact", callType, artifactType))
 	}
 	return nil
+}
+
+func modifyingCallWithNoBody(method string, urlPath string, successCode int, artifactType string, callType string, exe *httpclnt.HTTPExecuter) (err error) {
+	headers, cookies, err := odata.InitHeadersAndCookies(exe)
+	if err != nil {
+		return
+	}
+	headers["Accept"] = "application/json"
+
+	resp, err := exe.ExecRequestWithCookies(method, urlPath, http.NoBody, headers, cookies)
+	if err != nil {
+		return
+	}
+	if resp.StatusCode != successCode {
+		return exe.LogError(resp, fmt.Sprintf("%v %v designtime artifact", callType, artifactType))
+	}
+	return nil
+}
+
+func get(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) (resp *http.Response, err error) {
+	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", artifactType, id, version)
+
+	headers := map[string]string{
+		"Accept": "application/json",
+	}
+	return exe.ExecGetRequest(path, headers)
 }

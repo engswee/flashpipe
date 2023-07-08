@@ -2,7 +2,6 @@ package designtime
 
 import (
 	"fmt"
-	"github.com/engswee/flashpipe/file"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/odata"
 	"github.com/stretchr/testify/assert"
@@ -93,11 +92,7 @@ func (suite *TenantSuite) TestScriptCollection_CreateUpdateDeployDelete() {
 
 func createUpdateDeployDelete(id string, name string, packageId string, dt DesigntimeArtifact, t *testing.T) {
 	// Create
-	encoded, err := file.ZipDirToBase64(fmt.Sprintf("../../testdata/artifacts/create/%v", id))
-	if err != nil {
-		t.Fatalf("Error converting directory to base64 - %v", err)
-	}
-	err = dt.Create(id, name, packageId, encoded)
+	err := dt.Create(id, name, packageId, fmt.Sprintf("../../testdata/artifacts/create/%v", id))
 	if err != nil {
 		t.Fatalf("Create failed with error - %v", err)
 	}
@@ -108,11 +103,7 @@ func createUpdateDeployDelete(id string, name string, packageId string, dt Desig
 	}
 	if assert.Equalf(t, true, exists, "Expected exists = true") {
 		// Update
-		encoded, err = file.ZipDirToBase64(fmt.Sprintf("../../testdata/artifacts/update/%v", id))
-		if err != nil {
-			t.Fatalf("Error converting directory to base64 - %v", err)
-		}
-		err = dt.Update(id, name, packageId, encoded)
+		err = dt.Update(id, name, packageId, fmt.Sprintf("../../testdata/artifacts/update/%v", id))
 		if err != nil {
 			t.Fatalf("Update failed with error - %v", err)
 		}
