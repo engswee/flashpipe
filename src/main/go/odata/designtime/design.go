@@ -55,6 +55,7 @@ func constructUpdateBody(method string, id string, name string, packageId string
 		PackageId:       packageId,
 		ArtifactContent: content,
 	}
+	// Update of Message Mapping fails as PackageId and Id are not allowed
 	if method == "PUT" {
 		artifactData.Id = ""
 		artifactData.PackageId = ""

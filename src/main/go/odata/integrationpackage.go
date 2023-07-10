@@ -93,7 +93,7 @@ func (ip *IntegrationPackage) GetPackagesList() ([]string, error) {
 	}
 }
 
-func (ip *IntegrationPackage) Get(id string) (resp *http.Response, err error) {
+func (ip *IntegrationPackage) get(id string) (resp *http.Response, err error) {
 	path := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", id)
 
 	headers := map[string]string{
@@ -104,7 +104,7 @@ func (ip *IntegrationPackage) Get(id string) (resp *http.Response, err error) {
 
 func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
 	logger.Info("Checking if package is marked as read only")
-	resp, err := ip.Get(id)
+	resp, err := ip.get(id)
 	if err != nil {
 		return false, err
 	}
@@ -127,7 +127,7 @@ func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
 
 func (ip *IntegrationPackage) Exists(id string) (bool, error) {
 	logger.Info(fmt.Sprintf("Checking existence of package %v", id))
-	resp, err := ip.Get(id)
+	resp, err := ip.get(id)
 	if err != nil {
 		return false, err
 	}
@@ -140,7 +140,7 @@ func (ip *IntegrationPackage) Exists(id string) (bool, error) {
 	}
 }
 
-func (ip *IntegrationPackage) GetArtifactsByType(id string, artifactType string) (resp *http.Response, err error) {
+func (ip *IntegrationPackage) getArtifactsByType(id string, artifactType string) (resp *http.Response, err error) {
 	path := fmt.Sprintf("/api/v1/IntegrationPackages('%v')/%vDesigntimeArtifacts", id, artifactType)
 
 	headers := map[string]string{
@@ -150,7 +150,7 @@ func (ip *IntegrationPackage) GetArtifactsByType(id string, artifactType string)
 }
 
 func (ip *IntegrationPackage) GetArtifactsData(id string, artifactType string) ([]*ArtifactDetails, error) {
-	resp, err := ip.GetArtifactsByType(id, artifactType)
+	resp, err := ip.getArtifactsByType(id, artifactType)
 	if err != nil {
 		return nil, err
 	}
@@ -254,9 +254,29 @@ func (ip *IntegrationPackage) Update(packageData *PackageSingleData) error {
 	return nil
 }
 
+func (ip *IntegrationPackage) Delete(packageId string) error {
+	path := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", packageId)
+
+	headers, cookies, err := InitHeadersAndCookies(ip.exe)
+	if err != nil {
+		return err
+	}
+	headers["Accept"] = "application/json"
+	headers["Content-Type"] = "application/json"
+
+	resp, err := ip.exe.ExecRequestWithCookies("DELETE", path, http.NoBody, headers, cookies)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 202 {
+		return ip.exe.LogError(resp, "Delete integration package")
+	}
+	return nil
+}
+
 func (ip *IntegrationPackage) constructBody(packageData *PackageSingleData) ([]byte, error) {
 	// Clear Mode field as it is not allowed in create/update
-	packageData.Root.Mode = ""
+	packageData.Root.Mode = "" // TODO - need integration test for this
 
 	jsonBody, err := json.Marshal(packageData)
 	if err != nil {

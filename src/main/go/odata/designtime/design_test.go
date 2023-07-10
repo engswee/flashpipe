@@ -10,14 +10,14 @@ import (
 	"testing"
 )
 
-type TenantSuite struct {
+type DesigntimeSuite struct {
 	suite.Suite
 	serviceDetails *odata.ServiceDetails
 	exe            *httpclnt.HTTPExecuter
 }
 
 func TestBasicAuth(t *testing.T) {
-	suite.Run(t, &TenantSuite{
+	suite.Run(t, &DesigntimeSuite{
 		serviceDetails: &odata.ServiceDetails{
 			Host:     os.Getenv("HOST_TMN"),
 			Userid:   os.Getenv("BASIC_USERID"),
@@ -27,7 +27,7 @@ func TestBasicAuth(t *testing.T) {
 }
 
 func TestOauth(t *testing.T) {
-	suite.Run(t, &TenantSuite{
+	suite.Run(t, &DesigntimeSuite{
 		serviceDetails: &odata.ServiceDetails{
 			Host:              os.Getenv("HOST_TMN"),
 			Userid:            "",
@@ -40,20 +40,20 @@ func TestOauth(t *testing.T) {
 	})
 }
 
-func (suite *TenantSuite) SetupSuite() {
+func (suite *DesigntimeSuite) SetupSuite() {
 	println("Setting up suite")
 	suite.exe = odata.InitHTTPExecuter(suite.serviceDetails)
 }
 
-func (suite *TenantSuite) SetupTest() {
+func (suite *DesigntimeSuite) SetupTest() {
 	println("Setting up test")
 }
 
-func (suite *TenantSuite) TearDownTest() {
+func (suite *DesigntimeSuite) TearDownTest() {
 	println("Tearing down test")
 }
 
-func (suite *TenantSuite) TearDownSuite() {
+func (suite *DesigntimeSuite) TearDownSuite() {
 	println("Tearing down suite")
 	cleanUpArtifact("Integration", "Integration_Test_IFlow", suite.exe, suite.T())
 	cleanUpArtifact("MessageMapping", "Integration_Test_Message_Mapping", suite.exe, suite.T())
@@ -75,17 +75,17 @@ func cleanUpArtifact(artifactType string, artifactId string, exe *httpclnt.HTTPE
 	}
 }
 
-func (suite *TenantSuite) TestIntegration_CreateUpdateDeployDelete() {
+func (suite *DesigntimeSuite) TestIntegration_CreateUpdateDeployDelete() {
 	dt := NewDesigntimeArtifact("Integration", suite.exe)
 	createUpdateDeployDelete("Integration_Test_IFlow", "Integration Test IFlow", "FlashPipeIntegrationTest", dt, suite.T())
 }
 
-func (suite *TenantSuite) TestMessageMapping_CreateUpdateDeployDelete() {
+func (suite *DesigntimeSuite) TestMessageMapping_CreateUpdateDeployDelete() {
 	dt := NewDesigntimeArtifact("MessageMapping", suite.exe)
 	createUpdateDeployDelete("Integration_Test_Message_Mapping", "Integration Test Message Mapping", "FlashPipeIntegrationTest", dt, suite.T())
 }
 
-func (suite *TenantSuite) TestScriptCollection_CreateUpdateDeployDelete() {
+func (suite *DesigntimeSuite) TestScriptCollection_CreateUpdateDeployDelete() {
 	dt := NewDesigntimeArtifact("ScriptCollection", suite.exe)
 	createUpdateDeployDelete("Integration_Test_Script_Collection", "Integration Test Script Collection", "FlashPipeIntegrationTest", dt, suite.T())
 }
@@ -101,7 +101,7 @@ func createUpdateDeployDelete(id string, name string, packageId string, dt Desig
 	if err != nil {
 		t.Fatalf("Exists failed with error - %v", err)
 	}
-	if assert.Equalf(t, true, exists, "Expected exists = true") {
+	if assert.True(t, exists, "Expected exists = true") {
 		// Update
 		err = dt.Update(id, name, packageId, fmt.Sprintf("../../testdata/artifacts/update/%v", id))
 		if err != nil {
