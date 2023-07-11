@@ -58,6 +58,7 @@ func (suite *DesigntimeSuite) TearDownSuite() {
 	cleanUpArtifact("Integration", "Integration_Test_IFlow", suite.exe, suite.T())
 	cleanUpArtifact("MessageMapping", "Integration_Test_Message_Mapping", suite.exe, suite.T())
 	cleanUpArtifact("ScriptCollection", "Integration_Test_Script_Collection", suite.exe, suite.T())
+	cleanUpArtifact("ValueMapping", "Integration_Test_Value_Mapping", suite.exe, suite.T())
 }
 
 func cleanUpArtifact(artifactType string, artifactId string, exe *httpclnt.HTTPExecuter, t *testing.T) {
@@ -88,6 +89,11 @@ func (suite *DesigntimeSuite) TestMessageMapping_CreateUpdateDeployDelete() {
 func (suite *DesigntimeSuite) TestScriptCollection_CreateUpdateDeployDelete() {
 	dt := NewDesigntimeArtifact("ScriptCollection", suite.exe)
 	createUpdateDeployDelete("Integration_Test_Script_Collection", "Integration Test Script Collection", "FlashPipeIntegrationTest", dt, suite.T())
+}
+
+func (suite *DesigntimeSuite) TestValueMapping_CreateUpdateDeployDelete() {
+	dt := NewDesigntimeArtifact("ValueMapping", suite.exe)
+	createUpdateDeployDelete("Integration_Test_Value_Mapping", "Integration Test Value Mapping", "FlashPipeIntegrationTest", dt, suite.T())
 }
 
 func createUpdateDeployDelete(id string, name string, packageId string, dt DesigntimeArtifact, t *testing.T) {

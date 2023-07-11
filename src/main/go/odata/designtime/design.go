@@ -43,6 +43,8 @@ func NewDesigntimeArtifact(artifactType string, exe *httpclnt.HTTPExecuter) Desi
 		return NewScriptCollection(exe)
 	case "Integration":
 		return NewIntegration(exe)
+	case "ValueMapping":
+		return NewValueMapping(exe)
 	default:
 		return nil
 	}
@@ -71,12 +73,12 @@ func constructUpdateBody(method string, id string, name string, packageId string
 
 func Download(targetFile string, id string, dt DesigntimeArtifact) error {
 	logger.Info(fmt.Sprintf("Getting content of artifact %v from tenant for comparison", id))
-	bytes, err := dt.GetContent(id, "active")
+	content, err := dt.GetContent(id, "active")
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(targetFile, bytes, os.ModePerm)
+	err = os.WriteFile(targetFile, content, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -104,10 +106,10 @@ func deleteCall(id string, artifactType string, exe *httpclnt.HTTPExecuter) erro
 	return modifyingCallWithNoBody("DELETE", urlPath, 200, artifactType, "Delete", exe)
 }
 
-func upsert(id string, name string, packageId string, artifactDir string, method string, urlPath string, successCode int, artifactType string, callType string, exe *httpclnt.HTTPExecuter) (err error) {
+func upsert(id string, name string, packageId string, artifactDir string, method string, urlPath string, successCode int, artifactType string, callType string, exe *httpclnt.HTTPExecuter) error {
 	headers, cookies, err := odata.InitHeadersAndCookies(exe)
 	if err != nil {
-		return
+		return err
 	}
 	headers["Accept"] = "application/json"
 	headers["Content-Type"] = "application/json"
@@ -119,12 +121,12 @@ func upsert(id string, name string, packageId string, artifactDir string, method
 	}
 	artifactData, err := constructUpdateBody(method, id, name, packageId, encoded)
 	if err != nil {
-		return
+		return err
 	}
 
 	resp, err := exe.ExecRequestWithCookies(method, urlPath, bytes.NewReader(artifactData), headers, cookies)
 	if err != nil {
-		return
+		return err
 	}
 	if resp.StatusCode != successCode {
 		return exe.LogError(resp, fmt.Sprintf("%v %v designtime artifact", callType, artifactType))
@@ -132,16 +134,16 @@ func upsert(id string, name string, packageId string, artifactDir string, method
 	return nil
 }
 
-func modifyingCallWithNoBody(method string, urlPath string, successCode int, artifactType string, callType string, exe *httpclnt.HTTPExecuter) (err error) {
+func modifyingCallWithNoBody(method string, urlPath string, successCode int, artifactType string, callType string, exe *httpclnt.HTTPExecuter) error {
 	headers, cookies, err := odata.InitHeadersAndCookies(exe)
 	if err != nil {
-		return
+		return err
 	}
 	headers["Accept"] = "application/json"
 
 	resp, err := exe.ExecRequestWithCookies(method, urlPath, http.NoBody, headers, cookies)
 	if err != nil {
-		return
+		return err
 	}
 	if resp.StatusCode != successCode {
 		return exe.LogError(resp, fmt.Sprintf("%v %v designtime artifact", callType, artifactType))
@@ -149,11 +151,60 @@ func modifyingCallWithNoBody(method string, urlPath string, successCode int, art
 	return nil
 }
 
-func get(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) (resp *http.Response, err error) {
+func get(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) (*http.Response, error) {
 	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", artifactType, id, version)
 
 	headers := map[string]string{
 		"Accept": "application/json",
 	}
 	return exe.ExecGetRequest(path, headers)
+}
+
+func getVersion(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) (string, error) {
+	resp, err := get(id, version, artifactType, exe)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != 200 {
+		return "", exe.LogError(resp, fmt.Sprintf("Get %v designtime artifact", artifactType))
+	} else {
+		var jsonData *designtimeArtifactData
+		respBody, err := exe.ReadRespBody(resp)
+		if err != nil {
+			return "", err
+		}
+		err = json.Unmarshal(respBody, &jsonData)
+		if err != nil {
+			return "", err
+		}
+		return jsonData.Root.Version, nil
+	}
+}
+
+func exists(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) (bool, error) {
+	resp, err := get(id, version, artifactType, exe)
+	if err != nil {
+		return false, err
+	}
+	if resp.StatusCode == 200 {
+		return true, nil
+	} else if resp.StatusCode == 404 {
+		return false, nil
+	} else {
+		return false, exe.LogError(resp, fmt.Sprintf("Get %v designtime artifact", artifactType))
+	}
+}
+
+func getContent(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) ([]byte, error) {
+	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')/$value", artifactType, id, version)
+
+	resp, err := exe.ExecGetRequest(path, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, exe.LogError(resp, fmt.Sprintf("Download %v designtime artifact", artifactType))
+	} else {
+		return exe.ReadRespBody(resp)
+	}
 }

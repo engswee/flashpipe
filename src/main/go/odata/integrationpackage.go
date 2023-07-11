@@ -199,6 +199,11 @@ func (ip *IntegrationPackage) GetAllArtifacts(id string) ([]*ArtifactDetails, er
 		return nil, err
 	}
 	details = append(details, scripts...)
+	valmaps, err := ip.GetArtifactsData(id, "ValueMapping")
+	if err != nil {
+		return nil, err
+	}
+	details = append(details, valmaps...)
 
 	return details, nil
 }

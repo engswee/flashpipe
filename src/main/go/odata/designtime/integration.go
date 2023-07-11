@@ -1,8 +1,6 @@
 package designtime
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
 )
 
@@ -31,52 +29,12 @@ func (int *Integration) Deploy(id string) error {
 func (int *Integration) Delete(id string) error {
 	return deleteCall(id, int.typ, int.exe)
 }
-
 func (int *Integration) GetVersion(id string, version string) (string, error) {
-	resp, err := get(id, version, int.typ, int.exe)
-	if err != nil {
-		return "", err
-	}
-	if resp.StatusCode != 200 {
-		return "", int.exe.LogError(resp, fmt.Sprintf("Get %v designtime artifact", int.typ))
-	} else {
-		var jsonData *designtimeArtifactData
-		respBody, err := int.exe.ReadRespBody(resp)
-		if err != nil {
-			return "", err
-		}
-		err = json.Unmarshal(respBody, &jsonData)
-		if err != nil {
-			return "", err
-		}
-		return jsonData.Root.Version, nil
-	}
+	return getVersion(id, version, int.typ, int.exe)
 }
-
 func (int *Integration) Exists(id string, version string) (bool, error) {
-	resp, err := get(id, version, int.typ, int.exe)
-	if err != nil {
-		return false, err
-	}
-	if resp.StatusCode == 200 {
-		return true, nil
-	} else if resp.StatusCode == 404 {
-		return false, nil
-	} else {
-		return false, int.exe.LogError(resp, fmt.Sprintf("Get %v designtime artifact", int.typ))
-	}
+	return exists(id, version, int.typ, int.exe)
 }
-
 func (int *Integration) GetContent(id string, version string) ([]byte, error) {
-	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')/$value", int.typ, id, version)
-
-	resp, err := int.exe.ExecGetRequest(path, nil)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != 200 {
-		return nil, int.exe.LogError(resp, fmt.Sprintf("Download %v designtime artifact", int.typ))
-	} else {
-		return int.exe.ReadRespBody(resp)
-	}
+	return getContent(id, version, int.typ, int.exe)
 }
