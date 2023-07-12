@@ -30,8 +30,6 @@ func TestOauth(t *testing.T) {
 	suite.Run(t, &DesigntimeSuite{
 		serviceDetails: &odata.ServiceDetails{
 			Host:              os.Getenv("HOST_TMN"),
-			Userid:            "",
-			Password:          "",
 			OauthHost:         os.Getenv("HOST_OAUTH"),
 			OauthPath:         os.Getenv("HOST_OAUTH_PATH"),
 			OauthClientId:     os.Getenv("OAUTH_CLIENTID"),
