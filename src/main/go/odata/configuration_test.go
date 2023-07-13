@@ -37,26 +37,26 @@ func TestConfigurationOauth(t *testing.T) {
 }
 
 func (suite *ConfigurationSuite) SetupSuite() {
-	println("Setting up suite")
+	println("========== Setting up suite ==========")
 	suite.exe = InitHTTPExecuter(suite.serviceDetails)
+
+	setupPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
+
+	setupArtifact(suite.T(), "IFlow1", "FlashPipeIntegrationTest", "../testdata/artifacts/setup/IFlow1", "Integration", suite.exe)
 }
 
 func (suite *ConfigurationSuite) SetupTest() {
-	println("Setting up test")
+	println("---------- Setting up test ----------")
 }
 
 func (suite *ConfigurationSuite) TearDownTest() {
-	println("Tearing down test")
+	println("---------- Tearing down test ----------")
 }
 
 func (suite *ConfigurationSuite) TearDownSuite() {
-	println("Tearing down suite")
-	c := NewConfiguration(suite.exe)
+	println("========== Tearing down suite ==========")
 
-	err := c.Update("IFlow1", "active", "Endpoint", "/iflow1")
-	if err != nil {
-		suite.T().Fatalf("Update failed with error - %v", err)
-	}
+	tearDownPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
 }
 
 func (suite *ConfigurationSuite) TestConfiguration_Get() {
@@ -64,10 +64,10 @@ func (suite *ConfigurationSuite) TestConfiguration_Get() {
 
 	parametersData, err := c.Get("IFlow1", "active")
 	if err != nil {
-		return
+		suite.T().Fatalf("Get failed with error - %v", err)
 	}
 	parameter := FindParameterByKey("Endpoint", parametersData.Root.Results)
-	assert.Equal(suite.T(), "/iflow1", parameter.ParameterValue, "Parameter Endpoint should have value /iflow1")
+	assert.Equal(suite.T(), "/flow1", parameter.ParameterValue, "Parameter Endpoint should have value /flow1")
 }
 
 func (suite *ConfigurationSuite) TestConfiguration_Update() {
@@ -75,11 +75,11 @@ func (suite *ConfigurationSuite) TestConfiguration_Update() {
 
 	err := c.Update("IFlow1", "active", "Endpoint", "/flow_update")
 	if err != nil {
-		return
+		suite.T().Fatalf("Update failed with error - %v", err)
 	}
 	parametersData, err := c.Get("IFlow1", "active")
 	if err != nil {
-		return
+		suite.T().Fatalf("Get failed with error - %v", err)
 	}
 	parameter := FindParameterByKey("Endpoint", parametersData.Root.Results)
 	assert.Equal(suite.T(), "/flow_update", parameter.ParameterValue, "Parameter Endpoint should have value /flow_update after update")

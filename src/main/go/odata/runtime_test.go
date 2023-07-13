@@ -1,12 +1,14 @@
 package odata
 
 import (
+	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
+	"github.com/engswee/flashpipe/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"os"
-	"strings"
 	"testing"
+	"time"
 )
 
 type RuntimeSuite struct {
@@ -38,52 +40,100 @@ func TestRuntimeOauth(t *testing.T) {
 }
 
 func (suite *RuntimeSuite) SetupSuite() {
-	println("Setting up suite")
+	println("========== Setting up suite ==========")
 	suite.exe = InitHTTPExecuter(suite.serviceDetails)
+
+	setupPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
+
+	setupArtifact(suite.T(), "IFlow1", "FlashPipeIntegrationTest", "../testdata/artifacts/setup/IFlow1", "Integration", suite.exe)
+	setupRuntime(suite.T(), "IFlow1", "Integration", suite.exe)
+	time.Sleep(5 * time.Second)
+
+	setupArtifact(suite.T(), "Mapping1", "FlashPipeIntegrationTest", "../testdata/artifacts/setup/Mapping1", "MessageMapping", suite.exe)
+	setupRuntime(suite.T(), "Mapping1", "MessageMapping", suite.exe)
+	time.Sleep(5 * time.Second)
 }
 
 func (suite *RuntimeSuite) SetupTest() {
-	println("Setting up test")
+	println("---------- Setting up test ----------")
 }
 
 func (suite *RuntimeSuite) TearDownTest() {
-	println("Tearing down test")
+	println("---------- Tearing down test ----------")
 }
 
 func (suite *RuntimeSuite) TearDownSuite() {
-	println("Tearing down suite")
+	println("========== Tearing down suite ==========")
 
-}
+	tearDownPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
 
-func (suite *RuntimeSuite) TestRuntime_GetStatusVersion() {
-	rt := NewRuntime(suite.exe)
-	status, err := rt.GetStatus("IFlow1")
-	if err != nil {
-		suite.T().Fatalf("HTTP call failed with error - %v", err)
-	}
-	assert.Equal(suite.T(), "STARTED", status, "Runtime status of IFlow1 is not STARTED")
-	version, err := rt.GetVersion("IFlow1")
-	if err != nil {
-		suite.T().Fatalf("HTTP call failed with error - %v", err)
-	}
-	assert.Equal(suite.T(), "1.0.1", version, "Runtime version of IFlow1 is not 1.0.1")
+	tearDownRuntime(suite.T(), "IFlow1", suite.exe)
+	tearDownRuntime(suite.T(), "Mapping1", suite.exe)
 }
 
 func (suite *RuntimeSuite) TestRuntime_GetErrorInfo() {
 	rt := NewRuntime(suite.exe)
 	errorMessage, err := rt.GetErrorInfo("Mapping1")
 	if err != nil {
-		suite.T().Fatalf("HTTP call failed with error - %v", err)
+		suite.T().Fatalf("GetErrorInfo failed with error - %v", err)
 	}
-	if !strings.HasPrefix(errorMessage, "Validation of the artifact failed") {
-		suite.T().Fatalf("errorMessage does not have prefix")
+	assert.Contains(suite.T(), errorMessage, "Validation of the artifact failed", "errorMessage does not have validation error")
+}
+
+func (suite *RuntimeSuite) TestRuntime_GetStatusVersion() {
+	rt := NewRuntime(suite.exe)
+	status, err := rt.GetStatus("IFlow1")
+	if err != nil {
+		suite.T().Fatalf("GetStatus failed with error - %v", err)
+	}
+	assert.Equal(suite.T(), "STARTED", status, "Runtime status of IFlow1 is not STARTED")
+	version, err := rt.GetVersion("IFlow1")
+	if err != nil {
+		suite.T().Fatalf("GetVersion failed with error - %v", err)
+	}
+	assert.Equal(suite.T(), "1.0.1", version, "Runtime version of IFlow1 is not 1.0.1")
+}
+
+func (suite *RuntimeSuite) TestRuntime_UnDeploy() {
+	rt := NewRuntime(suite.exe)
+	err := rt.UnDeploy("IFlow1")
+	if err != nil {
+		suite.T().Fatalf("UnDeploy failed with error - %v", err)
 	}
 }
 
-//func (suite *RuntimeSuite) TestRuntime_UnDeploy() {
-//	rt := NewRuntime(suite.exe)
-//	err := rt.UnDeploy("Hello")
-//	if err != nil {
-//		suite.T().Fatalf("HTTP call failed with error - %v", err)
-//	}
-//}
+func setupRuntime(t *testing.T, artifactId string, artifactType string, exe *httpclnt.HTTPExecuter) {
+	r := NewRuntime(exe)
+
+	logger.Info(fmt.Sprintf("Checking if runtime artifact %v exists for testing", artifactId))
+	version, err := r.GetVersion(artifactId)
+	if err != nil {
+		t.Fatalf("GetVersion failed with error - %v", err)
+	}
+	if version == "" {
+		dt := NewDesigntimeArtifact(artifactType, exe)
+
+		logger.Info(fmt.Sprintf("Setting up runtime artifact %v for testing", artifactId))
+		err = dt.Deploy(artifactId)
+		if err != nil {
+			t.Fatalf("Deploy failed with error - %v", err)
+		}
+	}
+}
+
+func tearDownRuntime(t *testing.T, artifactId string, exe *httpclnt.HTTPExecuter) {
+	r := NewRuntime(exe)
+
+	logger.Info(fmt.Sprintf("Checking if artifact %v still exists", artifactId))
+	resp, err := r.get(artifactId)
+	if err != nil {
+		t.Fatalf("get failed with error - %v", err)
+	}
+	if resp.StatusCode != 404 {
+		logger.Info(fmt.Sprintf("Tearing down runtime artifact %v", artifactId))
+		err = r.UnDeploy(artifactId)
+		if err != nil {
+			t.Fatalf("UnDeploy failed with error - %v", err)
+		}
+	}
+}

@@ -3,6 +3,7 @@ package odata
 import (
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
+	"github.com/engswee/flashpipe/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"os"
@@ -38,39 +39,29 @@ func TestDesigntimeOauth(t *testing.T) {
 }
 
 func (suite *DesigntimeSuite) SetupSuite() {
-	println("Setting up suite")
+	println("========== Setting up suite ==========")
 	suite.exe = InitHTTPExecuter(suite.serviceDetails)
+
+	setupPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
 }
 
 func (suite *DesigntimeSuite) SetupTest() {
-	println("Setting up test")
+	println("---------- Setting up test ----------")
 }
 
 func (suite *DesigntimeSuite) TearDownTest() {
-	println("Tearing down test")
+	println("---------- Tearing down test ----------")
 }
 
 func (suite *DesigntimeSuite) TearDownSuite() {
-	println("Tearing down suite")
-	cleanUpArtifact("Integration", "Integration_Test_IFlow", suite.exe, suite.T())
-	cleanUpArtifact("MessageMapping", "Integration_Test_Message_Mapping", suite.exe, suite.T())
-	cleanUpArtifact("ScriptCollection", "Integration_Test_Script_Collection", suite.exe, suite.T())
-	cleanUpArtifact("ValueMapping", "Integration_Test_Value_Mapping", suite.exe, suite.T())
-}
+	println("========== Tearing down suite ==========")
 
-func cleanUpArtifact(artifactType string, artifactId string, exe *httpclnt.HTTPExecuter, t *testing.T) {
-	//Check existence
-	dt := NewDesigntimeArtifact(artifactType, exe)
-	exists, err := dt.Exists(artifactId, "active")
-	if err != nil {
-		t.Fatalf("Exists failed with error - %v", err)
-	}
-	if exists {
-		err := dt.Delete(artifactId)
-		if err != nil {
-			t.Fatalf("Delete failed with error - %v", err)
-		}
-	}
+	tearDownPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
+
+	tearDownRuntime(suite.T(), "Integration_Test_IFlow", suite.exe)
+	tearDownRuntime(suite.T(), "Integration_Test_Message_Mapping", suite.exe)
+	tearDownRuntime(suite.T(), "Integration_Test_Script_Collection", suite.exe)
+	tearDownRuntime(suite.T(), "Integration_Test_Value_Mapping", suite.exe)
 }
 
 func (suite *DesigntimeSuite) TestIntegration_CreateUpdateDeployDelete() {
@@ -100,11 +91,11 @@ func createUpdateDeployDelete(id string, name string, packageId string, dt Desig
 		t.Fatalf("Create failed with error - %v", err)
 	}
 	// Check existence
-	exists, err := dt.Exists(id, "active")
+	artifactExists, err := dt.Exists(id, "active")
 	if err != nil {
 		t.Fatalf("Exists failed with error - %v", err)
 	}
-	if assert.True(t, exists, "Expected exists = true") {
+	if assert.True(t, artifactExists, "Expected exists = true") {
 		// Update
 		err = dt.Update(id, name, packageId, fmt.Sprintf("../testdata/artifacts/update/%v", id))
 		if err != nil {
@@ -132,6 +123,23 @@ func createUpdateDeployDelete(id string, name string, packageId string, dt Desig
 			if err != nil {
 				t.Fatalf("Delete failed with error - %v", err)
 			}
+		}
+	}
+}
+
+func setupArtifact(t *testing.T, artifactId string, packageId string, artifactDir string, artifactType string, exe *httpclnt.HTTPExecuter) {
+	dt := NewDesigntimeArtifact(artifactType, exe)
+
+	logger.Info(fmt.Sprintf("Checking if %v designtime artifact %v exists for testing", artifactType, artifactId))
+	artifactExists, err := dt.Exists(artifactId, "active")
+	if err != nil {
+		t.Fatalf("Exists failed with error - %v", err)
+	}
+	if !artifactExists {
+		logger.Info(fmt.Sprintf("Setting up %v designtime artifact %v for testing", artifactType, artifactId))
+		err = dt.Create(artifactId, artifactId, packageId, artifactDir)
+		if err != nil {
+			t.Fatalf("Create designtime artifact failed with error - %v", err)
 		}
 	}
 }
