@@ -24,7 +24,7 @@ SAP Integration Suite tenant.`,
 			// Validate the artifact type
 			artifactType := config.GetString(cmd, "artifact-type")
 			switch artifactType {
-			case "MessageMapping", "ScriptCollection", "Integration":
+			case "MessageMapping", "ScriptCollection", "Integration", "ValueMapping":
 			default:
 				return fmt.Errorf("invalid value for --artifact-type = %v", artifactType)
 			}
@@ -44,7 +44,7 @@ SAP Integration Suite tenant.`,
 	artifactCmd.Flags().String("file-param", "", "Use to a different parameters.prop file instead of the default in src/main/resources/ [or set environment PARAM_FILE]")
 	artifactCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files [or set environment WORK_DIR]")
 	artifactCmd.Flags().String("scriptmap", "", "Comma-separated source-target ID pairs for converting script collection references during create/update [or set environment SCRIPT_COLLECTION_MAP]")
-	artifactCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection")
+	artifactCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping")
 
 	return artifactCmd
 }
@@ -61,6 +61,8 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	parametersFile := config.GetString(cmd, "file-param")
 	workDir := config.GetString(cmd, "dir-work")
 	scriptMap := config.GetString(cmd, "scriptmap")
+
+	// TODO - ID and package name from file rather than parameter
 
 	// TODO - remove
 	mavenRepoLocation := config.GetString(cmd, "location.mavenrepo")
@@ -101,7 +103,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		// Create artifact
 		logger.Info(fmt.Sprintf("Artifact %v will be created", artifactId))
 
-		err = prepareUploadDir(workDir, gitSrcDir)
+		err = prepareUploadDir(workDir, gitSrcDir, artifactType)
 		logger.ExitIfError(err)
 
 		err = createArtifact(artifactId, artifactName, packageId, workDir+"/upload", scriptMap, dt)
@@ -125,10 +127,21 @@ func runUpdateArtifact(cmd *cobra.Command) {
 
 		if changesFound == true {
 			logger.Info("Changes found in IFlow. IFlow design will be updated in CPI tenant")
-			err = prepareUploadDir(workDir, gitSrcDir)
+			err = prepareUploadDir(workDir, gitSrcDir, artifactType)
 			logger.ExitIfError(err)
 			err = updateArtifact(artifactId, artifactName, packageId, workDir+"/upload", scriptMap, dt)
 			logger.ExitIfError(err)
+
+			//// If runtime has the same version no, then undeploy it, otherwise it gets skipped during deployment
+			//def designtimeVersion = designTimeArtifact.getVersion(this.iFlowId, 'active', false)
+			//RuntimeArtifact runtimeArtifact = new RuntimeArtifact(this.httpExecuter)
+			//def runtimeVersion = runtimeArtifact.getVersion(this.iFlowId)
+			//
+			//if (runtimeVersion == designtimeVersion) {
+			//	logger.info('Undeploying existing runtime artifact with same version number due to changes in design')
+			//	runtimeArtifact.undeploy(this.iFlowId, csrfToken)
+			//}
+
 			//_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
 			//logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
@@ -146,22 +159,26 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	}
 }
 
-func prepareUploadDir(workDir string, gitSrcDir string) (err error) {
+func prepareUploadDir(workDir string, gitSrcDir string, artifactType string) (err error) {
 	// Clean up previous uploads
 	iFlowDir := workDir + "/upload"
 	err = os.RemoveAll(iFlowDir)
 	if err != nil {
 		return
 	}
-
+	// TODO - Copy META-INF and resources separately so that other directories like QA, STG, PRD not copied
 	err = file.CopyDir(gitSrcDir+"/META-INF", iFlowDir+"/META-INF")
 	if err != nil {
 		return
 	}
-
-	err = file.CopyDir(gitSrcDir+"/src/main/resources", iFlowDir+"/src/main/resources")
-	if err != nil {
-		return
+	// TODO - for value mapping it only has value_mapping.xml file
+	if artifactType == "ValueMapping" {
+		file.CopyFile(gitSrcDir+"/value_mapping.xml", iFlowDir+"/value_mapping.xml")
+	} else {
+		err = file.CopyDir(gitSrcDir+"/src/main/resources", iFlowDir+"/src/main/resources")
+		if err != nil {
+			return
+		}
 	}
 	os.Setenv("IFLOW_DIR", iFlowDir) // TODO - remove when Java call no longer used
 	return
