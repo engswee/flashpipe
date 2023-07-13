@@ -98,22 +98,15 @@ func update(id string, name string, packageId string, artifactDir string, artifa
 
 func deploy(id string, artifactType string, exe *httpclnt.HTTPExecuter) error {
 	urlPath := fmt.Sprintf("/api/v1/Deploy%vDesigntimeArtifact?Id='%s'&Version='active'", artifactType, id)
-	return modifyingCallWithNoBody("POST", urlPath, 202, artifactType, "Deploy", exe)
+	return odata.ModifyingCall("POST", urlPath, http.NoBody, 202, fmt.Sprintf("Deploy %v designtime artifact", artifactType), exe)
 }
 
 func deleteCall(id string, artifactType string, exe *httpclnt.HTTPExecuter) error {
 	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", artifactType, id)
-	return modifyingCallWithNoBody("DELETE", urlPath, 200, artifactType, "Delete", exe)
+	return odata.ModifyingCall("DELETE", urlPath, http.NoBody, 200, fmt.Sprintf("Delete %v designtime artifact", artifactType), exe)
 }
 
 func upsert(id string, name string, packageId string, artifactDir string, method string, urlPath string, successCode int, artifactType string, callType string, exe *httpclnt.HTTPExecuter) error {
-	headers, cookies, err := odata.InitHeadersAndCookies(exe)
-	if err != nil {
-		return err
-	}
-	headers["Accept"] = "application/json"
-	headers["Content-Type"] = "application/json"
-
 	// Zip directory and encode to base64
 	encoded, err := file.ZipDirToBase64(artifactDir)
 	if err != nil {
@@ -124,31 +117,7 @@ func upsert(id string, name string, packageId string, artifactDir string, method
 		return err
 	}
 
-	resp, err := exe.ExecRequestWithCookies(method, urlPath, bytes.NewReader(artifactData), headers, cookies)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != successCode {
-		return exe.LogError(resp, fmt.Sprintf("%v %v designtime artifact", callType, artifactType))
-	}
-	return nil
-}
-
-func modifyingCallWithNoBody(method string, urlPath string, successCode int, artifactType string, callType string, exe *httpclnt.HTTPExecuter) error {
-	headers, cookies, err := odata.InitHeadersAndCookies(exe)
-	if err != nil {
-		return err
-	}
-	headers["Accept"] = "application/json"
-
-	resp, err := exe.ExecRequestWithCookies(method, urlPath, http.NoBody, headers, cookies)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != successCode {
-		return exe.LogError(resp, fmt.Sprintf("%v %v designtime artifact", callType, artifactType))
-	}
-	return nil
+	return odata.ModifyingCall(method, urlPath, bytes.NewReader(artifactData), successCode, fmt.Sprintf("%v %v designtime artifact", callType, artifactType), exe)
 }
 
 func get(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) (*http.Response, error) {

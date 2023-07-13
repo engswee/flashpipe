@@ -209,79 +209,36 @@ func (ip *IntegrationPackage) GetAllArtifacts(id string) ([]*ArtifactDetails, er
 }
 
 func (ip *IntegrationPackage) Create(packageData *PackageSingleData) error {
-	path := "/api/v1/IntegrationPackages"
-
-	headers, cookies, err := InitHeadersAndCookies(ip.exe)
-	if err != nil {
-		return err
-	}
-	headers["Accept"] = "application/json"
-	headers["Content-Type"] = "application/json"
+	urlPath := "/api/v1/IntegrationPackages"
 
 	requestBody, err := ip.constructBody(packageData)
 	if err != nil {
 		return err
 	}
 
-	resp, err := ip.exe.ExecRequestWithCookies("POST", path, bytes.NewReader(requestBody), headers, cookies)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 201 {
-		return ip.exe.LogError(resp, "Create integration package")
-	}
-	return nil
+	return ModifyingCall("POST", urlPath, bytes.NewReader(requestBody), 201, "Create integration package", ip.exe)
 }
 
 func (ip *IntegrationPackage) Update(packageData *PackageSingleData) error {
 	packageId := packageData.Root.Id
-	path := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", packageId)
-
-	headers, cookies, err := InitHeadersAndCookies(ip.exe)
-	if err != nil {
-		return err
-	}
-	headers["Accept"] = "application/json"
-	headers["Content-Type"] = "application/json"
+	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", packageId)
 
 	requestBody, err := ip.constructBody(packageData)
 	if err != nil {
 		return err
 	}
 
-	resp, err := ip.exe.ExecRequestWithCookies("PUT", path, bytes.NewReader(requestBody), headers, cookies)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 202 {
-		return ip.exe.LogError(resp, "Update integration package")
-	}
-	return nil
+	return ModifyingCall("PUT", urlPath, bytes.NewReader(requestBody), 202, "Update integration package", ip.exe)
 }
 
 func (ip *IntegrationPackage) Delete(packageId string) error {
-	path := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", packageId)
-
-	headers, cookies, err := InitHeadersAndCookies(ip.exe)
-	if err != nil {
-		return err
-	}
-	headers["Accept"] = "application/json"
-	headers["Content-Type"] = "application/json"
-
-	resp, err := ip.exe.ExecRequestWithCookies("DELETE", path, http.NoBody, headers, cookies)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 202 {
-		return ip.exe.LogError(resp, "Delete integration package")
-	}
-	return nil
+	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", packageId)
+	return ModifyingCall("DELETE", urlPath, http.NoBody, 202, "Delete integration package", ip.exe)
 }
 
 func (ip *IntegrationPackage) constructBody(packageData *PackageSingleData) ([]byte, error) {
 	// Clear Mode field as it is not allowed in create/update
-	packageData.Root.Mode = "" // TODO - need integration test for this
+	packageData.Root.Mode = ""
 
 	jsonBody, err := json.Marshal(packageData)
 	if err != nil {

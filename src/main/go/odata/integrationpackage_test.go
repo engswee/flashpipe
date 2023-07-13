@@ -15,7 +15,7 @@ type PackageSuite struct {
 	exe            *httpclnt.HTTPExecuter
 }
 
-func TestBasicAuth(t *testing.T) {
+func TestPackageBasicAuth(t *testing.T) {
 	suite.Run(t, &PackageSuite{
 		serviceDetails: &ServiceDetails{
 			Host:     os.Getenv("HOST_TMN"),
@@ -25,7 +25,7 @@ func TestBasicAuth(t *testing.T) {
 	})
 }
 
-func TestOauth(t *testing.T) {
+func TestPackageOauth(t *testing.T) {
 	suite.Run(t, &PackageSuite{
 		serviceDetails: &ServiceDetails{
 			Host:              os.Getenv("HOST_TMN"),
@@ -40,6 +40,36 @@ func TestOauth(t *testing.T) {
 func (suite *PackageSuite) SetupSuite() {
 	println("Setting up suite")
 	suite.exe = InitHTTPExecuter(suite.serviceDetails)
+	ip := NewIntegrationPackage(suite.exe)
+	const packageId = "FlashPipeIntegrationTest"
+	exists, err := ip.Exists(packageId)
+	if err != nil {
+		suite.T().Fatalf("Exists failed with error - %v", err)
+	}
+	if !exists {
+		requestBody := new(PackageSingleData)
+		requestBody.Root.Id = packageId
+		requestBody.Root.Name = packageId
+		requestBody.Root.ShortText = packageId
+
+		// Create
+		err = ip.Create(requestBody)
+		if err != nil {
+			suite.T().Fatalf("Create package failed with error - %v", err)
+		}
+	}
+	//const artifactId = "IFlow1"
+	//dt := designtime.NewDesigntimeArtifact("Integration", suite.exe)
+	//exists, err = dt.Exists(artifactId, "active")
+	//if err != nil {
+	//	suite.T().Fatalf("Exists failed with error - %v", err)
+	//}
+	//if !exists {
+	//	err := dt.Create(artifactId, artifactId, packageId, fmt.Sprintf("../../testdata/artifacts/setup/%v", artifactId))
+	//	if err != nil {
+	//		suite.T().Fatalf("Create integration designtime artifact failed with error - %v", err)
+	//	}
+	//}
 }
 
 func (suite *PackageSuite) SetupTest() {

@@ -8,33 +8,9 @@ import (
 	"testing"
 )
 
-//func TestIntegration_CreateUpdateDeployDeleteOauth(t *testing.T) {
-//	host := os.Getenv("HOST_TMN")
-//	oauthHost := os.Getenv("HOST_OAUTH")
-//	oauthPath := os.Getenv("HOST_OAUTH_PATH")
-//	clientId := os.Getenv("OAUTH_CLIENTID")
-//	clientSecret := os.Getenv("OAUTH_CLIENTSECRET")
-//	exe := httpclnt.New(oauthHost, oauthPath, clientId, clientSecret, "", "", host, "https", 443)
-//	dt := NewDesigntimeArtifact("Integration", exe)
-//
-//	createUpdateDeployDelete("Integration_Test_IFlow", "Integration Test IFlow", "FlashPipeIntegrationTest", dt, t)
-//
-//}
-//
-//func TestIntegration_CreateUpdateDeployDeleteBasicAuth(t *testing.T) {
-//	host := os.Getenv("HOST_TMN")
-//	userId := os.Getenv("BASIC_USERID")
-//	password := os.Getenv("BASIC_PASSWORD")
-//	exe := httpclnt.New("", "", "", "", userId, password, host, "https", 443)
-//	dt := NewDesigntimeArtifact("Integration", exe)
-//
-//	createUpdateDeployDelete("Integration_Test_IFlow", "Integration Test IFlow", "FlashPipeIntegrationTest", dt, t)
-//
-//}
-
 func TestMockDeployBasic(t *testing.T) {
-	const csrfToken = "mytoken"
-	const artifactId = "IFlow1"
+	const csrfToken = "dummycsrfToken"
+	const artifactId = "DummyIFlow"
 
 	// Set up local server with mock HTTP responses
 	mux := http.NewServeMux()
@@ -74,8 +50,8 @@ func TestMockDeployBasic(t *testing.T) {
 }
 
 func TestMockDeployOauth(t *testing.T) {
-	const oauthToken = "token123"
-	const artifactId = "IFlow1"
+	const oauthToken = "dummyoauthToken"
+	const artifactId = "DummyIFlow"
 
 	// Set up local server with mock HTTP responses
 	mux := http.NewServeMux()

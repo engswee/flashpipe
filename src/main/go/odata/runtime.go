@@ -29,7 +29,7 @@ func NewRuntime(exe *httpclnt.HTTPExecuter) *Runtime {
 	return r
 }
 
-func (r *Runtime) Get(id string) (resp *http.Response, err error) {
+func (r *Runtime) get(id string) (resp *http.Response, err error) {
 	path := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')", id)
 
 	headers := map[string]string{
@@ -38,14 +38,20 @@ func (r *Runtime) Get(id string) (resp *http.Response, err error) {
 	return r.exe.ExecGetRequest(path, headers)
 }
 
+func (r *Runtime) UnDeploy(id string) error {
+	urlPath := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')", id)
+
+	return ModifyingCall("DELETE", urlPath, http.NoBody, 202, "", r.exe)
+}
+
 func (r *Runtime) GetVersion(id string) (string, error) {
-	resp, err := r.Get(id)
+	resp, err := r.get(id)
 	if err != nil {
 		return "", err
 	}
 	if resp.StatusCode == 404 { // artifact not deployed to runtime
 		return "", nil
-	} else if resp.StatusCode != 200 { // TODO - in Java > (code.startsWith('2'))
+	} else if resp.StatusCode != 200 {
 		return "", r.exe.LogError(resp, "Get runtime artifact")
 	} else {
 		var jsonData *runtimeData
@@ -63,11 +69,11 @@ func (r *Runtime) GetVersion(id string) (string, error) {
 }
 
 func (r *Runtime) GetStatus(id string) (string, error) {
-	resp, err := r.Get(id)
+	resp, err := r.get(id)
 	if err != nil {
 		return "", err
 	}
-	if resp.StatusCode != 200 { // TODO - in Java > (code.startsWith('2'))
+	if resp.StatusCode != 200 {
 		return "", r.exe.LogError(resp, "Get runtime artifact")
 	} else {
 		var jsonData *runtimeData
@@ -91,7 +97,7 @@ func (r *Runtime) GetErrorInfo(id string) (string, error) {
 	if err != nil {
 		return "", nil
 	}
-	if resp.StatusCode != 200 { // TODO - in Java > (code.startsWith('2'))
+	if resp.StatusCode != 200 {
 		return "", r.exe.LogError(resp, "Get runtime artifact error information")
 	} else {
 		var jsonData *runtimeError

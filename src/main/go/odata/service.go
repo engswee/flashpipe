@@ -4,6 +4,8 @@ import (
 	"github.com/engswee/flashpipe/config"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/spf13/cobra"
+	"io"
+	"net/http"
 )
 
 type ServiceDetails struct {
@@ -37,4 +39,25 @@ func GetServiceDetails(cmd *cobra.Command) *ServiceDetails {
 
 func InitHTTPExecuter(serviceDetails *ServiceDetails) *httpclnt.HTTPExecuter {
 	return httpclnt.New(serviceDetails.OauthHost, serviceDetails.OauthPath, serviceDetails.OauthClientId, serviceDetails.OauthClientSecret, serviceDetails.Userid, serviceDetails.Password, serviceDetails.Host, "https", 443)
+}
+
+func ModifyingCall(method string, urlPath string, body io.Reader, successCode int, callType string, exe *httpclnt.HTTPExecuter) error {
+	headers, cookies, err := InitHeadersAndCookies(exe)
+	if err != nil {
+		return err
+	}
+
+	headers["Accept"] = "application/json"
+	if body != http.NoBody {
+		headers["Content-Type"] = "application/json"
+	}
+
+	resp, err := exe.ExecRequestWithCookies(method, urlPath, body, headers, cookies)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != successCode {
+		return exe.LogError(resp, callType)
+	}
+	return nil
 }

@@ -58,31 +58,16 @@ func (c *Configuration) Get(id string, version string) (*ParametersData, error) 
 }
 
 func (c *Configuration) Update(id string, version string, key string, value string) error {
-	path := fmt.Sprintf("/api/v1/IntegrationDesigntimeArtifacts(Id='%v',Version='%v')/$links/Configurations('%v')", id, version, key)
-	headers, cookies, err := odata.InitHeadersAndCookies(c.exe)
-	if err != nil {
-		return err
-	}
-	headers["Accept"] = "application/json"
-	headers["Content-Type"] = "application/json"
+	urlPath := fmt.Sprintf("/api/v1/IntegrationDesigntimeArtifacts(Id='%v',Version='%v')/$links/Configurations('%v')", id, version, key)
 
-	parameterData := &ParameterData{
-		ParameterValue: value,
-	}
-	jsonBody, err := json.Marshal(parameterData)
+	parameterData := &ParameterData{ParameterValue: value}
+	requestBody, err := json.Marshal(parameterData)
 	if err != nil {
 		return err
 	}
-	logger.Debug(fmt.Sprintf("Request body = %s", jsonBody))
+	logger.Debug(fmt.Sprintf("Request body = %s", requestBody))
 
-	resp, err := c.exe.ExecRequestWithCookies("PUT", path, bytes.NewReader(jsonBody), headers, cookies)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 202 {
-		return c.exe.LogError(resp, fmt.Sprintf("Update configuration parameter %v", key))
-	}
-	return nil
+	return odata.ModifyingCall("PUT", urlPath, bytes.NewReader(requestBody), 202, fmt.Sprintf("Update configuration parameter %v", key), c.exe)
 }
 
 func FindParameterByKey(key string, list []*ParameterData) *ParameterData {

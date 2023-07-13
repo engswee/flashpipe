@@ -16,7 +16,7 @@ type DesigntimeSuite struct {
 	exe            *httpclnt.HTTPExecuter
 }
 
-func TestBasicAuth(t *testing.T) {
+func TestDesigntimeBasicAuth(t *testing.T) {
 	suite.Run(t, &DesigntimeSuite{
 		serviceDetails: &odata.ServiceDetails{
 			Host:     os.Getenv("HOST_TMN"),
@@ -26,7 +26,7 @@ func TestBasicAuth(t *testing.T) {
 	})
 }
 
-func TestOauth(t *testing.T) {
+func TestDesigntimeOauth(t *testing.T) {
 	suite.Run(t, &DesigntimeSuite{
 		serviceDetails: &odata.ServiceDetails{
 			Host:              os.Getenv("HOST_TMN"),
