@@ -1,4 +1,4 @@
-package designtime
+package odata
 
 //func TestMessageMapping_CreateUpdateDeployDeleteOauth(t *testing.T) {
 //	host := os.Getenv("HOST_TMN")

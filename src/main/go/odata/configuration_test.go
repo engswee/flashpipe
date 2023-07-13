@@ -1,8 +1,7 @@
-package designtime
+package odata
 
 import (
 	"github.com/engswee/flashpipe/httpclnt"
-	"github.com/engswee/flashpipe/odata"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"os"
@@ -11,13 +10,13 @@ import (
 
 type ConfigurationSuite struct {
 	suite.Suite
-	serviceDetails *odata.ServiceDetails
+	serviceDetails *ServiceDetails
 	exe            *httpclnt.HTTPExecuter
 }
 
 func TestConfiguration_BasicAuth(t *testing.T) {
 	suite.Run(t, &ConfigurationSuite{
-		serviceDetails: &odata.ServiceDetails{
+		serviceDetails: &ServiceDetails{
 			Host:     os.Getenv("HOST_TMN"),
 			Userid:   os.Getenv("BASIC_USERID"),
 			Password: os.Getenv("BASIC_PASSWORD"),
@@ -27,7 +26,7 @@ func TestConfiguration_BasicAuth(t *testing.T) {
 
 func TestConfigurationOauth(t *testing.T) {
 	suite.Run(t, &ConfigurationSuite{
-		serviceDetails: &odata.ServiceDetails{
+		serviceDetails: &ServiceDetails{
 			Host:              os.Getenv("HOST_TMN"),
 			OauthHost:         os.Getenv("HOST_OAUTH"),
 			OauthPath:         os.Getenv("HOST_OAUTH_PATH"),
@@ -39,7 +38,7 @@ func TestConfigurationOauth(t *testing.T) {
 
 func (suite *ConfigurationSuite) SetupSuite() {
 	println("Setting up suite")
-	suite.exe = odata.InitHTTPExecuter(suite.serviceDetails)
+	suite.exe = InitHTTPExecuter(suite.serviceDetails)
 }
 
 func (suite *ConfigurationSuite) SetupTest() {

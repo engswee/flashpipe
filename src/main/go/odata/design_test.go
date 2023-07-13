@@ -1,9 +1,8 @@
-package designtime
+package odata
 
 import (
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
-	"github.com/engswee/flashpipe/odata"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"os"
@@ -12,13 +11,13 @@ import (
 
 type DesigntimeSuite struct {
 	suite.Suite
-	serviceDetails *odata.ServiceDetails
+	serviceDetails *ServiceDetails
 	exe            *httpclnt.HTTPExecuter
 }
 
 func TestDesigntimeBasicAuth(t *testing.T) {
 	suite.Run(t, &DesigntimeSuite{
-		serviceDetails: &odata.ServiceDetails{
+		serviceDetails: &ServiceDetails{
 			Host:     os.Getenv("HOST_TMN"),
 			Userid:   os.Getenv("BASIC_USERID"),
 			Password: os.Getenv("BASIC_PASSWORD"),
@@ -28,7 +27,7 @@ func TestDesigntimeBasicAuth(t *testing.T) {
 
 func TestDesigntimeOauth(t *testing.T) {
 	suite.Run(t, &DesigntimeSuite{
-		serviceDetails: &odata.ServiceDetails{
+		serviceDetails: &ServiceDetails{
 			Host:              os.Getenv("HOST_TMN"),
 			OauthHost:         os.Getenv("HOST_OAUTH"),
 			OauthPath:         os.Getenv("HOST_OAUTH_PATH"),
@@ -40,7 +39,7 @@ func TestDesigntimeOauth(t *testing.T) {
 
 func (suite *DesigntimeSuite) SetupSuite() {
 	println("Setting up suite")
-	suite.exe = odata.InitHTTPExecuter(suite.serviceDetails)
+	suite.exe = InitHTTPExecuter(suite.serviceDetails)
 }
 
 func (suite *DesigntimeSuite) SetupTest() {
@@ -96,7 +95,7 @@ func (suite *DesigntimeSuite) TestValueMapping_CreateUpdateDeployDelete() {
 
 func createUpdateDeployDelete(id string, name string, packageId string, dt DesigntimeArtifact, t *testing.T) {
 	// Create
-	err := dt.Create(id, name, packageId, fmt.Sprintf("../../testdata/artifacts/create/%v", id))
+	err := dt.Create(id, name, packageId, fmt.Sprintf("../testdata/artifacts/create/%v", id))
 	if err != nil {
 		t.Fatalf("Create failed with error - %v", err)
 	}
@@ -107,7 +106,7 @@ func createUpdateDeployDelete(id string, name string, packageId string, dt Desig
 	}
 	if assert.True(t, exists, "Expected exists = true") {
 		// Update
-		err = dt.Update(id, name, packageId, fmt.Sprintf("../../testdata/artifacts/update/%v", id))
+		err = dt.Update(id, name, packageId, fmt.Sprintf("../testdata/artifacts/update/%v", id))
 		if err != nil {
 			t.Fatalf("Update failed with error - %v", err)
 		}

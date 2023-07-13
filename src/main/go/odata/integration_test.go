@@ -1,4 +1,4 @@
-package designtime
+package odata
 
 import (
 	"fmt"

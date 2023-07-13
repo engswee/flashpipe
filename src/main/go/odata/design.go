@@ -1,4 +1,4 @@
-package designtime
+package odata
 
 import (
 	"bytes"
@@ -7,7 +7,6 @@ import (
 	"github.com/engswee/flashpipe/file"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
-	"github.com/engswee/flashpipe/odata"
 	"net/http"
 	"os"
 )
@@ -98,12 +97,12 @@ func update(id string, name string, packageId string, artifactDir string, artifa
 
 func deploy(id string, artifactType string, exe *httpclnt.HTTPExecuter) error {
 	urlPath := fmt.Sprintf("/api/v1/Deploy%vDesigntimeArtifact?Id='%s'&Version='active'", artifactType, id)
-	return odata.ModifyingCall("POST", urlPath, http.NoBody, 202, fmt.Sprintf("Deploy %v designtime artifact", artifactType), exe)
+	return ModifyingCall("POST", urlPath, http.NoBody, 202, fmt.Sprintf("Deploy %v designtime artifact", artifactType), exe)
 }
 
 func deleteCall(id string, artifactType string, exe *httpclnt.HTTPExecuter) error {
 	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", artifactType, id)
-	return odata.ModifyingCall("DELETE", urlPath, http.NoBody, 200, fmt.Sprintf("Delete %v designtime artifact", artifactType), exe)
+	return ModifyingCall("DELETE", urlPath, http.NoBody, 200, fmt.Sprintf("Delete %v designtime artifact", artifactType), exe)
 }
 
 func upsert(id string, name string, packageId string, artifactDir string, method string, urlPath string, successCode int, artifactType string, callType string, exe *httpclnt.HTTPExecuter) error {
@@ -117,7 +116,7 @@ func upsert(id string, name string, packageId string, artifactDir string, method
 		return err
 	}
 
-	return odata.ModifyingCall(method, urlPath, bytes.NewReader(artifactData), successCode, fmt.Sprintf("%v %v designtime artifact", callType, artifactType), exe)
+	return ModifyingCall(method, urlPath, bytes.NewReader(artifactData), successCode, fmt.Sprintf("%v %v designtime artifact", callType, artifactType), exe)
 }
 
 func get(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) (*http.Response, error) {

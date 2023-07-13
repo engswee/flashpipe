@@ -5,7 +5,6 @@ import (
 	"github.com/engswee/flashpipe/config"
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/odata"
-	"github.com/engswee/flashpipe/odata/designtime"
 	"github.com/engswee/flashpipe/str"
 	"github.com/spf13/cobra"
 	"time"
@@ -67,7 +66,7 @@ func deployArtifacts(delimitedIds string, artifactType string, delayLength int, 
 	exe := odata.InitHTTPExecuter(serviceDetails)
 
 	// Initialise designtime artifact
-	dt := designtime.NewDesigntimeArtifact(artifactType, exe)
+	dt := odata.NewDesigntimeArtifact(artifactType, exe)
 
 	// Initialised runtime artifact
 	rt := odata.NewRuntime(exe)
@@ -98,7 +97,7 @@ func deployArtifacts(delimitedIds string, artifactType string, delayLength int, 
 	logger.Info("🏆 Artifact(s) deployment completed successfully")
 }
 
-func deploySingle(artifact designtime.DesigntimeArtifact, runtime *odata.Runtime, id string, compareVersions bool) error {
+func deploySingle(artifact odata.DesigntimeArtifact, runtime *odata.Runtime, id string, compareVersions bool) error {
 	logger.Info("Getting designtime version of artifact")
 	designtimeVer, err := artifact.GetVersion(id, "active")
 	if err != nil {

@@ -65,7 +65,7 @@ func (suite *PackageSuite) SetupSuite() {
 	//	suite.T().Fatalf("Exists failed with error - %v", err)
 	//}
 	//if !exists {
-	//	err := dt.Create(artifactId, artifactId, packageId, fmt.Sprintf("../../testdata/artifacts/setup/%v", artifactId))
+	//	err := dt.Create(artifactId, artifactId, packageId, fmt.Sprintf("../testdata/artifacts/setup/%v", artifactId))
 	//	if err != nil {
 	//		suite.T().Fatalf("Create integration designtime artifact failed with error - %v", err)
 	//	}

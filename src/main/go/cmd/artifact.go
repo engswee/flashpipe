@@ -6,7 +6,6 @@ import (
 	"github.com/engswee/flashpipe/file"
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/odata"
-	"github.com/engswee/flashpipe/odata/designtime"
 	"github.com/engswee/flashpipe/runner"
 	"github.com/spf13/cobra"
 	"os"
@@ -93,7 +92,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	exe := odata.InitHTTPExecuter(serviceDetails)
 
 	// Initialise designtime artifact
-	dt := designtime.NewDesigntimeArtifact(artifactType, exe)
+	dt := odata.NewDesigntimeArtifact(artifactType, exe)
 	ip := odata.NewIntegrationPackage(exe)
 
 	// Check if IFlow already exist on tenant
@@ -118,7 +117,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		logger.Info("Checking if designtime artifact needs to be updated")
 		// 1 - Download artifact content from tenant
 		zipFile := fmt.Sprintf("%v/%v.zip", workDir, artifactId)
-		err = designtime.Download(zipFile, artifactId, dt)
+		err = odata.Download(zipFile, artifactId, dt)
 		logger.ExitIfError(err)
 		// 2 - Diff contents from tenant against Git
 		// TODO - refactor and combine with implementation used in synchroniser
@@ -238,7 +237,7 @@ func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflo
 	return
 }
 
-func artifactExists(artifactId string, artifactType string, packageId string, dt designtime.DesigntimeArtifact, ip *odata.IntegrationPackage) (bool, error) {
+func artifactExists(artifactId string, artifactType string, packageId string, dt odata.DesigntimeArtifact, ip *odata.IntegrationPackage) (bool, error) {
 	logger.Info(fmt.Sprintf("Checking if %v exists", artifactId))
 	exists, err := dt.Exists(artifactId, "active")
 	if err != nil {
@@ -266,7 +265,7 @@ func artifactExists(artifactId string, artifactType string, packageId string, dt
 	}
 }
 
-func createArtifact(artifactId string, artifactName string, packageId string, artifactDir string, scriptCollectionMap string, dt designtime.DesigntimeArtifact) error {
+func createArtifact(artifactId string, artifactName string, packageId string, artifactDir string, scriptCollectionMap string, dt odata.DesigntimeArtifact) error {
 	err := dt.Create(artifactId, artifactName, packageId, artifactDir)
 	if err != nil {
 		return err
@@ -274,7 +273,7 @@ func createArtifact(artifactId string, artifactName string, packageId string, ar
 	return nil
 }
 
-func updateArtifact(artifactId string, artifactName string, packageId string, artifactDir string, scriptCollectionMap string, dt designtime.DesigntimeArtifact) error {
+func updateArtifact(artifactId string, artifactName string, packageId string, artifactDir string, scriptCollectionMap string, dt odata.DesigntimeArtifact) error {
 	err := dt.Update(artifactId, artifactName, packageId, artifactDir)
 	if err != nil {
 		return err

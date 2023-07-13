@@ -1,4 +1,4 @@
-package designtime
+package odata
 
 import (
 	"github.com/engswee/flashpipe/httpclnt"

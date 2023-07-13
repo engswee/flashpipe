@@ -6,7 +6,6 @@ import (
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/odata"
-	"github.com/engswee/flashpipe/odata/designtime"
 	"github.com/engswee/flashpipe/str"
 	"os"
 )
@@ -78,9 +77,9 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 			}
 		}
 		// Download artifact content
-		dt := designtime.NewDesigntimeArtifact(artifact.ArtifactType, s.exe)
+		dt := odata.NewDesigntimeArtifact(artifact.ArtifactType, s.exe)
 		targetDownloadFile := fmt.Sprintf("%v/download/%v.zip", workDir, artifact.Id)
-		err = designtime.Download(targetDownloadFile, artifact.Id, dt)
+		err = odata.Download(targetDownloadFile, artifact.Id, dt)
 		logger.ExitIfError(err)
 
 		// Normalise ID and Name

@@ -1,4 +1,4 @@
-package designtime
+package odata
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
-	"github.com/engswee/flashpipe/odata"
 )
 
 type Configuration struct {
@@ -67,7 +66,7 @@ func (c *Configuration) Update(id string, version string, key string, value stri
 	}
 	logger.Debug(fmt.Sprintf("Request body = %s", requestBody))
 
-	return odata.ModifyingCall("PUT", urlPath, bytes.NewReader(requestBody), 202, fmt.Sprintf("Update configuration parameter %v", key), c.exe)
+	return ModifyingCall("PUT", urlPath, bytes.NewReader(requestBody), 202, fmt.Sprintf("Update configuration parameter %v", key), c.exe)
 }
 
 func FindParameterByKey(key string, list []*ParameterData) *ParameterData {
