@@ -44,6 +44,8 @@ automating time-consuming manual tasks like:
 	rootCmd.PersistentFlags().String("oauth-clientsecret", "", "Client Secret for using OAuth [or set environment OAUTH_CLIENTSECRET]")
 	rootCmd.PersistentFlags().String("oauth-path", "/oauth/token", "Path for OAuth token server, e.g /oauth2/api/v1/token for Neo [or set environment HOST_OAUTH_PATH]")
 
+	rootCmd.PersistentFlags().Bool("debug", false, "Show debug logs")
+
 	// TODO - to be removed once fully ported from Java to Go
 	rootCmd.PersistentFlags().String("location.mavenrepo", "", "Maven Repository Location [or set environment MVN_REPO_LOCATION]")
 	rootCmd.PersistentFlags().String("location.flashpipe", "", "FlashPipe Location [or set environment FLASHPIPE_LOCATION]")
@@ -121,23 +123,23 @@ func Execute() {
 //}
 
 func initializeConfig(cmd *cobra.Command) error {
-	v := viper.New()
+	//v := viper.New()
 	cfgFile := config.GetString(cmd, "config")
 	if cfgFile != "" {
 		// Use config file from the flag.
-		v.SetConfigFile(cfgFile)
+		viper.SetConfigFile(cfgFile)
 	} else {
 		// Find home directory.
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
 		// Search config in home directory with name "flashpipe" (without extension).
-		v.AddConfigPath(home)
-		v.SetConfigType("yaml")
-		v.SetConfigName("flashpipe")
+		viper.AddConfigPath(home)
+		viper.SetConfigType("yaml")
+		viper.SetConfigName("flashpipe")
 	}
 
-	if err := v.ReadInConfig(); err != nil {
+	if err := viper.ReadInConfig(); err != nil {
 		// It's okay if there isn't a config file
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			return err
@@ -145,35 +147,37 @@ func initializeConfig(cmd *cobra.Command) error {
 	}
 
 	// TODO - handle environment variable prefix to FLASHPIPE?
-	v.SetEnvPrefix("FP")
+	viper.SetEnvPrefix("FLASHPIPE")
 
 	// Environment variables can't have dashes in them, so bind them to their equivalent
 	// keys with underscores, e.g. --favorite-color to STING_FAVORITE_COLOR
-	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
 	// Bind to environment variables
 	// Works great for simple config names, but needs help for names
 	// like --favorite-color which we fix in the bindFlags function
-	v.AutomaticEnv()
+	viper.AutomaticEnv()
 
 	// Bind the current command's flags to viper
-	bindFlags(cmd, v)
+	bindFlags(cmd)
 	return nil
 }
 
 // Bind each cobra flag to its associated viper configuration (config file and environment variable)
-func bindFlags(cmd *cobra.Command, v *viper.Viper) {
+func bindFlags(cmd *cobra.Command) {
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
 		// TODO - handle environment variable name??
 		// Determine the naming convention of the flags when represented in the config file
 		configName := f.Name
 
 		// Apply the viper config value to the flag when the flag is not set and viper has a value
-		if !f.Changed && v.IsSet(configName) {
-			val := v.Get(configName)
+		if !f.Changed && viper.IsSet(configName) {
+			val := viper.Get(configName)
 			cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
 		}
 	})
+	// Set debug flag from command line to viper
+	viper.Set("debug", config.GetBool(cmd, "debug"))
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -204,7 +208,7 @@ func initConfig() {
 	//rootViper.BindEnv("location.mavenrepo", "MVN_REPO_LOCATION")
 	//mavenRepoLocation = rootViper.GetString("location.mavenrepo")
 	//
-	//rootViper.SetDefault("location.flashpipe", fmt.Sprintf("%v/io/github/engswee/flashpipe/%v/flashpipe-%v.jar", mavenRepoLocation, version, version))
+	//rootViper.SetDefault("location.flashpipe", fmt.Sprintf("%v/io/github/engswee/flashpipe/%v/flashpipe-%viper.jar", mavenRepoLocation, version, version))
 	//rootViper.BindEnv("location.flashpipe", "FLASHPIPE_LOCATION")
 	//flashpipeLocation = rootViper.GetString("location.flashpipe")
 	//

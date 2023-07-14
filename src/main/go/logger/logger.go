@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"os"
 )
 
@@ -21,8 +22,10 @@ func Warn(a ...any) {
 }
 
 func Debug(a ...any) {
-	fmt.Print("[\x1b[34mDEBUG\x1b[m] ")
-	fmt.Println(a...)
+	if viper.GetBool("debug") {
+		fmt.Print("[\x1b[34mDEBUG\x1b[m] ")
+		fmt.Println(a...)
+	}
 }
 
 func ExitIfError(err error) {
