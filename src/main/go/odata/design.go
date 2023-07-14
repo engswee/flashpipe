@@ -1,13 +1,11 @@
 package odata
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/file"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
-	"net/http"
 	"os"
 )
 
@@ -50,7 +48,7 @@ func NewDesigntimeArtifact(artifactType string, exe *httpclnt.HTTPExecuter) Desi
 }
 
 func constructUpdateBody(method string, id string, name string, packageId string, content string) ([]byte, error) {
-	artifactData := &designtimeArtifactUpdateData{
+	artifact := &designtimeArtifactUpdateData{
 		Name:            name,
 		Id:              id,
 		PackageId:       packageId,
@@ -58,16 +56,15 @@ func constructUpdateBody(method string, id string, name string, packageId string
 	}
 	// Update of Message Mapping fails as PackageId and Id are not allowed
 	if method == "PUT" {
-		artifactData.Id = ""
-		artifactData.PackageId = ""
+		artifact.Id = ""
+		artifact.PackageId = ""
 	}
-	jsonBody, err := json.Marshal(artifactData)
+	requestBody, err := json.Marshal(artifact)
 	if err != nil {
 		return nil, err
 	}
-	logger.Debug(fmt.Sprintf("Request body = %s", jsonBody))
 
-	return jsonBody, nil
+	return requestBody, nil
 }
 
 func Download(targetFile string, id string, dt DesigntimeArtifact) error {
@@ -97,12 +94,12 @@ func update(id string, name string, packageId string, artifactDir string, artifa
 
 func deploy(id string, artifactType string, exe *httpclnt.HTTPExecuter) error {
 	urlPath := fmt.Sprintf("/api/v1/Deploy%vDesigntimeArtifact?Id='%s'&Version='active'", artifactType, id)
-	return ModifyingCall("POST", urlPath, http.NoBody, 202, fmt.Sprintf("Deploy %v designtime artifact", artifactType), exe)
+	return modifyingCall("POST", urlPath, nil, 202, fmt.Sprintf("Deploy %v designtime artifact", artifactType), exe)
 }
 
 func deleteCall(id string, artifactType string, exe *httpclnt.HTTPExecuter) error {
 	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", artifactType, id)
-	return ModifyingCall("DELETE", urlPath, http.NoBody, 200, fmt.Sprintf("Delete %v designtime artifact", artifactType), exe)
+	return modifyingCall("DELETE", urlPath, nil, 200, fmt.Sprintf("Delete %v designtime artifact", artifactType), exe)
 }
 
 func upsert(id string, name string, packageId string, artifactDir string, method string, urlPath string, successCode int, artifactType string, callType string, exe *httpclnt.HTTPExecuter) error {
@@ -111,68 +108,56 @@ func upsert(id string, name string, packageId string, artifactDir string, method
 	if err != nil {
 		return err
 	}
-	artifactData, err := constructUpdateBody(method, id, name, packageId, encoded)
+	requestBody, err := constructUpdateBody(method, id, name, packageId, encoded)
 	if err != nil {
 		return err
 	}
 
-	return ModifyingCall(method, urlPath, bytes.NewReader(artifactData), successCode, fmt.Sprintf("%v %v designtime artifact", callType, artifactType), exe)
-}
-
-func get(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) (*http.Response, error) {
-	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", artifactType, id, version)
-
-	headers := map[string]string{
-		"Accept": "application/json",
-	}
-	return exe.ExecGetRequest(path, headers)
+	return modifyingCall(method, urlPath, requestBody, successCode, fmt.Sprintf("%v %v designtime artifact", callType, artifactType), exe)
 }
 
 func getVersion(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) (string, error) {
-	resp, err := get(id, version, artifactType, exe)
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", artifactType, id, version)
+
+	resp, err := readOnlyCall(urlPath, fmt.Sprintf("Get %v designtime artifact", artifactType), exe)
 	if err != nil {
 		return "", err
 	}
-	if resp.StatusCode != 200 {
-		return "", exe.LogError(resp, fmt.Sprintf("Get %v designtime artifact", artifactType))
-	} else {
-		var jsonData *designtimeArtifactData
-		respBody, err := exe.ReadRespBody(resp)
-		if err != nil {
-			return "", err
-		}
-		err = json.Unmarshal(respBody, &jsonData)
-		if err != nil {
-			return "", err
-		}
-		return jsonData.Root.Version, nil
+	// Process response to extract version
+	var jsonData *designtimeArtifactData
+	respBody, err := exe.ReadRespBody(resp)
+	if err != nil {
+		return "", err
 	}
+	err = json.Unmarshal(respBody, &jsonData)
+	if err != nil {
+		return "", err
+	}
+	return jsonData.Root.Version, nil
 }
 
 func exists(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) (bool, error) {
-	resp, err := get(id, version, artifactType, exe)
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", artifactType, id, version)
+
+	callType := fmt.Sprintf("Get %v designtime artifact", artifactType)
+	_, err := readOnlyCall(urlPath, callType, exe)
 	if err != nil {
-		return false, err
+		if err.Error() == fmt.Sprintf("%v call failed with response code = 404", callType) {
+			return false, nil
+		} else {
+			return false, err
+		}
 	}
-	if resp.StatusCode == 200 {
-		return true, nil
-	} else if resp.StatusCode == 404 {
-		return false, nil
-	} else {
-		return false, exe.LogError(resp, fmt.Sprintf("Get %v designtime artifact", artifactType))
-	}
+	return true, nil
 }
 
 func getContent(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) ([]byte, error) {
-	path := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')/$value", artifactType, id, version)
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')/$value", artifactType, id, version)
 
-	resp, err := exe.ExecGetRequest(path, nil)
+	callType := fmt.Sprintf("Download %v designtime artifact", artifactType)
+	resp, err := readOnlyCall(urlPath, callType, exe)
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != 200 {
-		return nil, exe.LogError(resp, fmt.Sprintf("Download %v designtime artifact", artifactType))
-	} else {
-		return exe.ReadRespBody(resp)
-	}
+	return exe.ReadRespBody(resp)
 }

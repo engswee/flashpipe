@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
-	"net/http"
 )
 
 type Runtime struct {
@@ -29,86 +28,74 @@ func NewRuntime(exe *httpclnt.HTTPExecuter) *Runtime {
 	return r
 }
 
-func (r *Runtime) get(id string) (resp *http.Response, err error) {
-	path := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')", id)
-
-	headers := map[string]string{
-		"Accept": "application/json",
-	}
-	return r.exe.ExecGetRequest(path, headers)
-}
-
 func (r *Runtime) UnDeploy(id string) error {
 	urlPath := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')", id)
 
-	return ModifyingCall("DELETE", urlPath, http.NoBody, 202, "", r.exe)
+	return modifyingCall("DELETE", urlPath, nil, 202, "", r.exe)
 }
 
 func (r *Runtime) GetVersion(id string) (string, error) {
-	resp, err := r.get(id)
+	urlPath := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')", id)
+
+	callType := "Get runtime artifact"
+	resp, err := readOnlyCall(urlPath, callType, r.exe)
+	if err != nil {
+		if err.Error() == fmt.Sprintf("%v call failed with response code = 404", callType) { // artifact not deployed to runtime
+			return "NOT_DEPLOYED", nil
+		} else {
+			return "", err
+		}
+	}
+	// Process response to extract version
+	var jsonData *runtimeData
+	respBody, err := r.exe.ReadRespBody(resp)
+	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
 		return "", err
 	}
-	if resp.StatusCode == 404 { // artifact not deployed to runtime
+	if jsonData.Root.Status == "STARTED" {
+		return jsonData.Root.Version, nil
+	} else { // artifact runtime deployment failed or not complete
 		return "", nil
-	} else if resp.StatusCode != 200 {
-		return "", r.exe.LogError(resp, "Get runtime artifact")
-	} else {
-		var jsonData *runtimeData
-		respBody, err := r.exe.ReadRespBody(resp)
-		err = json.Unmarshal(respBody, &jsonData)
-		if err != nil {
-			return "", err
-		}
-		if jsonData.Root.Status == "STARTED" {
-			return jsonData.Root.Version, nil
-		} else { // artifact runtime deployment failed or not complete
-			return "", nil
-		}
 	}
 }
 
 func (r *Runtime) GetStatus(id string) (string, error) {
-	resp, err := r.get(id)
+	urlPath := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')", id)
+
+	callType := "Get runtime artifact"
+	resp, err := readOnlyCall(urlPath, callType, r.exe)
 	if err != nil {
 		return "", err
 	}
-	if resp.StatusCode != 200 {
-		return "", r.exe.LogError(resp, "Get runtime artifact")
-	} else {
-		var jsonData *runtimeData
-		respBody, err := r.exe.ReadRespBody(resp)
-		err = json.Unmarshal(respBody, &jsonData)
-		if err != nil {
-			return "", err
-		}
-
-		return jsonData.Root.Status, nil
+	// Process response to extract status
+	var jsonData *runtimeData
+	respBody, err := r.exe.ReadRespBody(resp)
+	err = json.Unmarshal(respBody, &jsonData)
+	if err != nil {
+		return "", err
 	}
+
+	return jsonData.Root.Status, nil
 }
 
 func (r *Runtime) GetErrorInfo(id string) (string, error) {
-	path := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')/ErrorInformation/$value", id)
+	urlPath := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')/ErrorInformation/$value", id)
 
-	headers := map[string]string{
-		"Accept": "application/json",
-	}
-	resp, err := r.exe.ExecGetRequest(path, headers)
+	callType := "Get runtime artifact error information"
+	resp, err := readOnlyCall(urlPath, callType, r.exe)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
-	if resp.StatusCode != 200 {
-		return "", r.exe.LogError(resp, "Get runtime artifact error information")
-	} else {
-		var jsonData *runtimeError
-		respBody, err := r.exe.ReadRespBody(resp)
-		if err != nil {
-			return "", err
-		}
-		err = json.Unmarshal(respBody, &jsonData)
-		if err != nil {
-			return "", err
-		}
-		return jsonData.Parameter[0], nil
+	// Process response to extract error info
+	var jsonData *runtimeError
+	respBody, err := r.exe.ReadRespBody(resp)
+	if err != nil {
+		return "", err
 	}
+	err = json.Unmarshal(respBody, &jsonData)
+	if err != nil {
+		return "", err
+	}
+	return jsonData.Parameter[0], nil
 }

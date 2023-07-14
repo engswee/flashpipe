@@ -1,12 +1,10 @@
 package odata
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
-	"net/http"
 )
 
 type IntegrationPackage struct {
@@ -66,120 +64,97 @@ func NewIntegrationPackage(exe *httpclnt.HTTPExecuter) *IntegrationPackage {
 func (ip *IntegrationPackage) GetPackagesList() ([]string, error) {
 	// Get the list of packages of the current tenant
 	logger.Info("Getting the list of IntegrationPackages")
-	path := "/api/v1/IntegrationPackages"
+	urlPath := "/api/v1/IntegrationPackages"
 
-	headers := map[string]string{
-		"Accept": "application/json",
-	}
-	resp, err := ip.exe.ExecGetRequest(path, headers)
+	callType := "Get IntegrationPackages list"
+	resp, err := readOnlyCall(urlPath, callType, ip.exe)
 	if err != nil {
 		return nil, err
 	}
-
-	if resp.StatusCode != 200 {
-		return nil, ip.exe.LogError(resp, "Get IntegrationPackages list")
-	} else {
-		var jsonData *packageMultipleData
-		respBody, err := ip.exe.ReadRespBody(resp)
-		err = json.Unmarshal(respBody, &jsonData)
-		if err != nil {
-			return nil, err
-		}
-		var packageIds []string
-		for _, result := range jsonData.Root.Results {
-			packageIds = append(packageIds, result.Id)
-		}
-		return packageIds, nil
+	// Process response to extract packages
+	var jsonData *packageMultipleData
+	respBody, err := ip.exe.ReadRespBody(resp)
+	err = json.Unmarshal(respBody, &jsonData)
+	if err != nil {
+		return nil, err
 	}
-}
-
-func (ip *IntegrationPackage) get(id string) (resp *http.Response, err error) {
-	path := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", id)
-
-	headers := map[string]string{
-		"Accept": "application/json",
+	var packageIds []string
+	for _, result := range jsonData.Root.Results {
+		packageIds = append(packageIds, result.Id)
 	}
-	return ip.exe.ExecGetRequest(path, headers)
+	return packageIds, nil
 }
 
 func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
 	logger.Info("Checking if package is marked as read only")
-	resp, err := ip.get(id)
+	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", id)
+
+	callType := "Get IntegrationPackages by ID"
+	resp, err := readOnlyCall(urlPath, callType, ip.exe)
 	if err != nil {
 		return false, err
 	}
-	if resp.StatusCode != 200 {
-		return false, ip.exe.LogError(resp, "Get IntegrationPackages by ID")
+	// Process response to extract read only
+	var jsonData *PackageSingleData
+	respBody, err := ip.exe.ReadRespBody(resp)
+	err = json.Unmarshal(respBody, &jsonData)
+	if err != nil {
+		return false, err
+	}
+	if jsonData.Root.Mode == "READ_ONLY" {
+		return true, nil
 	} else {
-		var jsonData *PackageSingleData
-		respBody, err := ip.exe.ReadRespBody(resp)
-		err = json.Unmarshal(respBody, &jsonData)
-		if err != nil {
-			return false, err
-		}
-		if jsonData.Root.Mode == "READ_ONLY" {
-			return true, nil
-		} else {
-			return false, nil
-		}
+		return false, nil
 	}
 }
 
 func (ip *IntegrationPackage) Exists(id string) (bool, error) {
 	logger.Info(fmt.Sprintf("Checking existence of package %v", id))
-	resp, err := ip.get(id)
+	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", id)
+
+	callType := "Get IntegrationPackages by ID"
+	_, err := readOnlyCall(urlPath, callType, ip.exe)
 	if err != nil {
-		return false, err
+		if err.Error() == fmt.Sprintf("%v call failed with response code = 404", callType) {
+			return false, nil
+		} else {
+			return false, err
+		}
 	}
-	if resp.StatusCode == 200 {
-		return true, nil
-	} else if resp.StatusCode == 404 {
-		return false, nil
-	} else {
-		return false, ip.exe.LogError(resp, "Get IntegrationPackages by ID")
-	}
-}
-
-func (ip *IntegrationPackage) getArtifactsByType(id string, artifactType string) (resp *http.Response, err error) {
-	path := fmt.Sprintf("/api/v1/IntegrationPackages('%v')/%vDesigntimeArtifacts", id, artifactType)
-
-	headers := map[string]string{
-		"Accept": "application/json",
-	}
-	return ip.exe.ExecGetRequest(path, headers)
+	return true, nil
 }
 
 func (ip *IntegrationPackage) GetArtifactsData(id string, artifactType string) ([]*ArtifactDetails, error) {
-	resp, err := ip.getArtifactsByType(id, artifactType)
+	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')/%vDesigntimeArtifacts", id, artifactType)
+
+	callType := fmt.Sprintf("Get %v designtime artifacts of IntegrationPackages", artifactType)
+	resp, err := readOnlyCall(urlPath, callType, ip.exe)
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != 200 {
-		return nil, ip.exe.LogError(resp, fmt.Sprintf("Get %v designtime artifacts of IntegrationPackages", artifactType))
-	} else {
-		var jsonData *artifactData
-		respBody, err := ip.exe.ReadRespBody(resp)
-		err = json.Unmarshal(respBody, &jsonData)
-		if err != nil {
-			return nil, err
-		}
-		var details []*ArtifactDetails
-		for _, result := range jsonData.Root.Results {
-			var draft bool
-			if result.Version == "Active" {
-				draft = true
-			} else {
-				draft = false
-			}
-			details = append(details, &ArtifactDetails{
-				Id:           result.Id,
-				Name:         result.Name,
-				IsDraft:      draft,
-				ArtifactType: artifactType,
-			})
-		}
-		return details, nil
+	// Process response to extract artifact details
+	var jsonData *artifactData
+	respBody, err := ip.exe.ReadRespBody(resp)
+	err = json.Unmarshal(respBody, &jsonData)
+	if err != nil {
+		return nil, err
 	}
+	var details []*ArtifactDetails
+	for _, result := range jsonData.Root.Results {
+		var draft bool
+		if result.Version == "Active" {
+			draft = true
+		} else {
+			draft = false
+		}
+		details = append(details, &ArtifactDetails{
+			Id:           result.Id,
+			Name:         result.Name,
+			IsDraft:      draft,
+			ArtifactType: artifactType,
+		})
+	}
+	return details, nil
 }
 
 func (ip *IntegrationPackage) GetAllArtifacts(id string) ([]*ArtifactDetails, error) {
@@ -216,7 +191,7 @@ func (ip *IntegrationPackage) Create(packageData *PackageSingleData) error {
 		return err
 	}
 
-	return ModifyingCall("POST", urlPath, bytes.NewReader(requestBody), 201, "Create integration package", ip.exe)
+	return modifyingCall("POST", urlPath, requestBody, 201, "Create integration package", ip.exe)
 }
 
 func (ip *IntegrationPackage) Update(packageData *PackageSingleData) error {
@@ -228,24 +203,23 @@ func (ip *IntegrationPackage) Update(packageData *PackageSingleData) error {
 		return err
 	}
 
-	return ModifyingCall("PUT", urlPath, bytes.NewReader(requestBody), 202, "Update integration package", ip.exe)
+	return modifyingCall("PUT", urlPath, requestBody, 202, "Update integration package", ip.exe)
 }
 
 func (ip *IntegrationPackage) Delete(packageId string) error {
 	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", packageId)
-	return ModifyingCall("DELETE", urlPath, http.NoBody, 202, "Delete integration package", ip.exe)
+	return modifyingCall("DELETE", urlPath, nil, 202, "Delete integration package", ip.exe)
 }
 
 func (ip *IntegrationPackage) constructBody(packageData *PackageSingleData) ([]byte, error) {
 	// Clear Mode field as it is not allowed in create/update
 	packageData.Root.Mode = ""
 
-	jsonBody, err := json.Marshal(packageData)
+	requestBody, err := json.Marshal(packageData)
 	if err != nil {
 		return nil, err
 	}
-	logger.Debug(fmt.Sprintf("Request body = %s", jsonBody))
-	return jsonBody, nil
+	return requestBody, nil
 }
 
 func FindArtifactById(key string, list []*ArtifactDetails) *ArtifactDetails {

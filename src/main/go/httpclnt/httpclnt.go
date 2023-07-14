@@ -84,10 +84,6 @@ func (e *HTTPExecuter) ExecRequestWithCookies(method string, path string, body i
 	return e.httpClient.Do(req)
 }
 
-func (e *HTTPExecuter) ExecRequest(method string, path string, body io.Reader, headers map[string]string) (resp *http.Response, err error) {
-	return e.ExecRequestWithCookies(method, path, body, headers, nil)
-}
-
 func (e *HTTPExecuter) ExecGetRequest(path string, headers map[string]string) (resp *http.Response, err error) {
 	return e.ExecRequestWithCookies(http.MethodGet, path, http.NoBody, headers, nil)
 }

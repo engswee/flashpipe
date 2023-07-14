@@ -1,11 +1,9 @@
 package odata
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
-	"github.com/engswee/flashpipe/logger"
 )
 
 type Configuration struct {
@@ -31,29 +29,23 @@ func NewConfiguration(exe *httpclnt.HTTPExecuter) *Configuration {
 }
 
 func (c *Configuration) Get(id string, version string) (*ParametersData, error) {
-	path := fmt.Sprintf("/api/v1/IntegrationDesigntimeArtifacts(Id='%v',Version='%v')/Configurations", id, version)
-	headers := map[string]string{
-		"Accept": "application/json",
-	}
-	resp, err := c.exe.ExecGetRequest(path, headers)
+	urlPath := fmt.Sprintf("/api/v1/IntegrationDesigntimeArtifacts(Id='%v',Version='%v')/Configurations", id, version)
 
+	callType := "Get configuration parameters"
+	resp, err := readOnlyCall(urlPath, callType, c.exe)
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != 200 {
-		return nil, c.exe.LogError(resp, fmt.Sprintf("Get configuration parameters"))
-	} else {
-		var jsonData *ParametersData
-		respBody, err := c.exe.ReadRespBody(resp)
-		if err != nil {
-			return nil, err
-		}
-		err = json.Unmarshal(respBody, &jsonData)
-		if err != nil {
-			return nil, err
-		}
-		return jsonData, nil
+	var jsonData *ParametersData
+	respBody, err := c.exe.ReadRespBody(resp)
+	if err != nil {
+		return nil, err
 	}
+	err = json.Unmarshal(respBody, &jsonData)
+	if err != nil {
+		return nil, err
+	}
+	return jsonData, nil
 }
 
 func (c *Configuration) Update(id string, version string, key string, value string) error {
@@ -64,9 +56,8 @@ func (c *Configuration) Update(id string, version string, key string, value stri
 	if err != nil {
 		return err
 	}
-	logger.Debug(fmt.Sprintf("Request body = %s", requestBody))
 
-	return ModifyingCall("PUT", urlPath, bytes.NewReader(requestBody), 202, fmt.Sprintf("Update configuration parameter %v", key), c.exe)
+	return modifyingCall("PUT", urlPath, requestBody, 202, fmt.Sprintf("Update configuration parameter %v", key), c.exe)
 }
 
 func FindParameterByKey(key string, list []*ParameterData) *ParameterData {

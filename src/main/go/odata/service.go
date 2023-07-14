@@ -1,8 +1,11 @@
 package odata
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/engswee/flashpipe/config"
 	"github.com/engswee/flashpipe/httpclnt"
+	"github.com/engswee/flashpipe/logger"
 	"github.com/spf13/cobra"
 	"io"
 	"net/http"
@@ -41,15 +44,20 @@ func InitHTTPExecuter(serviceDetails *ServiceDetails) *httpclnt.HTTPExecuter {
 	return httpclnt.New(serviceDetails.OauthHost, serviceDetails.OauthPath, serviceDetails.OauthClientId, serviceDetails.OauthClientSecret, serviceDetails.Userid, serviceDetails.Password, serviceDetails.Host, "https", 443)
 }
 
-func ModifyingCall(method string, urlPath string, body io.Reader, successCode int, callType string, exe *httpclnt.HTTPExecuter) error {
+func modifyingCall(method string, urlPath string, content []byte, successCode int, callType string, exe *httpclnt.HTTPExecuter) error {
 	headers, cookies, err := InitHeadersAndCookies(exe)
 	if err != nil {
 		return err
 	}
 
 	headers["Accept"] = "application/json"
-	if body != http.NoBody {
+	var body io.Reader
+	if len(content) > 0 {
 		headers["Content-Type"] = "application/json"
+		logger.Debug(fmt.Sprintf("Request body = %s", content))
+		body = bytes.NewReader(content)
+	} else {
+		body = http.NoBody
 	}
 
 	resp, err := exe.ExecRequestWithCookies(method, urlPath, body, headers, cookies)
@@ -60,4 +68,19 @@ func ModifyingCall(method string, urlPath string, body io.Reader, successCode in
 		return exe.LogError(resp, callType)
 	}
 	return nil
+}
+
+func readOnlyCall(urlPath string, callType string, exe *httpclnt.HTTPExecuter) (*http.Response, error) {
+	headers := map[string]string{
+		"Accept": "application/json",
+	}
+
+	resp, err := exe.ExecGetRequest(urlPath, headers)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return resp, exe.LogError(resp, callType)
+	}
+	return resp, nil
 }

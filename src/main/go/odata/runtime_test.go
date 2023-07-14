@@ -110,7 +110,7 @@ func setupRuntime(t *testing.T, artifactId string, artifactType string, exe *htt
 	if err != nil {
 		t.Fatalf("GetVersion failed with error - %v", err)
 	}
-	if version == "" {
+	if version == "NOT_DEPLOYED" {
 		dt := NewDesigntimeArtifact(artifactType, exe)
 
 		logger.Info(fmt.Sprintf("Setting up runtime artifact %v for testing", artifactId))
@@ -125,11 +125,11 @@ func tearDownRuntime(t *testing.T, artifactId string, exe *httpclnt.HTTPExecuter
 	r := NewRuntime(exe)
 
 	logger.Info(fmt.Sprintf("Checking if artifact %v still exists", artifactId))
-	resp, err := r.get(artifactId)
+	version, err := r.GetVersion(artifactId)
 	if err != nil {
 		t.Fatalf("get failed with error - %v", err)
 	}
-	if resp.StatusCode != 404 {
+	if version != "NOT_DEPLOYED" {
 		logger.Info(fmt.Sprintf("Tearing down runtime artifact %v", artifactId))
 		err = r.UnDeploy(artifactId)
 		if err != nil {
