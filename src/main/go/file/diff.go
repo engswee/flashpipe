@@ -2,14 +2,14 @@ package file
 
 import (
 	"fmt"
-	"github.com/engswee/flashpipe/logger"
+	"github.com/rs/zerolog/log"
 	"os/exec"
 )
 
 func DiffDirectories(firstDir string, secondDir string) bool {
 	// Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
 	// Therefore diff of parameters.prop may come up with false differences
-	logger.Info("Executing command:", "diff", "--ignore-matching-lines=^Origin.*", "--strip-trailing-cr", "--recursive", "--ignore-all-space", "--ignore-blank-lines", "--exclude=parameters.prop", "--exclude=metainfo.prop", "--exclude=.DS_Store", "--exclude=.project", firstDir, secondDir)
+	log.Info().Msg(fmt.Sprint("Executing command:", "diff", "--ignore-matching-lines=^Origin.*", "--strip-trailing-cr", "--recursive", "--ignore-all-space", "--ignore-blank-lines", "--exclude=parameters.prop", "--exclude=metainfo.prop", "--exclude=.DS_Store", "--exclude=.project", firstDir, secondDir))
 	cmd := exec.Command("diff", "--ignore-matching-lines=^Origin.*", "--strip-trailing-cr", "--recursive", "--ignore-all-space", "--ignore-blank-lines", "--exclude=parameters.prop", "--exclude=metainfo.prop", "--exclude=.DS_Store", "--exclude=.project", firstDir, secondDir)
 
 	stdoutStderr, err := cmd.CombinedOutput()
@@ -24,7 +24,7 @@ func DiffParams(firstFile string, secondFile string) bool {
 	// Compare parameters.prop
 	// - ignoring commented lines (beginning with #)
 	// - ignoring blank lines and extra white space
-	logger.Info("Executing command:", "diff", "--ignore-matching-lines=^#.*", "--strip-trailing-cr", "--ignore-all-space", "--ignore-blank-lines", firstFile, secondFile)
+	log.Info().Msg(fmt.Sprint("Executing command:", "diff", "--ignore-matching-lines=^#.*", "--strip-trailing-cr", "--ignore-all-space", "--ignore-blank-lines", firstFile, secondFile))
 	cmd := exec.Command("diff", "--ignore-matching-lines=^#.*", "--strip-trailing-cr", "--ignore-all-space", "--ignore-blank-lines", firstFile, secondFile)
 
 	stdoutStderr, err := cmd.CombinedOutput()

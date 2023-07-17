@@ -3,7 +3,7 @@ package httpclnt
 import (
 	"context"
 	"fmt"
-	"github.com/engswee/flashpipe/logger"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2/clientcredentials"
 	"io"
 	"net/http"
@@ -27,10 +27,10 @@ func New(oauthHost string, oauthPath string, clientId string, clientSecret strin
 	e.scheme = scheme
 	e.port = port
 	if oauthHost != "" {
-		logger.Debug("Initialising HTTP client with OAuth 2.0")
+		log.Debug().Msg("Initialising HTTP client with OAuth 2.0")
 
 		tokenURL := fmt.Sprintf("%v://%v:%d%v", scheme, oauthHost, port, oauthPath)
-		logger.Debug(fmt.Sprintf("Getting OAuth 2.0 client with token URL %v", tokenURL))
+		log.Debug().Msgf("Getting OAuth 2.0 client with token URL %v", tokenURL)
 
 		// Reference https://pkg.go.dev/golang.org/x/oauth2/clientcredentials#pkg-overview
 		conf := &clientcredentials.Config{
@@ -43,7 +43,7 @@ func New(oauthHost string, oauthPath string, clientId string, clientSecret strin
 		e.httpClient = conf.Client(ctx)
 		e.AuthType = "OAUTH"
 	} else {
-		logger.Debug("Initialising HTTP client with Basic Authentication")
+		log.Debug().Msg("Initialising HTTP client with Basic Authentication")
 		e.httpClient = &http.Client{Timeout: 15 * time.Second} // TODO - compare with Apache HTTP default timeout
 		e.basicUserId = userId
 		e.basicPassword = password
@@ -55,7 +55,7 @@ func New(oauthHost string, oauthPath string, clientId string, clientSecret strin
 func (e *HTTPExecuter) ExecRequestWithCookies(method string, path string, body io.Reader, headers map[string]string, cookies []*http.Cookie) (resp *http.Response, err error) {
 
 	url := fmt.Sprintf("%v://%v:%d%v", e.scheme, e.host, e.port, path)
-	logger.Debug(fmt.Sprintf("Executing HTTP request: %v %v", method, url))
+	log.Debug().Msgf("Executing HTTP request: %v %v", method, url)
 
 	// Create new HTTP request
 	req, err := http.NewRequest(method, url, body)
@@ -101,7 +101,7 @@ func (e *HTTPExecuter) LogError(resp *http.Response, callType string) (err error
 	}
 
 	if len(resBody) != 0 {
-		logger.Error(fmt.Sprintf("Response body = %s", resBody))
+		log.Error().Msgf("Response body = %s", resBody)
 	}
 
 	return fmt.Errorf("%v call failed with response code = %d", callType, resp.StatusCode)

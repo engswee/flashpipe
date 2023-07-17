@@ -2,10 +2,9 @@ package odata
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/engswee/flashpipe/config"
 	"github.com/engswee/flashpipe/httpclnt"
-	"github.com/engswee/flashpipe/logger"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"io"
 	"net/http"
@@ -54,7 +53,7 @@ func modifyingCall(method string, urlPath string, content []byte, successCode in
 	var body io.Reader
 	if len(content) > 0 {
 		headers["Content-Type"] = "application/json"
-		logger.Debug(fmt.Sprintf("Request body = %s", content))
+		log.Debug().Msgf("Request body = %s", content)
 		body = bytes.NewReader(content)
 	} else {
 		body = http.NoBody

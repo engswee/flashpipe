@@ -1,10 +1,10 @@
 package odata
 
 import (
-	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/str"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -43,9 +43,11 @@ func TestPackageOauth(t *testing.T) {
 func (suite *PackageSuite) SetupSuite() {
 	println("========== Setting up suite ==========")
 	suite.exe = InitHTTPExecuter(suite.serviceDetails)
+
 	// Setup viper in case debug logs are required
 	viper.SetEnvPrefix("FLASHPIPE")
 	viper.AutomaticEnv()
+	logger.InitConsoleLogger(viper.GetBool("debug"))
 
 	setupPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
 
@@ -126,7 +128,7 @@ func (suite *PackageSuite) TestIntegrationPackage_GetArtifacts() {
 func setupPackage(t *testing.T, packageId string, exe *httpclnt.HTTPExecuter) {
 	ip := NewIntegrationPackage(exe)
 
-	logger.Info(fmt.Sprintf("Checking if package %v exists for testing", packageId))
+	log.Info().Msgf("Checking if package %v exists for testing", packageId)
 	packageExists, err := ip.Exists(packageId)
 	if err != nil {
 		t.Fatalf("Exists failed with error - %v", err)
@@ -137,7 +139,7 @@ func setupPackage(t *testing.T, packageId string, exe *httpclnt.HTTPExecuter) {
 		requestBody.Root.Name = packageId
 		requestBody.Root.ShortText = packageId
 
-		logger.Info(fmt.Sprintf("Setting up package %v for testing", packageId))
+		log.Info().Msgf("Setting up package %v for testing", packageId)
 		err = ip.Create(requestBody)
 		if err != nil {
 			t.Fatalf("Create failed with error - %v", err)
@@ -148,13 +150,13 @@ func setupPackage(t *testing.T, packageId string, exe *httpclnt.HTTPExecuter) {
 func tearDownPackage(t *testing.T, packageId string, exe *httpclnt.HTTPExecuter) {
 	ip := NewIntegrationPackage(exe)
 
-	logger.Info(fmt.Sprintf("Checking if package %v still exists", packageId))
+	log.Info().Msgf("Checking if package %v still exists", packageId)
 	packageExists, err := ip.Exists(packageId)
 	if err != nil {
 		t.Fatalf("Exists failed with error - %v", err)
 	}
 	if packageExists {
-		logger.Info(fmt.Sprintf("Tearing down package %v", packageId))
+		log.Info().Msgf("Tearing down package %v", packageId)
 		err = ip.Delete(packageId)
 		if err != nil {
 			t.Fatalf("Delete failed with error - %v", err)

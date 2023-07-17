@@ -1,43 +1,31 @@
 package logger
 
 import (
-	"fmt"
-	"github.com/spf13/viper"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"os"
+	"time"
 )
 
-func Error(a ...any) {
-	fmt.Print("[\x1b[31mERROR\x1b[m] 🛑 ")
-	fmt.Println(a...)
-}
-
-func Info(a ...any) {
-	fmt.Print("[\x1b[32mINFO\x1b[m] ")
-	fmt.Println(a...)
-}
-
-func Warn(a ...any) {
-	fmt.Print("[\x1b[33mWARN\x1b[m] ⚠️ ")
-	fmt.Println(a...)
-}
-
-func Debug(a ...any) {
-	if viper.GetBool("debug") {
-		fmt.Print("[\x1b[34mDEBUG\x1b[m] ")
-		fmt.Println(a...)
+func InitConsoleLogger(debug bool) {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC822})
+	if debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	} else {
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	}
 }
 
 func ExitIfError(err error) {
 	if err != nil {
-		Error(err)
+		log.Error().Msg(err.Error())
 		os.Exit(1)
 	}
 }
 
 func ExitIfErrorWithMsg(err error, msg string) {
 	if err != nil {
-		Error(msg)
+		log.Error().Msg(err.Error())
 		os.Exit(1)
 	}
 }

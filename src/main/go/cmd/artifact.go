@@ -7,6 +7,7 @@ import (
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/odata"
 	"github.com/engswee/flashpipe/runner"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -50,7 +51,7 @@ SAP Integration Suite tenant.`,
 
 func runUpdateArtifact(cmd *cobra.Command) {
 	artifactType := config.GetString(cmd, "artifact-type")
-	logger.Info(fmt.Sprintf("Executing update artifact %v command", artifactType))
+	log.Info().Msgf("Executing update artifact %v command", artifactType)
 
 	artifactId := config.GetMandatoryString(cmd, "artifact-id")
 	artifactName := config.GetMandatoryString(cmd, "artifact-name")
@@ -80,7 +81,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	if parametersFile == "" {
 		parametersFile = defaultParamFile
 	} else if parametersFile != defaultParamFile {
-		logger.Info("Using", parametersFile, "as parameters.prop file")
+		log.Info().Msgf("Using %v as parameters.prop file", parametersFile)
 		err := file.CopyFile(parametersFile, defaultParamFile)
 		logger.ExitIfError(err)
 	}
@@ -100,7 +101,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	logger.ExitIfError(err)
 	if !exists {
 		// Create artifact
-		logger.Info(fmt.Sprintf("Artifact %v will be created", artifactId))
+		log.Info().Msgf("Artifact %v will be created", artifactId)
 
 		err = prepareUploadDir(workDir, gitSrcDir, artifactType)
 		logger.ExitIfError(err)
@@ -110,11 +111,11 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		//_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UploadDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
 		//logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
-		logger.Info("🏆 Artifact created successfully")
+		log.Info().Msg("🏆 Artifact created successfully")
 
 	} else {
 		// Update IFlow
-		logger.Info("Checking if designtime artifact needs to be updated")
+		log.Info().Msg("Checking if designtime artifact needs to be updated")
 		// 1 - Download artifact content from tenant
 		zipFile := fmt.Sprintf("%v/%v.zip", workDir, artifactId)
 		err = odata.Download(zipFile, artifactId, dt)
@@ -125,7 +126,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		logger.ExitIfError(err)
 
 		if changesFound == true {
-			logger.Info("Changes found in IFlow. IFlow design will be updated in CPI tenant")
+			log.Info().Msg("Changes found in IFlow. IFlow design will be updated in CPI tenant")
 			err = prepareUploadDir(workDir, gitSrcDir, artifactType)
 			logger.ExitIfError(err)
 			err = updateArtifact(artifactId, artifactName, packageId, workDir+"/upload", scriptMap, dt)
@@ -137,21 +138,21 @@ func runUpdateArtifact(cmd *cobra.Command) {
 			//def runtimeVersion = runtimeArtifact.getVersion(this.iFlowId)
 			//
 			//if (runtimeVersion == designtimeVersion) {
-			//	logger.info('Undeploying existing runtime artifact with same version number due to changes in design')
+			//	log.Info().Msg('Undeploying existing runtime artifact with same version number due to changes in design')
 			//	runtimeArtifact.undeploy(this.iFlowId, csrfToken)
 			//}
 
 			//_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
 			//logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
-			logger.Info("🏆 IFlow design updated successfully")
+			log.Info().Msg("🏆 IFlow design updated successfully")
 		} else {
-			logger.Info("🏆 No changes detected. IFlow design does not need to be updated")
+			log.Info().Msg("🏆 No changes detected. IFlow design does not need to be updated")
 		}
 
 		// TODO - only applicable for Integration
 		// 4 - Update the configuration of the IFlow based on parameters.prop file
-		logger.Info("Updating configured parameter(s) of IFlow where necessary")
+		log.Info().Msg("Updating configured parameter(s) of IFlow where necessary")
 		_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateConfiguration", mavenRepoLocation, flashpipeLocation, log4jFile)
 		logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
@@ -189,7 +190,7 @@ func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflo
 		return
 	}
 
-	logger.Info("Unzipping downloaded IFlow artifact", zipFile, "to", workDir+"/download")
+	log.Info().Msgf("Unzipping downloaded IFlow artifact %v to %v/download", zipFile, workDir)
 	err = file.UnzipSource(zipFile, workDir+"/download")
 	if err != nil {
 		return
@@ -203,10 +204,10 @@ func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflo
 	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
 	//// Compare META-INF directory for any differences in the manifest file
-	//logger.Info("Checking for changes in META-INF directory")
+	//log.Info().Msg("Checking for changes in META-INF directory")
 	//metaDirDiffer := file.DiffDirectories(workDir+"/download/META-INF/", gitSrcDir+"/META-INF/")
 	//
-	//logger.Info("Checking for changes in src/main/resources directory")
+	//log.Info().Msg("Checking for changes in src/main/resources directory")
 	//resourcesDirDiffer := file.DiffDirectories(workDir+"/download/src/main/resources/", gitSrcDir+"/src/main/resources/")
 	//
 	//if metaDirDiffer == false && resourcesDirDiffer == false {
@@ -223,10 +224,10 @@ func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflo
 	if file.CheckFileExists(downloadedParams) && file.CheckFileExists(gitParams) {
 		paramDiffer = file.DiffParams(downloadedParams, gitParams)
 	} else if !file.CheckFileExists(downloadedParams) && !file.CheckFileExists(gitParams) {
-		logger.Warn("Skipping diff of parameters.prop as it does not exist in both source and target")
+		log.Warn().Msg("Skipping diff of parameters.prop as it does not exist in both source and target")
 	} else {
 		paramDiffer = true
-		logger.Info("Update required since parameters.prop does not exist in either source or target")
+		log.Info().Msg("Update required since parameters.prop does not exist in either source or target")
 	}
 
 	if dirDiffer || paramDiffer {
@@ -238,13 +239,13 @@ func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflo
 }
 
 func artifactExists(artifactId string, artifactType string, packageId string, dt odata.DesigntimeArtifact, ip *odata.IntegrationPackage) (bool, error) {
-	logger.Info(fmt.Sprintf("Checking if %v exists", artifactId))
+	log.Info().Msgf("Checking if %v exists", artifactId)
 	exists, err := dt.Exists(artifactId, "active")
 	if err != nil {
 		return false, err
 	}
 	if exists {
-		logger.Info(fmt.Sprintf("Active version of artifact %v exists", artifactId))
+		log.Info().Msgf("Active version of artifact %v exists", artifactId)
 		//  Check if version is in draft mode
 		var details []*odata.ArtifactDetails
 		details, err = ip.GetArtifactsData(packageId, artifactType)
@@ -260,7 +261,7 @@ func artifactExists(artifactId string, artifactType string, packageId string, dt
 		}
 		return true, nil
 	} else {
-		logger.Info(fmt.Sprintf("Active version of artifact %v does not exist", artifactId))
+		log.Info().Msgf("Active version of artifact %v does not exist", artifactId)
 		return false, nil
 	}
 }

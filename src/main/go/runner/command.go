@@ -2,7 +2,7 @@ package runner
 
 import (
 	"fmt"
-	"github.com/engswee/flashpipe/logger"
+	"github.com/rs/zerolog/log"
 	"os/exec"
 	"strings"
 )
@@ -39,16 +39,16 @@ func constructClassPath(prefix string, flashpipeLocation string) (string, error)
 func JavaCmd(className string, mavenRepoPrefix string, flashpipeLocation string, log4jFile string) (string, error) {
 	classPath, err := constructClassPath(mavenRepoPrefix, flashpipeLocation)
 	if err != nil {
-		logger.Error(err)
+		log.Error().Msg(err.Error())
 		return "", err
 	}
 	var cmd *exec.Cmd
 	if log4jFile == "" {
-		logger.Info("Executing command: java -classpath", classPath, className)
+		log.Info().Msgf("Executing command: java -classpath %v %v", classPath, className)
 		cmd = exec.Command("java", "-classpath", classPath, className)
 	} else {
 		logConfig := "-Dlog4j.configurationFile=" + log4jFile
-		logger.Info("Executing command: java", logConfig, "-classpath", classPath, className)
+		log.Info().Msgf("Executing command: java %v -classpath %v %v", logConfig, classPath, className)
 		cmd = exec.Command("java", logConfig, "-classpath", classPath, className)
 	}
 
@@ -62,7 +62,7 @@ func JavaCmd(className string, mavenRepoPrefix string, flashpipeLocation string,
 func JavaCmdWithArgs(mavenRepoPrefix string, flashpipeLocation string, log4jFile string, args ...string) (string, error) {
 	classPath, err := constructClassPath(mavenRepoPrefix, flashpipeLocation)
 	if err != nil {
-		logger.Error(err)
+		log.Error().Msg(err.Error())
 		return "", err
 	}
 	var cmd *exec.Cmd
@@ -73,7 +73,7 @@ func JavaCmdWithArgs(mavenRepoPrefix string, flashpipeLocation string, log4jFile
 		for _, arg := range args {
 			argsAny = append(argsAny, arg)
 		}
-		logger.Info(argsAny...)
+		//log.Info().Msgf(argsAny...)
 		cmd = exec.Command("java", fullArgs...)
 	} else {
 		logConfig := "-Dlog4j.configurationFile=" + log4jFile
@@ -83,7 +83,7 @@ func JavaCmdWithArgs(mavenRepoPrefix string, flashpipeLocation string, log4jFile
 		for _, arg := range args {
 			argsAny = append(argsAny, arg)
 		}
-		logger.Info(argsAny...)
+		//log.Info().Msg(argsAny...)
 		cmd = exec.Command("java", fullArgs...)
 	}
 

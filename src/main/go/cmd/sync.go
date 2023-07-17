@@ -8,6 +8,7 @@ import (
 	"github.com/engswee/flashpipe/repo"
 	"github.com/engswee/flashpipe/str"
 	"github.com/engswee/flashpipe/sync"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -81,7 +82,7 @@ tenant to a Git repository.`,
 }
 
 func runSync(cmd *cobra.Command) {
-	logger.Info("Executing sync command")
+	log.Info().Msg("Executing sync command")
 
 	packageId := config.GetMandatoryString(cmd, "packageid")
 	gitSrcDir := config.GetMandatoryString(cmd, "dir-gitsrc")

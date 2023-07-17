@@ -2,6 +2,7 @@ package odata
 
 import (
 	"github.com/engswee/flashpipe/httpclnt"
+	"github.com/engswee/flashpipe/logger"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -40,9 +41,11 @@ func TestConfigurationOauth(t *testing.T) {
 func (suite *ConfigurationSuite) SetupSuite() {
 	println("========== Setting up suite ==========")
 	suite.exe = InitHTTPExecuter(suite.serviceDetails)
+
 	// Setup viper in case debug logs are required
 	viper.SetEnvPrefix("FLASHPIPE")
 	viper.AutomaticEnv()
+	logger.InitConsoleLogger(viper.GetBool("debug"))
 
 	setupPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
 

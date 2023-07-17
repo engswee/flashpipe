@@ -6,6 +6,7 @@ import (
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/odata"
 	"github.com/engswee/flashpipe/str"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"time"
 )
@@ -47,7 +48,7 @@ func runDeploy(cmd *cobra.Command) {
 	serviceDetails := odata.GetServiceDetails(cmd)
 
 	artifactType := config.GetString(cmd, "artifact-type")
-	logger.Info(fmt.Sprintf("Executing deploy %v command", artifactType))
+	log.Info().Msgf("Executing deploy %v command", artifactType)
 
 	artifactIds := config.GetMandatoryString(cmd, "artifact-ids")
 	delayLength := config.GetInt(cmd, "delaylength")
@@ -73,7 +74,7 @@ func deployArtifacts(delimitedIds string, artifactType string, delayLength int, 
 
 	// Loop and deploy each artifact
 	for i, id := range ids {
-		logger.Info(fmt.Sprintf("Processing artifact %d - %v", i+1, id))
+		log.Info().Msgf("Processing artifact %d - %v", i+1, id)
 		err := deploySingle(dt, rt, id, compareVersions)
 		// TODO - write error wrapper - https://go.dev/blog/errors-are-values
 		logger.ExitIfError(err)
@@ -91,52 +92,52 @@ func deployArtifacts(delimitedIds string, artifactType string, delayLength int, 
 		logger.ExitIfError(err)
 		// TODO - write error wrapper - https://go.dev/blog/errors-are-values
 
-		logger.Info(fmt.Sprintf("Artifact %d - %v deployed successfully", i+1, id))
+		log.Info().Msgf("Artifact %d - %v deployed successfully", i+1, id)
 	}
 
-	logger.Info("🏆 Artifact(s) deployment completed successfully")
+	log.Info().Msg("🏆 Artifact(s) deployment completed successfully")
 }
 
 func deploySingle(artifact odata.DesigntimeArtifact, runtime *odata.Runtime, id string, compareVersions bool) error {
-	logger.Info("Getting designtime version of artifact")
+	log.Info().Msg("Getting designtime version of artifact")
 	designtimeVer, err := artifact.GetVersion(id, "active")
 	if err != nil {
 		return err
 	}
 
 	if compareVersions == true {
-		logger.Info("Getting runtime version of artifact")
+		log.Info().Msg("Getting runtime version of artifact")
 		runtimeVer, err := runtime.GetVersion(id)
 		if err != nil {
 			return err
 		}
 
 		// Compare designtime version with runtime version to determine if deployment is needed
-		logger.Info("Comparing designtime version with runtime version")
-		logger.Debug(fmt.Sprintf("Designtime version = %s. Runtime version = %s", designtimeVer, runtimeVer))
+		log.Info().Msg("Comparing designtime version with runtime version")
+		log.Debug().Msgf("Designtime version = %s. Runtime version = %s", designtimeVer, runtimeVer)
 		if designtimeVer == runtimeVer {
-			logger.Info(fmt.Sprintf("Artifact %v with version %v already deployed. Skipping runtime deployment", id, runtimeVer))
+			log.Info().Msgf("Artifact %v with version %v already deployed. Skipping runtime deployment", id, runtimeVer)
 		} else {
-			logger.Info(fmt.Sprintf("🚀 Artifact previously not deployed, or versions differ. Proceeding to deploy artifact %v with version %v", id, designtimeVer))
+			log.Info().Msgf("🚀 Artifact previously not deployed, or versions differ. Proceeding to deploy artifact %v with version %v", id, designtimeVer)
 			err = artifact.Deploy(id)
 			if err != nil {
 				return err
 			}
-			logger.Info(fmt.Sprintf("Artifact %v deployment triggered", id))
+			log.Info().Msgf("Artifact %v deployment triggered", id)
 		}
 	} else {
-		logger.Info(fmt.Sprintf("🚀 Proceeding to deploy artifact %v with version %v", id, designtimeVer))
+		log.Info().Msgf("🚀 Proceeding to deploy artifact %v with version %v", id, designtimeVer)
 		err = artifact.Deploy(id)
 		if err != nil {
 			return err
 		}
-		logger.Info(fmt.Sprintf("Artifact %v deployment triggered", id))
+		log.Info().Msgf("Artifact %v deployment triggered", id)
 	}
 	return nil
 }
 
 func checkDeploymentStatus(runtime *odata.Runtime, delayLength int, maxCheckLimit int, id string) error {
-	logger.Info(fmt.Sprintf("Checking runtime status for artifact %v every %d seconds up to %d times", id, delayLength, maxCheckLimit))
+	log.Info().Msgf("Checking runtime status for artifact %v every %d seconds up to %d times", id, delayLength, maxCheckLimit)
 
 	for i := 0; i < maxCheckLimit; i++ {
 		status, err := runtime.GetStatus(id)
@@ -144,7 +145,7 @@ func checkDeploymentStatus(runtime *odata.Runtime, delayLength int, maxCheckLimi
 			return err
 		}
 
-		logger.Info(fmt.Sprintf("Check %d - Current artifact runtime status = %s", i, status))
+		log.Info().Msgf("Check %d - Current artifact runtime status = %s", i, status)
 		if status != "STARTING" {
 			if status == "STARTED" {
 				break

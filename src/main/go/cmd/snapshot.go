@@ -8,6 +8,7 @@ import (
 	"github.com/engswee/flashpipe/odata"
 	"github.com/engswee/flashpipe/repo"
 	"github.com/engswee/flashpipe/sync"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"time"
 )
@@ -45,7 +46,7 @@ tenant to a Git repository.`,
 }
 
 func runSnapshot(cmd *cobra.Command) {
-	logger.Info("Executing snapshot command")
+	log.Info().Msg("Executing snapshot command")
 
 	gitSrcDir := config.GetMandatoryString(cmd, "dir-gitsrc")
 	workDir := config.GetString(cmd, "dir-work")
@@ -62,8 +63,8 @@ func runSnapshot(cmd *cobra.Command) {
 }
 
 func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitSrcDir string, workDir string, draftHandling string, syncPackageLevelDetails bool) error {
-	logger.Info("---------------------------------------------------------------------------------")
-	logger.Info("📢 Begin taking a snapshot of the tenant")
+	log.Info().Msg("---------------------------------------------------------------------------------")
+	log.Info().Msg("📢 Begin taking a snapshot of the tenant")
 
 	// Initialise HTTP executer
 	exe := odata.InitHTTPExecuter(serviceDetails)
@@ -76,18 +77,18 @@ func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitSrcDir string, w
 		return errors.New("No packages found in the tenant")
 	}
 
-	logger.Info(fmt.Sprintf("Processing %d packages", len(ids)))
+	log.Info().Msgf("Processing %d packages", len(ids))
 	synchroniser := sync.New(exe)
 	for i, id := range ids {
-		logger.Info("---------------------------------------------------------------------------------")
-		logger.Info(fmt.Sprintf("Processing package %d/%d - ID: %v", i+1, len(ids), id))
+		log.Info().Msg("---------------------------------------------------------------------------------")
+		log.Info().Msgf("Processing package %d/%d - ID: %v", i+1, len(ids), id)
 		if syncPackageLevelDetails {
 			synchroniser.SyncPackageDetails(id)
 		}
 		synchroniser.SyncArtifacts(id, fmt.Sprintf("%v/%v", workDir, id), fmt.Sprintf("%v/%v", gitSrcDir, id), nil, nil, draftHandling, "ID", "NONE", "")
 	}
 
-	logger.Info("---------------------------------------------------------------------------------")
-	logger.Info("🏆 Completed taking a snapshot of the tenant")
+	log.Info().Msg("---------------------------------------------------------------------------------")
+	log.Info().Msg("🏆 Completed taking a snapshot of the tenant")
 	return nil
 }

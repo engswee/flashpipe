@@ -7,6 +7,7 @@ import (
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/odata"
 	"github.com/engswee/flashpipe/str"
+	"github.com/rs/zerolog/log"
 	"os"
 )
 
@@ -23,11 +24,11 @@ func New(exe *httpclnt.HTTPExecuter) *Synchroniser {
 }
 
 func (s *Synchroniser) SyncPackageDetails(packageId string) {
-	logger.Info(fmt.Sprintf("Processing details of integration package %v", packageId))
+	log.Info().Msgf("Processing details of integration package %v", packageId)
 	readOnly, err := s.ip.IsReadOnly(packageId)
 	logger.ExitIfError(err)
 	if readOnly {
-		logger.Warn(fmt.Sprintf("Skipping package %v as it is Configure-only", packageId))
+		log.Warn().Msgf("Skipping package %v as it is Configure-only", packageId)
 		return
 	}
 	// TODO - complete sync package details
@@ -39,12 +40,12 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 	readOnly, err := s.ip.IsReadOnly(packageId)
 	logger.ExitIfError(err)
 	if readOnly {
-		logger.Warn(fmt.Sprintf("Skipping package %v as it is Configure-only and cannot be downloaded", packageId))
+		log.Warn().Msgf("Skipping package %v as it is Configure-only and cannot be downloaded", packageId)
 		return
 	}
 
 	// Get all design time artifacts of package
-	logger.Info(fmt.Sprintf("Getting artifacts in integration package %v", packageId))
+	log.Info().Msgf("Getting artifacts in integration package %v", packageId)
 	artifacts, err := s.ip.GetAllArtifacts(packageId)
 	logger.ExitIfError(err)
 
@@ -62,16 +63,16 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 
 	// Process through the artifacts
 	for _, artifact := range filtered {
-		logger.Info("---------------------------------------------------------------------------------")
-		logger.Info(fmt.Sprintf("📢 Begin processing for artifact %v", artifact.Id))
+		log.Info().Msg("---------------------------------------------------------------------------------")
+		log.Info().Msgf("📢 Begin processing for artifact %v", artifact.Id)
 		// Check if artifact is in draft version
 		if artifact.IsDraft {
 			switch draftHandling {
 			case "SKIP":
-				logger.Warn(fmt.Sprintf("Artifact %v is in draft version, and will be skipped", artifact.Id))
+				log.Warn().Msgf("Artifact %v is in draft version, and will be skipped", artifact.Id)
 				continue
 			case "ADD":
-				logger.Info(fmt.Sprintf("Artifact %v is in draft version, and will be added", artifact.Id))
+				log.Info().Msgf("Artifact %v is in draft version, and will be added", artifact.Id)
 			case "ERROR":
 				logger.ExitIfError(fmt.Errorf("Artifact %v is in draft version. Save Version in Web UI first!", artifact.Id))
 			}
@@ -85,8 +86,8 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 		// Normalise ID and Name
 		normalisedId := str.Normalise(artifact.Id, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
 		normalisedName := str.Normalise(artifact.Name, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
-		logger.Debug(fmt.Sprintf("Normalised artifact ID - %v", normalisedId))
-		logger.Debug(fmt.Sprintf("Normalised artifact name - %v", normalisedName))
+		log.Debug().Msgf("Normalised artifact ID - %v", normalisedId)
+		log.Debug().Msgf("Normalised artifact name - %v", normalisedName)
 
 		var directoryName string
 		if dirNamingType == "NAME" {
@@ -95,11 +96,11 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 			directoryName = normalisedId
 		}
 		// Unzip artifact contents
-		logger.Debug(fmt.Sprintf("Target artifact directory name - %v", directoryName))
+		log.Debug().Msgf("Target artifact directory name - %v", directoryName)
 		downloadedArtifactPath := fmt.Sprintf("%v/download/%v", workDir, directoryName)
 		err = file.UnzipSource(targetDownloadFile, downloadedArtifactPath)
 		logger.ExitIfError(err)
-		logger.Info(fmt.Sprintf("Downloaded artifact unzipped to %v", downloadedArtifactPath))
+		log.Info().Msgf("Downloaded artifact unzipped to %v", downloadedArtifactPath)
 
 		// Normalise MANIFEST.MF before sync to Git - TODO
 		// https://github.com/gnewton/jargo/blob/master/jar.go
@@ -120,7 +121,7 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 		gitArtifactPath := fmt.Sprintf("%v/%v", gitSrcDir, directoryName)
 		if file.CheckFileExists(fmt.Sprintf("%v/META-INF/MANIFEST.MF", gitArtifactPath)) {
 			// (1) If IFlow already exists in Git, then compare and update
-			logger.Info("Comparing content from tenant against Git")
+			log.Info().Msg("Comparing content from tenant against Git")
 
 			// TODO - no longer required?
 			// Copy to temp directory for diff comparison
@@ -135,23 +136,23 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 			if file.CheckFileExists(downloadedParams) && file.CheckFileExists(gitParams) {
 				paramDiffer = file.DiffParams(downloadedParams, gitParams)
 			} else if !file.CheckFileExists(downloadedParams) && !file.CheckFileExists(gitParams) {
-				logger.Warn("Skipping diff of parameters.prop as it does not exist in both source and target")
+				log.Warn().Msg("Skipping diff of parameters.prop as it does not exist in both source and target")
 			} else {
 				paramDiffer = true
-				logger.Info("Update required since parameters.prop does not exist in either source or target")
+				log.Info().Msg("Update required since parameters.prop does not exist in either source or target")
 			}
 
 			if dirDiffer || paramDiffer {
-				logger.Info("🏆 Changes detected and will be updated to Git")
+				log.Info().Msg("🏆 Changes detected and will be updated to Git")
 				// Update the changes into the Git directory
 				err = file.ReplaceDir(downloadedArtifactPath, gitArtifactPath)
 				logger.ExitIfError(err)
 			} else {
-				logger.Info("🏆 No changes detected. Update to Git not required")
+				log.Info().Msg("🏆 No changes detected. Update to Git not required")
 			}
 
 		} else { // (2) If IFlow does not exist in Git, then add it
-			logger.Info(fmt.Sprintf("🏆 Artifact %v does not exist, and will be added to Git", artifact.Id))
+			log.Info().Msgf("🏆 Artifact %v does not exist, and will be added to Git", artifact.Id)
 
 			err = file.ReplaceDir(downloadedArtifactPath, gitArtifactPath)
 			logger.ExitIfError(err)
@@ -167,8 +168,8 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 	//err = os.RemoveAll(workDir + "/from_tenant")
 	//logger.ExitIfError(err)
 
-	logger.Info("---------------------------------------------------------------------------------")
-	logger.Info(fmt.Sprintf("🏆 Completed processing of artifacts in integration package %v", packageId))
+	log.Info().Msg("---------------------------------------------------------------------------------")
+	log.Info().Msgf("🏆 Completed processing of artifacts in integration package %v", packageId)
 }
 
 func filterArtifacts(artifacts []*odata.ArtifactDetails, includedIds []string, excludedIds []string) ([]*odata.ArtifactDetails, error) {

@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/engswee/flashpipe/config"
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/odata"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -32,14 +32,14 @@ SAP Integration Suite tenant.`,
 }
 
 func runUpdatePackage(cmd *cobra.Command) {
-	logger.Info("Executing update package command")
+	log.Info().Msg("Executing update package command")
 
 	packageFile := config.GetMandatoryString(cmd, "package-file")
 	packageOverrideId := config.GetString(cmd, "package-override-id")
 	packageOverrideName := config.GetString(cmd, "package-override-name")
 
 	// Get package details from JSON file
-	logger.Info(fmt.Sprintf("Getting package details from %v file", packageFile))
+	log.Info().Msgf("Getting package details from %v file", packageFile)
 	packageDetails, err := getPackageDetails(packageFile)
 	logger.ExitIfError(err)
 
@@ -59,16 +59,16 @@ func runUpdatePackage(cmd *cobra.Command) {
 	packageId := packageDetails.Root.Id
 	exists, err := ip.Exists(packageId)
 	if !exists {
-		logger.Info(fmt.Sprintf("Package %v does not exist. Creating package...", packageId))
+		log.Info().Msgf("Package %v does not exist. Creating package...", packageId)
 		err = ip.Create(packageDetails)
 		logger.ExitIfError(err)
-		logger.Info(fmt.Sprintf("Package %v created", packageId))
+		log.Info().Msgf("Package %v created", packageId)
 	} else {
 		// Update integration package
-		logger.Info(fmt.Sprintf("Updating package %v", packageId))
+		log.Info().Msgf("Updating package %v", packageId)
 		err = ip.Update(packageDetails)
 		logger.ExitIfError(err)
-		logger.Info(fmt.Sprintf("Package %v updated", packageId))
+		log.Info().Msgf("Package %v updated", packageId)
 	}
 }
 

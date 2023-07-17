@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
-	"github.com/engswee/flashpipe/logger"
+	"github.com/rs/zerolog/log"
 )
 
 type IntegrationPackage struct {
@@ -63,7 +63,7 @@ func NewIntegrationPackage(exe *httpclnt.HTTPExecuter) *IntegrationPackage {
 
 func (ip *IntegrationPackage) GetPackagesList() ([]string, error) {
 	// Get the list of packages of the current tenant
-	logger.Info("Getting the list of IntegrationPackages")
+	log.Info().Msg("Getting the list of IntegrationPackages")
 	urlPath := "/api/v1/IntegrationPackages"
 
 	callType := "Get IntegrationPackages list"
@@ -86,7 +86,7 @@ func (ip *IntegrationPackage) GetPackagesList() ([]string, error) {
 }
 
 func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
-	logger.Info("Checking if package is marked as read only")
+	log.Info().Msg("Checking if package is marked as read only")
 	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", id)
 
 	callType := "Get IntegrationPackages by ID"
@@ -109,7 +109,7 @@ func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
 }
 
 func (ip *IntegrationPackage) Exists(id string) (bool, error) {
-	logger.Info(fmt.Sprintf("Checking existence of package %v", id))
+	log.Info().Msgf("Checking existence of package %v", id)
 	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", id)
 
 	callType := "Get IntegrationPackages by ID"

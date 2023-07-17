@@ -1,9 +1,8 @@
 package odata
 
 import (
-	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
-	"github.com/engswee/flashpipe/logger"
+	"github.com/rs/zerolog/log"
 )
 
 type ValueMapping struct {
@@ -23,7 +22,7 @@ func (vm *ValueMapping) Create(id string, name string, packageId string, artifac
 	return create(id, name, packageId, artifactDir, vm.typ, vm.exe)
 }
 func (vm *ValueMapping) Update(id string, name string, packageId string, artifactDir string) error {
-	logger.Info(fmt.Sprintf("Update of Value Mapping %v by executing delete followed by create", id))
+	log.Info().Msgf("Update of Value Mapping %v by executing delete followed by create", id)
 	err := deleteCall(id, vm.typ, vm.exe)
 	if err != nil {
 		return err

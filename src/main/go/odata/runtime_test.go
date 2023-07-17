@@ -1,9 +1,9 @@
 package odata
 
 import (
-	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -43,9 +43,11 @@ func TestRuntimeOauth(t *testing.T) {
 func (suite *RuntimeSuite) SetupSuite() {
 	println("========== Setting up suite ==========")
 	suite.exe = InitHTTPExecuter(suite.serviceDetails)
+
 	// Setup viper in case debug logs are required
 	viper.SetEnvPrefix("FLASHPIPE")
 	viper.AutomaticEnv()
+	logger.InitConsoleLogger(viper.GetBool("debug"))
 
 	setupPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
 
@@ -109,7 +111,7 @@ func (suite *RuntimeSuite) TestRuntime_UnDeploy() {
 func setupRuntime(t *testing.T, artifactId string, artifactType string, exe *httpclnt.HTTPExecuter) {
 	r := NewRuntime(exe)
 
-	logger.Info(fmt.Sprintf("Checking if runtime artifact %v exists for testing", artifactId))
+	log.Info().Msgf("Checking if runtime artifact %v exists for testing", artifactId)
 	version, err := r.GetVersion(artifactId)
 	if err != nil {
 		t.Fatalf("GetVersion failed with error - %v", err)
@@ -117,7 +119,7 @@ func setupRuntime(t *testing.T, artifactId string, artifactType string, exe *htt
 	if version == "NOT_DEPLOYED" {
 		dt := NewDesigntimeArtifact(artifactType, exe)
 
-		logger.Info(fmt.Sprintf("Setting up runtime artifact %v for testing", artifactId))
+		log.Info().Msgf("Setting up runtime artifact %v for testing", artifactId)
 		err = dt.Deploy(artifactId)
 		if err != nil {
 			t.Fatalf("Deploy failed with error - %v", err)
@@ -128,13 +130,13 @@ func setupRuntime(t *testing.T, artifactId string, artifactType string, exe *htt
 func tearDownRuntime(t *testing.T, artifactId string, exe *httpclnt.HTTPExecuter) {
 	r := NewRuntime(exe)
 
-	logger.Info(fmt.Sprintf("Checking if artifact %v still exists", artifactId))
+	log.Info().Msgf("Checking if artifact %v still exists", artifactId)
 	version, err := r.GetVersion(artifactId)
 	if err != nil {
 		t.Fatalf("get failed with error - %v", err)
 	}
 	if version != "NOT_DEPLOYED" {
-		logger.Info(fmt.Sprintf("Tearing down runtime artifact %v", artifactId))
+		log.Info().Msgf("Tearing down runtime artifact %v", artifactId)
 		err = r.UnDeploy(artifactId)
 		if err != nil {
 			t.Fatalf("UnDeploy failed with error - %v", err)

@@ -1,8 +1,7 @@
 package config
 
 import (
-	"fmt"
-	"github.com/engswee/flashpipe/logger"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -10,7 +9,7 @@ import (
 func GetMandatoryString(cmd *cobra.Command, flagName string) string {
 	val := GetString(cmd, flagName)
 	if val == "" {
-		logger.Error(fmt.Sprintf("Mandatory parameter %v is not populated", flagName))
+		log.Error().Msgf("Mandatory parameter %v is not populated", flagName)
 		os.Exit(1)
 	}
 	return val

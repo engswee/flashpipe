@@ -1,9 +1,8 @@
 package odata
 
 import (
-	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
-	"github.com/engswee/flashpipe/logger"
+	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
@@ -22,7 +21,7 @@ func NewCsrf(exe *httpclnt.HTTPExecuter) *Csrf {
 
 func (c *Csrf) GetToken() (string, []*http.Cookie, error) {
 	if c.token == "" {
-		logger.Debug("Get CSRF Token")
+		log.Debug().Msg("Get CSRF Token")
 		headers := map[string]string{
 			"x-csrf-token": "fetch",
 		}
@@ -34,7 +33,7 @@ func (c *Csrf) GetToken() (string, []*http.Cookie, error) {
 		if resp.StatusCode == 200 {
 			c.token = resp.Header.Get("x-csrf-token")
 			c.csrfCookies = resp.Cookies()
-			logger.Debug(fmt.Sprintf("Received CSRF Token - %v", c.token))
+			log.Debug().Msgf("Received CSRF Token - %v", c.token)
 		} else {
 			return "", nil, c.exe.LogError(resp, "Get CSRF Token")
 		}

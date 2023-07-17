@@ -3,12 +3,12 @@ package cmd
 import (
 	"fmt"
 	"github.com/engswee/flashpipe/config"
+	"github.com/engswee/flashpipe/logger"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"os"
 	"strings"
-
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func NewCmdRoot() *cobra.Command {
@@ -160,6 +160,12 @@ func initializeConfig(cmd *cobra.Command) error {
 
 	// Bind the current command's flags to viper
 	bindFlags(cmd)
+
+	// Set debug flag from command line to viper
+	viper.Set("debug", config.GetBool(cmd, "debug"))
+
+	logger.InitConsoleLogger(viper.GetBool("debug"))
+
 	return nil
 }
 
@@ -176,8 +182,6 @@ func bindFlags(cmd *cobra.Command) {
 			cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
 		}
 	})
-	// Set debug flag from command line to viper
-	viper.Set("debug", config.GetBool(cmd, "debug"))
 }
 
 // initConfig reads in config file and ENV variables if set.

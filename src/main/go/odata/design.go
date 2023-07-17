@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/engswee/flashpipe/file"
 	"github.com/engswee/flashpipe/httpclnt"
-	"github.com/engswee/flashpipe/logger"
+	"github.com/rs/zerolog/log"
 	"os"
 )
 
@@ -68,7 +68,7 @@ func constructUpdateBody(method string, id string, name string, packageId string
 }
 
 func Download(targetFile string, id string, dt DesigntimeArtifact) error {
-	logger.Info(fmt.Sprintf("Getting content of artifact %v from tenant for comparison", id))
+	log.Info().Msgf("Getting content of artifact %v from tenant for comparison", id)
 	content, err := dt.GetContent(id, "active")
 	if err != nil {
 		return err
@@ -78,7 +78,7 @@ func Download(targetFile string, id string, dt DesigntimeArtifact) error {
 	if err != nil {
 		return err
 	}
-	logger.Info(fmt.Sprintf("Content of artifact %v downloaded to %v", id, targetFile))
+	log.Info().Msgf("Content of artifact %v downloaded to %v", id, targetFile)
 	return nil
 }
 
