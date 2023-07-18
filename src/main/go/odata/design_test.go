@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
-	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -137,13 +136,11 @@ func createUpdateDeployDelete(id string, name string, packageId string, dt Desig
 func setupArtifact(t *testing.T, artifactId string, packageId string, artifactDir string, artifactType string, exe *httpclnt.HTTPExecuter) {
 	dt := NewDesigntimeArtifact(artifactType, exe)
 
-	log.Info().Msgf("Checking if %v designtime artifact %v exists for testing", artifactType, artifactId)
 	artifactExists, err := dt.Exists(artifactId, "active")
 	if err != nil {
 		t.Fatalf("Exists failed with error - %v", err)
 	}
 	if !artifactExists {
-		log.Info().Msgf("Setting up %v designtime artifact %v for testing", artifactType, artifactId)
 		err = dt.Create(artifactId, artifactId, packageId, artifactDir)
 		if err != nil {
 			t.Fatalf("Create designtime artifact failed with error - %v", err)

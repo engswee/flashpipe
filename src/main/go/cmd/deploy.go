@@ -99,14 +99,12 @@ func deployArtifacts(delimitedIds string, artifactType string, delayLength int, 
 }
 
 func deploySingle(artifact odata.DesigntimeArtifact, runtime *odata.Runtime, id string, compareVersions bool) error {
-	log.Info().Msg("Getting designtime version of artifact")
 	designtimeVer, err := artifact.GetVersion(id, "active")
 	if err != nil {
 		return err
 	}
 
 	if compareVersions == true {
-		log.Info().Msg("Getting runtime version of artifact")
 		runtimeVer, err := runtime.GetVersion(id)
 		if err != nil {
 			return err

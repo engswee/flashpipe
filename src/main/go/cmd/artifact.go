@@ -239,7 +239,6 @@ func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflo
 }
 
 func artifactExists(artifactId string, artifactType string, packageId string, dt odata.DesigntimeArtifact, ip *odata.IntegrationPackage) (bool, error) {
-	log.Info().Msgf("Checking if %v exists", artifactId)
 	exists, err := dt.Exists(artifactId, "active")
 	if err != nil {
 		return false, err

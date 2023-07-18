@@ -59,13 +59,12 @@ func runUpdatePackage(cmd *cobra.Command) {
 	packageId := packageDetails.Root.Id
 	exists, err := ip.Exists(packageId)
 	if !exists {
-		log.Info().Msgf("Package %v does not exist. Creating package...", packageId)
+		log.Info().Msgf("Package %v does not exist", packageId)
 		err = ip.Create(packageDetails)
 		logger.ExitIfError(err)
 		log.Info().Msgf("Package %v created", packageId)
 	} else {
 		// Update integration package
-		log.Info().Msgf("Updating package %v", packageId)
 		err = ip.Update(packageDetails)
 		logger.ExitIfError(err)
 		log.Info().Msgf("Package %v updated", packageId)

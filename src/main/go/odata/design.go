@@ -83,21 +83,25 @@ func Download(targetFile string, id string, dt DesigntimeArtifact) error {
 }
 
 func create(id string, name string, packageId string, artifactDir string, artifactType string, exe *httpclnt.HTTPExecuter) error {
+	log.Info().Msgf("Creating %v designtime artifact %v", artifactType, id)
 	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts", artifactType)
 	return upsert(id, name, packageId, artifactDir, "POST", urlPath, 201, artifactType, "Create", exe)
 }
 
 func update(id string, name string, packageId string, artifactDir string, artifactType string, exe *httpclnt.HTTPExecuter) error {
+	log.Info().Msgf("Updating %v designtime artifact %v", artifactType, id)
 	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", artifactType, id)
 	return upsert(id, name, packageId, artifactDir, "PUT", urlPath, 200, artifactType, "Update", exe)
 }
 
 func deploy(id string, artifactType string, exe *httpclnt.HTTPExecuter) error {
+	log.Info().Msgf("Deploying %v designtime artifact %v", artifactType, id)
 	urlPath := fmt.Sprintf("/api/v1/Deploy%vDesigntimeArtifact?Id='%s'&Version='active'", artifactType, id)
 	return modifyingCall("POST", urlPath, nil, 202, fmt.Sprintf("Deploy %v designtime artifact", artifactType), exe)
 }
 
 func deleteCall(id string, artifactType string, exe *httpclnt.HTTPExecuter) error {
+	log.Info().Msgf("Deleting %v designtime artifact %v", artifactType, id)
 	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", artifactType, id)
 	return modifyingCall("DELETE", urlPath, nil, 200, fmt.Sprintf("Delete %v designtime artifact", artifactType), exe)
 }
@@ -117,9 +121,11 @@ func upsert(id string, name string, packageId string, artifactDir string, method
 }
 
 func getVersion(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) (string, error) {
+	log.Info().Msgf("Getting version of %v designtime artifact %v", artifactType, id)
 	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", artifactType, id, version)
 
-	resp, err := readOnlyCall(urlPath, fmt.Sprintf("Get %v designtime artifact", artifactType), exe)
+	callType := fmt.Sprintf("Get %v designtime artifact", artifactType)
+	resp, err := readOnlyCall(urlPath, callType, exe)
 	if err != nil {
 		return "", err
 	}
@@ -137,6 +143,7 @@ func getVersion(id string, version string, artifactType string, exe *httpclnt.HT
 }
 
 func exists(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) (bool, error) {
+	log.Info().Msgf("Checking existence of %v designtime artifact %v", artifactType, id)
 	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", artifactType, id, version)
 
 	callType := fmt.Sprintf("Get %v designtime artifact", artifactType)
@@ -152,6 +159,7 @@ func exists(id string, version string, artifactType string, exe *httpclnt.HTTPEx
 }
 
 func getContent(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) ([]byte, error) {
+	log.Info().Msgf("Getting content of %v designtime artifact %v", artifactType, id)
 	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')/$value", artifactType, id, version)
 
 	callType := fmt.Sprintf("Download %v designtime artifact", artifactType)

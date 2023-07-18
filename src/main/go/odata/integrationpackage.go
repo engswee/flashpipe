@@ -63,7 +63,7 @@ func NewIntegrationPackage(exe *httpclnt.HTTPExecuter) *IntegrationPackage {
 
 func (ip *IntegrationPackage) GetPackagesList() ([]string, error) {
 	// Get the list of packages of the current tenant
-	log.Info().Msg("Getting the list of IntegrationPackages")
+	log.Info().Msg("Getting list of IntegrationPackages")
 	urlPath := "/api/v1/IntegrationPackages"
 
 	callType := "Get IntegrationPackages list"
@@ -86,7 +86,7 @@ func (ip *IntegrationPackage) GetPackagesList() ([]string, error) {
 }
 
 func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
-	log.Info().Msg("Checking if package is marked as read only")
+	log.Info().Msg("Checking if integration package is marked as read only")
 	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", id)
 
 	callType := "Get IntegrationPackages by ID"
@@ -125,6 +125,7 @@ func (ip *IntegrationPackage) Exists(id string) (bool, error) {
 }
 
 func (ip *IntegrationPackage) GetArtifactsData(id string, artifactType string) ([]*ArtifactDetails, error) {
+	log.Info().Msgf("Getting %v designtime artifacts of package %v", artifactType, id)
 	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')/%vDesigntimeArtifacts", id, artifactType)
 
 	callType := fmt.Sprintf("Get %v designtime artifacts of IntegrationPackages", artifactType)
@@ -184,6 +185,8 @@ func (ip *IntegrationPackage) GetAllArtifacts(id string) ([]*ArtifactDetails, er
 }
 
 func (ip *IntegrationPackage) Create(packageData *PackageSingleData) error {
+	packageId := packageData.Root.Id
+	log.Info().Msgf("Creating integration package %v", packageId)
 	urlPath := "/api/v1/IntegrationPackages"
 
 	requestBody, err := ip.constructBody(packageData)
@@ -196,6 +199,7 @@ func (ip *IntegrationPackage) Create(packageData *PackageSingleData) error {
 
 func (ip *IntegrationPackage) Update(packageData *PackageSingleData) error {
 	packageId := packageData.Root.Id
+	log.Info().Msgf("Updating integration package %v", packageId)
 	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", packageId)
 
 	requestBody, err := ip.constructBody(packageData)
@@ -207,6 +211,7 @@ func (ip *IntegrationPackage) Update(packageData *PackageSingleData) error {
 }
 
 func (ip *IntegrationPackage) Delete(packageId string) error {
+	log.Info().Msgf("Deleting integration package %v", packageId)
 	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", packageId)
 	return modifyingCall("DELETE", urlPath, nil, 202, "Delete integration package", ip.exe)
 }

@@ -162,7 +162,9 @@ func initializeConfig(cmd *cobra.Command) error {
 	bindFlags(cmd)
 
 	// Set debug flag from command line to viper
-	viper.Set("debug", config.GetBool(cmd, "debug"))
+	if !viper.IsSet("debug") {
+		viper.Set("debug", config.GetBool(cmd, "debug"))
+	}
 
 	logger.InitConsoleLogger(viper.GetBool("debug"))
 

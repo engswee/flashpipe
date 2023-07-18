@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
+	"github.com/rs/zerolog/log"
 )
 
 type Runtime struct {
@@ -29,12 +30,14 @@ func NewRuntime(exe *httpclnt.HTTPExecuter) *Runtime {
 }
 
 func (r *Runtime) UnDeploy(id string) error {
+	log.Info().Msgf("Undeploying runtime artifact %v", id)
 	urlPath := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')", id)
 
 	return modifyingCall("DELETE", urlPath, nil, 202, "", r.exe)
 }
 
 func (r *Runtime) GetVersion(id string) (string, error) {
+	log.Info().Msgf("Getting version of runtime artifact %v", id)
 	urlPath := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')", id)
 
 	callType := "Get runtime artifact"
@@ -61,6 +64,7 @@ func (r *Runtime) GetVersion(id string) (string, error) {
 }
 
 func (r *Runtime) GetStatus(id string) (string, error) {
+	log.Info().Msgf("Getting status of runtime artifact %v", id)
 	urlPath := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')", id)
 
 	callType := "Get runtime artifact"
@@ -80,6 +84,7 @@ func (r *Runtime) GetStatus(id string) (string, error) {
 }
 
 func (r *Runtime) GetErrorInfo(id string) (string, error) {
+	log.Info().Msgf("Getting error info of runtime artifact %v", id)
 	urlPath := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')/ErrorInformation/$value", id)
 
 	callType := "Get runtime artifact error information"
