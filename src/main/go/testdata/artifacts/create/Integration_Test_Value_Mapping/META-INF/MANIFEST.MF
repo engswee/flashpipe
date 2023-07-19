@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: Integration_Test_Value_Mapping
+Bundle-Name: Integration Test Value Mapping
+Bundle-Version: 1.0.0
+Bundle-ManifestVersion: 2
+Bundle-Activator: com.sap.xi.mapping.camel.valmap.ValueMappingActivato
+ r
+SAP-NodeType: IFLMAP
+Import-Package: com.sap.xi.mapping.camel.valmap
+SAP-BundleType: ValueMapping
+Import-Service: 
+

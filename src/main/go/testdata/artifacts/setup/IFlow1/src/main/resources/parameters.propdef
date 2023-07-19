@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><parameters><parameter>
+      <key/>
+      <name>Endpoint</name>
+      <type>xsd:string</type>
+      <isRequired>false</isRequired>
+      <constraint/>
+      <description/>
+      <additionalMetadata/>
+   </parameter><param_references><reference attribute_category="Sender" attribute_id="/attrId::urlPath" attribute_uilabel="" param_key="Endpoint"/></param_references></parameters>

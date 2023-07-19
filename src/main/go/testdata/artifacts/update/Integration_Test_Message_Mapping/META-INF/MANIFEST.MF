@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Provide-Capability: messagemapping.Integration_Test_Message_Mapping;ve
+ rsion:Version="1.0.0"
+Bundle-SymbolicName: Integration_Test_Message_Mapping
+Bundle-Name: Integration Test Message Mapping
+Bundle-Version: 1.0.1
+Bundle-ManifestVersion: 2
+SAP-NodeType: IFLMAP
+Import-Package: com.sap.esb.security,javax.jms,javax.jws,javax.wsdl,ja
+ vax.xml.bind.annotation,javax.xml.namespace,javax.xml.ws,org.apache.c
+ ommons.logging,org.osgi.framework;version="1.6.0",org.slf4j;version="
+ 1.6",com.sap.esb.camel.security.cms,org.apache.camel.spi,com.sap.esb.
+ camel.endpoint.configurator.api,org.osgi.service.blueprint;version="[
+ 1.0.0,2.0.0)",com.sap.it.api.mapping,com.sap.aii.mapping.value.api,co
+ m.sap.aii.mapping.lookup,com.sap.aii.mappingtool.tfapi,com.sap.aii.ma
+ ppingtool.tf7.rt,com.sap.aii.mappingtool.tf7,com.sap.aii.mappingtool.
+ tf3.rt,com.sap.aii.mappingtool.tf3,com.sap.aii.mappingtool.flib7,com.
+ sap.aii.mappingtool.flib3,com.sap.aii.mapping.api,com.sap.aii.ib.bom.
+ flib.types,com.sap.xi.mapping.camel
+SAP-BundleType: MessageMapping
+Import-Service: 
+

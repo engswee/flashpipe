@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Provide-Capability: scriptcollection.Integration_Test_Script_Collectio
+ n;version:Version="1.0.1"
+Bundle-SymbolicName: Integration_Test_Script_Collection
+Bundle-Name: Integration Test Script Collection
+Bundle-Version: 1.0.1
+Bundle-ManifestVersion: 2
+Origin-Bundle-SymbolicName: Integration_Test_Script_Collection
+SAP-NodeType: IFLMAP
+Import-Package: org.osgi.framework
+Origin-Bundle-Name: Integration Test Script Collection
+SAP-BundleType: ScriptCollection
+Import-Service: 
+
