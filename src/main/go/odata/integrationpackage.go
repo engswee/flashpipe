@@ -20,7 +20,7 @@ type PackageSingleData struct {
 		Version           string `json:"Version"`
 		Vendor            string `json:"Vendor,omitempty"`
 		Mode              string `json:"Mode,omitempty"`
-		SupportedPlatform string `json:"SupportedPlatform"`
+		SupportedPlatform string `json:"SupportedPlatform,omitempty"`
 		Products          string `json:"Products,omitempty"`
 		Keywords          string `json:"Keywords,omitempty"`
 		Countries         string `json:"Countries,omitempty"`

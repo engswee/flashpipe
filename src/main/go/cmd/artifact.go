@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"github.com/engswee/flashpipe/config"
 	"github.com/engswee/flashpipe/file"
+	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/odata"
-	"github.com/engswee/flashpipe/runner"
+	"github.com/magiconair/properties"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"os"
@@ -85,8 +86,6 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		err := file.CopyFile(parametersFile, defaultParamFile)
 		logger.ExitIfError(err)
 	}
-	// TODO - used to pass to Java class UpdateConfiguration. to be removed when Java deprecated
-	os.Setenv("PARAM_FILE", parametersFile)
 
 	// Initialise HTTP executer
 	serviceDetails := odata.GetServiceDetails(cmd)
@@ -106,10 +105,31 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		err = prepareUploadDir(workDir, gitSrcDir, artifactType)
 		logger.ExitIfError(err)
 
+		ip = odata.NewIntegrationPackage(exe)
+		packageExists, err := ip.Exists(packageId)
+		logger.ExitIfError(err)
+		if !packageExists {
+			jsonData := new(odata.PackageSingleData)
+			jsonData.Root.Id = packageId
+			jsonData.Root.Name = packageName
+			jsonData.Root.ShortText = packageId
+			jsonData.Root.Version = "1.0.0"
+			err := ip.Create(jsonData)
+			logger.ExitIfError(err)
+			log.Info().Msgf("Integration package %v created", packageId)
+		}
+
 		err = createArtifact(artifactId, artifactName, packageId, workDir+"/upload", scriptMap, dt)
 		logger.ExitIfError(err)
 		//_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UploadDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
 		//logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+
+		// TODO - manifest and BPMN handling
+		//ManifestHandler.newInstance("${this.iFlowDir}/META-INF/MANIFEST.MF").normalizeAttributesInFile(this.iFlowId, this.iFlowName, scriptCollection.getTargetCollectionValues())
+		//
+		//// Update the script collection in IFlow BPMN2 XML before upload
+		err = file.UpdateBPMN(gitSrcDir, scriptMap)
+		logger.ExitIfError(err)
 
 		log.Info().Msg("🏆 Artifact created successfully")
 
@@ -132,30 +152,29 @@ func runUpdateArtifact(cmd *cobra.Command) {
 			err = updateArtifact(artifactId, artifactName, packageId, workDir+"/upload", scriptMap, dt)
 			logger.ExitIfError(err)
 
-			//// If runtime has the same version no, then undeploy it, otherwise it gets skipped during deployment
-			//def designtimeVersion = designTimeArtifact.getVersion(this.iFlowId, 'active', false)
-			//RuntimeArtifact runtimeArtifact = new RuntimeArtifact(this.httpExecuter)
-			//def runtimeVersion = runtimeArtifact.getVersion(this.iFlowId)
-			//
-			//if (runtimeVersion == designtimeVersion) {
-			//	log.Info().Msg('Undeploying existing runtime artifact with same version number due to changes in design')
-			//	runtimeArtifact.undeploy(this.iFlowId, csrfToken)
-			//}
-
-			//_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
-			//logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+			// If runtime has the same version no, then undeploy it, otherwise it gets skipped during deployment
+			designtimeVersion, err := dt.GetVersion(artifactId, "active")
+			logger.ExitIfError(err)
+			r := odata.NewRuntime(exe)
+			runtimeVersion, err := r.GetVersion(artifactId)
+			logger.ExitIfError(err)
+			if runtimeVersion == designtimeVersion {
+				log.Info().Msg("Undeploying existing runtime artifact with same version number due to changes in design")
+				err = r.UnDeploy(artifactId)
+				logger.ExitIfError(err)
+			}
 
 			log.Info().Msg("🏆 IFlow design updated successfully")
 		} else {
 			log.Info().Msg("🏆 No changes detected. IFlow design does not need to be updated")
 		}
 
-		// TODO - only applicable for Integration
-		// 4 - Update the configuration of the IFlow based on parameters.prop file
-		log.Info().Msg("Updating configured parameter(s) of IFlow where necessary")
-		_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UpdateConfiguration", mavenRepoLocation, flashpipeLocation, log4jFile)
-		logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
-
+		// 4 - Update the configuration of the integration artifact based on parameters.prop file
+		if artifactType == "Integration" {
+			log.Info().Msg("Updating configured parameter(s) of Integration designtime artifact where necessary")
+			err = updateConfiguration(artifactId, parametersFile, exe)
+			logger.ExitIfError(err)
+		}
 	}
 }
 
@@ -171,7 +190,7 @@ func prepareUploadDir(workDir string, gitSrcDir string, artifactType string) (er
 	if err != nil {
 		return
 	}
-	// TODO - for value mapping it only has value_mapping.xml file
+	// TODO - for value mapping it only has value_mapping.xml file - implement as method of each type
 	if artifactType == "ValueMapping" {
 		file.CopyFile(gitSrcDir+"/value_mapping.xml", iFlowDir+"/value_mapping.xml")
 	} else {
@@ -180,28 +199,30 @@ func prepareUploadDir(workDir string, gitSrcDir string, artifactType string) (er
 			return
 		}
 	}
-	os.Setenv("IFLOW_DIR", iFlowDir) // TODO - remove when Java call no longer used
+	//os.Setenv("IFLOW_DIR", iFlowDir) // TODO - remove when Java call no longer used
 	return
 }
 
-func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflowId string, iflowName string, scriptMap string, mavenRepoLocation string, flashpipeLocation string, log4jFile string) (changesFound bool, err error) {
-	err = os.RemoveAll(workDir + "/download")
+func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflowId string, iflowName string, scriptMap string, mavenRepoLocation string, flashpipeLocation string, log4jFile string) (bool, error) {
+	err := os.RemoveAll(workDir + "/download")
 	if err != nil {
-		return
+		return false, err
 	}
 
 	log.Info().Msgf("Unzipping downloaded IFlow artifact %v to %v/download", zipFile, workDir)
 	err = file.UnzipSource(zipFile, workDir+"/download")
 	if err != nil {
-		return
+		return false, err
 	}
 	// TODO - Update the script collection in IFlow BPMN2 XML before diff comparison
-	_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.BPMN2Handler", mavenRepoLocation, flashpipeLocation, log4jFile)
-	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+	err = file.UpdateBPMN(gitSrcDir, scriptMap)
+	if err != nil {
+		return false, err
+	}
 
 	// TODO - Update the MANIFEST.MF file with script collection conversions
-	_, err = runner.JavaCmdWithArgs(mavenRepoLocation, flashpipeLocation, log4jFile, "io.github.engswee.flashpipe.cpi.util.ManifestHandler", gitSrcDir+"/META-INF/MANIFEST.MF", iflowId, iflowName, scriptMap)
-	logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
+	//_, err = runner.JavaCmdWithArgs(mavenRepoLocation, flashpipeLocation, log4jFile, "io.github.engswee.flashpipe.cpi.util.ManifestHandler", gitSrcDir+"/META-INF/MANIFEST.MF", iflowId, iflowName, scriptMap)
+	//logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
 	//// Compare META-INF directory for any differences in the manifest file
 	//log.Info().Msg("Checking for changes in META-INF directory")
@@ -217,25 +238,15 @@ func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflo
 	//}
 	// Diff directories excluding parameters.prop
 	dirDiffer := file.DiffDirectories(workDir+"/download", gitSrcDir)
-	// Diff parameters.prop ignoring commented lines
-	downloadedParams := fmt.Sprintf("%v/download/src/main/resources/parameters.prop", workDir)
-	gitParams := fmt.Sprintf("%v/src/main/resources/parameters.prop", gitSrcDir)
-	var paramDiffer bool
-	if file.CheckFileExists(downloadedParams) && file.CheckFileExists(gitParams) {
-		paramDiffer = file.DiffParams(downloadedParams, gitParams)
-	} else if !file.CheckFileExists(downloadedParams) && !file.CheckFileExists(gitParams) {
-		log.Warn().Msg("Skipping diff of parameters.prop as it does not exist in both source and target")
-	} else {
-		paramDiffer = true
-		log.Info().Msg("Update required since parameters.prop does not exist in either source or target")
-	}
+	// TODO - skipped, only relevant in sync - Diff parameters.prop ignoring commented lines
+	//# Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
+	//# Therefore diff of parameters.prop may come up with false differences
 
-	if dirDiffer || paramDiffer {
-		changesFound = true
+	if dirDiffer {
+		return true, nil
 	} else {
-		changesFound = false
+		return false, nil
 	}
-	return
 }
 
 func artifactExists(artifactId string, artifactType string, packageId string, dt odata.DesigntimeArtifact, ip *odata.IntegrationPackage) (bool, error) {
@@ -277,6 +288,55 @@ func updateArtifact(artifactId string, artifactName string, packageId string, ar
 	err := dt.Update(artifactId, artifactName, packageId, artifactDir)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func updateConfiguration(artifactId string, parametersFile string, exe *httpclnt.HTTPExecuter) error {
+	// Get configured parameters from tenant
+	c := odata.NewConfiguration(exe)
+	tenantParameters, err := c.Get(artifactId, "active")
+	if err != nil {
+		return err
+	}
+
+	// Get parameters from parameters.prop file
+	log.Info().Msgf("Getting parameters from %v file", parametersFile)
+	fileParameters := properties.MustLoadFile(parametersFile, properties.UTF8)
+
+	log.Info().Msg("Comparing parameters and updating where necessary")
+	atLeastOneUpdated := false
+	for _, result := range tenantParameters.Root.Results {
+		if result.DataType != "custom:schedule" { // TODO - handle translation to Cron
+			// Skip updating for schedulers which require translation to Cron values
+			fileValue := fileParameters.GetString(result.ParameterKey, "")
+			if fileValue != "" && fileValue != result.ParameterValue {
+				log.Info().Msgf("Parameter %v to be updated from %v to %v", result.ParameterKey, result.ParameterValue, fileValue)
+				err = c.Update(artifactId, "active", result.ParameterKey, fileValue)
+				if err != nil {
+					return err
+				}
+				atLeastOneUpdated = true
+			}
+		}
+	}
+	if atLeastOneUpdated {
+		r := odata.NewRuntime(exe)
+		version, err := r.GetVersion(artifactId)
+		if err != nil {
+			return err
+		}
+		if version == "NOT_DEPLOYED" {
+			log.Info().Msg("🏆 No existing runtime artifact deployed")
+		} else {
+			log.Info().Msg("🏆 Undeploying existing runtime artifact due to changes in configured parameters")
+			err = r.UnDeploy(artifactId)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		log.Info().Msg("🏆 No updates required for configured parameters")
 	}
 	return nil
 }

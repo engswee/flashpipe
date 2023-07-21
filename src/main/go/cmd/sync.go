@@ -101,7 +101,7 @@ func runSync(cmd *cobra.Command) {
 	normalisePackageNamePrefixOrSuffix := config.GetString(cmd, "normalise-package-prefixsuffix-name")
 
 	// TODO - implement normalisation
-	_ = scriptCollectionMap
+	//_ = scriptCollectionMap
 	_ = normalisePackageAction
 	_ = normalisePackageIDPrefixOrSuffix
 	_ = normalisePackageNamePrefixOrSuffix
@@ -119,7 +119,7 @@ func runSync(cmd *cobra.Command) {
 	// Extract IDs from delimited values
 	includedIds := str.ExtractDelimitedValues(delimitedIdsInclude, ",")
 	excludedIds := str.ExtractDelimitedValues(delimitedIdsExclude, ",")
-	synchroniser.SyncArtifacts(packageId, workDir, gitSrcDir, includedIds, excludedIds, draftHandling, dirNamingType, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
+	synchroniser.SyncArtifacts(packageId, workDir, gitSrcDir, includedIds, excludedIds, draftHandling, dirNamingType, normaliseManifestAction, normaliseManifestPrefixOrSuffix, scriptCollectionMap)
 
 	err := repo.CommitToRepo(gitSrcDir, commitMsg)
 	logger.ExitIfError(err)

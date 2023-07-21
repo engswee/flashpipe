@@ -30,7 +30,7 @@ func NewConfiguration(exe *httpclnt.HTTPExecuter) *Configuration {
 }
 
 func (c *Configuration) Get(id string, version string) (*ParametersData, error) {
-	log.Info().Msgf("Getting configuration parameters of integration designtime artifact %v", id)
+	log.Info().Msgf("Getting configuration parameters of Integration designtime artifact %v", id)
 	urlPath := fmt.Sprintf("/api/v1/IntegrationDesigntimeArtifacts(Id='%v',Version='%v')/Configurations", id, version)
 
 	callType := "Get configuration parameters"
@@ -51,7 +51,7 @@ func (c *Configuration) Get(id string, version string) (*ParametersData, error) 
 }
 
 func (c *Configuration) Update(id string, version string, key string, value string) error {
-	log.Info().Msgf("Updating configuration parameter %v of integration designtime artifact %v", key, id)
+	log.Info().Msgf("Updating configuration parameter %v of Integration designtime artifact %v", key, id)
 	urlPath := fmt.Sprintf("/api/v1/IntegrationDesigntimeArtifacts(Id='%v',Version='%v')/$links/Configurations('%v')", id, version, key)
 
 	parameterData := &ParameterData{ParameterValue: value}

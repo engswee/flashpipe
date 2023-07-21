@@ -18,14 +18,12 @@ func InitConsoleLogger(debug bool) {
 
 func ExitIfError(err error) {
 	if err != nil {
-		log.Error().Msg(err.Error())
-		os.Exit(1)
+		log.Fatal().Msg(err.Error())
 	}
 }
 
 func ExitIfErrorWithMsg(err error, msg string) {
 	if err != nil {
-		log.Error().Msg(err.Error())
-		os.Exit(1)
+		log.Fatal().Msg(err.Error())
 	}
 }

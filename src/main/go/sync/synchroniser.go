@@ -34,7 +34,7 @@ func (s *Synchroniser) SyncPackageDetails(packageId string) {
 	// TODO - complete sync package details
 }
 
-func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, normaliseManifestAction string, normaliseManifestPrefixOrSuffix string) {
+func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, normaliseManifestAction string, normaliseManifestPrefixOrSuffix string, scriptCollectionMap string) {
 
 	// Verify the package is downloadable
 	readOnly, err := s.ip.IsReadOnly(packageId)
@@ -117,6 +117,8 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 		//	BPMN2Handler bpmn2Handler = new BPMN2Handler()
 		//	bpmn2Handler.updateFiles(collections, "${workDir}/download/${directoryName}")
 		//}
+		err = file.UpdateBPMN(downloadedArtifactPath, scriptCollectionMap)
+		logger.ExitIfError(err)
 
 		gitArtifactPath := fmt.Sprintf("%v/%v", gitSrcDir, directoryName)
 		if file.CheckFileExists(fmt.Sprintf("%v/META-INF/MANIFEST.MF", gitArtifactPath)) {
