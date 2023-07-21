@@ -113,7 +113,8 @@ func runSync(cmd *cobra.Command) {
 	synchroniser := sync.New(exe)
 
 	if syncPackageLevelDetails {
-		synchroniser.SyncPackageDetails(packageId)
+		err := synchroniser.SyncPackageDetails(packageId, workDir, gitSrcDir)
+		logger.ExitIfError(err)
 	}
 
 	// Extract IDs from delimited values

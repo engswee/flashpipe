@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	"encoding/json"
 	"github.com/engswee/flashpipe/config"
 	"github.com/engswee/flashpipe/logger"
 	"github.com/engswee/flashpipe/odata"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func NewPackageCommand() *cobra.Command {
@@ -40,7 +38,7 @@ func runUpdatePackage(cmd *cobra.Command) {
 
 	// Get package details from JSON file
 	log.Info().Msgf("Getting package details from %v file", packageFile)
-	packageDetails, err := getPackageDetails(packageFile)
+	packageDetails, err := odata.GetPackageDetails(packageFile)
 	logger.ExitIfError(err)
 
 	// Overwrite ID & Name
@@ -69,18 +67,4 @@ func runUpdatePackage(cmd *cobra.Command) {
 		logger.ExitIfError(err)
 		log.Info().Msgf("Package %v updated", packageId)
 	}
-}
-
-func getPackageDetails(file string) (*odata.PackageSingleData, error) {
-	var jsonData *odata.PackageSingleData
-
-	fileContent, err := os.ReadFile(file)
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(fileContent, &jsonData)
-	if err != nil {
-		return nil, err
-	}
-	return jsonData, nil
 }

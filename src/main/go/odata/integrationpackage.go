@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/rs/zerolog/log"
+	"os"
 )
 
 type IntegrationPackage struct {
@@ -85,19 +86,29 @@ func (ip *IntegrationPackage) GetPackagesList() ([]string, error) {
 	return packageIds, nil
 }
 
-func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
-	log.Info().Msg("Checking if integration package is marked as read only")
+func (ip *IntegrationPackage) Get(id string) (*PackageSingleData, error) {
+	log.Info().Msgf("Getting details of integration package %v", id)
 	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", id)
 
 	callType := "Get IntegrationPackages by ID"
 	resp, err := readOnlyCall(urlPath, callType, ip.exe)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	// Process response to extract read only
+	// Process response to extract details
 	var jsonData *PackageSingleData
 	respBody, err := ip.exe.ReadRespBody(resp)
 	err = json.Unmarshal(respBody, &jsonData)
+	if err != nil {
+		return nil, err
+	}
+	return jsonData, nil
+}
+
+func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
+	log.Info().Msg("Checking if integration package is marked as read only")
+
+	jsonData, err := ip.Get(id)
 	if err != nil {
 		return false, err
 	}
@@ -110,10 +121,9 @@ func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
 
 func (ip *IntegrationPackage) Exists(id string) (bool, error) {
 	log.Info().Msgf("Checking existence of package %v", id)
-	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", id)
 
 	callType := "Get IntegrationPackages by ID"
-	_, err := readOnlyCall(urlPath, callType, ip.exe)
+	_, err := ip.Get(id)
 	if err != nil {
 		if err.Error() == fmt.Sprintf("%v call failed with response code = 404", callType) {
 			return false, nil
@@ -234,4 +244,18 @@ func FindArtifactById(key string, list []*ArtifactDetails) *ArtifactDetails {
 		}
 	}
 	return nil
+}
+
+func GetPackageDetails(file string) (*PackageSingleData, error) {
+	var jsonData *PackageSingleData
+
+	fileContent, err := os.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(fileContent, &jsonData)
+	if err != nil {
+		return nil, err
+	}
+	return jsonData, nil
 }

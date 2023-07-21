@@ -1,6 +1,7 @@
 package sync
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/file"
 	"github.com/engswee/flashpipe/httpclnt"
@@ -23,15 +24,74 @@ func New(exe *httpclnt.HTTPExecuter) *Synchroniser {
 	return s
 }
 
-func (s *Synchroniser) SyncPackageDetails(packageId string) {
+func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, gitSrcDir string) error {
 	log.Info().Msgf("Processing details of integration package %v", packageId)
 	readOnly, err := s.ip.IsReadOnly(packageId)
-	logger.ExitIfError(err)
+	if err != nil {
+		return err
+	}
 	if readOnly {
 		log.Warn().Msgf("Skipping package %v as it is Configure-only", packageId)
-		return
+		return nil
 	}
-	// TODO - complete sync package details
+
+	// Create temp directory in working dir
+	err = os.MkdirAll(workDir+"/from_tenant", os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	// Get details from tenant
+	packageFromTenant, err := s.ip.Get(packageId)
+	if err != nil {
+		return err
+	}
+	// TODO
+	// Normalize ID
+	// Normalize Name
+
+	log.Info().Msg("Storing package details from tenant for comparison")
+	// Update file content with normalized values
+	packageFile := fmt.Sprintf("%v/from_tenant/%v.json", workDir, packageId)
+	f, err := os.Create(packageFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	content, err := json.Marshal(packageFromTenant)
+	if err != nil {
+		return err
+	}
+	_, err = f.Write(content)
+	if err != nil {
+		return err
+	}
+
+	// Get existing package info file if it exists and compare values
+	gitSourceFile := fmt.Sprintf("%v/%v.json", gitSrcDir, packageId)
+	if file.CheckFileExists(gitSourceFile) {
+		packageFromGit, err := odata.GetPackageDetails(packageFile)
+		if err != nil {
+			return err
+		}
+		if contentDiffer(packageFromTenant, packageFromGit) {
+			log.Info().Msg("🏆 Changes detected and will be updated to Git")
+			err = file.CopyFile(packageFile, gitSourceFile)
+			if err != nil {
+				return err
+			}
+		} else {
+			log.Info().Msg("🏆 No changes detected. Update to Git not required")
+		}
+	} else {
+		log.Info().Msg("🏆 Saving new file to Git")
+		err = file.CopyFile(packageFile, gitSourceFile)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, normaliseManifestAction string, normaliseManifestPrefixOrSuffix string, scriptCollectionMap string) {
@@ -189,4 +249,44 @@ func filterArtifacts(artifacts []*odata.ArtifactDetails, includedIds []string, e
 		return output, nil
 	}
 	return artifacts, nil
+}
+
+func contentDiffer(source *odata.PackageSingleData, target *odata.PackageSingleData) bool {
+	if source.Root.Name != target.Root.Name {
+		return true
+	}
+	if source.Root.Description != target.Root.Description {
+		return true
+	}
+	if source.Root.ShortText != target.Root.ShortText {
+		return true
+	}
+	if source.Root.Version != target.Root.Version {
+		return true
+	}
+	if source.Root.Vendor != target.Root.Vendor {
+		return true
+	}
+	if source.Root.Mode != target.Root.Mode {
+		return true
+	}
+	if source.Root.SupportedPlatform != target.Root.SupportedPlatform {
+		return true
+	}
+	if source.Root.Products != target.Root.Products {
+		return true
+	}
+	if source.Root.Keywords != target.Root.Keywords {
+		return true
+	}
+	if source.Root.Countries != target.Root.Countries {
+		return true
+	}
+	if source.Root.Industries != target.Root.Industries {
+		return true
+	}
+	if source.Root.LineOfBusiness != target.Root.LineOfBusiness {
+		return true
+	}
+	return false
 }
