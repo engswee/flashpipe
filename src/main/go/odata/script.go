@@ -38,3 +38,6 @@ func (sc *ScriptCollection) Exists(id string, version string) (bool, error) {
 func (sc *ScriptCollection) GetContent(id string, version string) ([]byte, error) {
 	return getContent(id, version, sc.typ, sc.exe)
 }
+func (sc *ScriptCollection) DiffContent(firstDir string, secondDir string) bool {
+	return diffContent(firstDir, secondDir)
+}

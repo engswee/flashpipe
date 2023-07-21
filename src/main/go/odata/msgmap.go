@@ -38,3 +38,6 @@ func (mm *MessageMapping) Exists(id string, version string) (bool, error) {
 func (mm *MessageMapping) GetContent(id string, version string) ([]byte, error) {
 	return getContent(id, version, mm.typ, mm.exe)
 }
+func (mm *MessageMapping) DiffContent(firstDir string, secondDir string) bool {
+	return diffContent(firstDir, secondDir)
+}

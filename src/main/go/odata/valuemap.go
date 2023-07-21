@@ -1,6 +1,7 @@
 package odata
 
 import (
+	"github.com/engswee/flashpipe/file"
 	"github.com/engswee/flashpipe/httpclnt"
 	"github.com/rs/zerolog/log"
 )
@@ -43,4 +44,15 @@ func (vm *ValueMapping) Exists(id string, version string) (bool, error) {
 }
 func (vm *ValueMapping) GetContent(id string, version string) ([]byte, error) {
 	return getContent(id, version, vm.typ, vm.exe)
+}
+func (vm *ValueMapping) DiffContent(firstDir string, secondDir string) bool {
+	log.Info().Msg("Checking for changes in META-INF directory")
+	metaDiffer := file.DiffDirectories(firstDir+"/META-INF", secondDir+"/META-INF")
+	log.Info().Msg("Checking for changes in value_mapping.xml")
+	xmlDiffer := file.DiffParams(firstDir+"/value_mapping.xml", secondDir+"/value_mapping.xml")
+	if metaDiffer || xmlDiffer {
+		return true
+	} else {
+		return false
+	}
 }

@@ -17,6 +17,7 @@ type DesigntimeArtifact interface {
 	GetVersion(id string, version string) (string, error)
 	Exists(id string, version string) (bool, error)
 	GetContent(id string, version string) ([]byte, error)
+	DiffContent(firstDir string, secondDir string) bool
 }
 
 type designtimeArtifactData struct {
@@ -168,4 +169,17 @@ func getContent(id string, version string, artifactType string, exe *httpclnt.HT
 		return nil, err
 	}
 	return exe.ReadRespBody(resp)
+}
+
+func diffContent(firstDir string, secondDir string) bool {
+	log.Info().Msg("Checking for changes in META-INF directory")
+	metaDiffer := file.DiffDirectories(firstDir+"/META-INF", secondDir+"/META-INF")
+	log.Info().Msg("Checking for changes in src/main/resources directory")
+	resourcesDiffer := file.DiffDirectories(firstDir+"/src/main/resources", secondDir+"/src/main/resources")
+	// TODO - to consider moving diff of parameters.prop here as it is only used in Sync but not Update
+	if metaDiffer || resourcesDiffer {
+		return true
+	} else {
+		return false
+	}
 }

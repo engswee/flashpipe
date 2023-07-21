@@ -38,3 +38,6 @@ func (int *Integration) Exists(id string, version string) (bool, error) {
 func (int *Integration) GetContent(id string, version string) ([]byte, error) {
 	return getContent(id, version, int.typ, int.exe)
 }
+func (int *Integration) DiffContent(firstDir string, secondDir string) bool {
+	return diffContent(firstDir, secondDir)
+}

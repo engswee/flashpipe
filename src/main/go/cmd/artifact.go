@@ -43,6 +43,7 @@ SAP Integration Suite tenant.`,
 	artifactCmd.Flags().String("package-name", "", "Name of Integration Package [or set environment PACKAGE_NAME]")
 	artifactCmd.Flags().String("dir-gitsrc", "", "Directory containing contents of Integration Flow [or set environment GIT_SRC_DIR]")
 	artifactCmd.Flags().String("file-param", "", "Use to a different parameters.prop file instead of the default in src/main/resources/ [or set environment PARAM_FILE]")
+	artifactCmd.Flags().String("file-manifest", "", "Use to a different parameters.prop file instead of the default in src/main/resources/ [or set environment MANIFEST_FILE]")
 	artifactCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files [or set environment WORK_DIR]")
 	artifactCmd.Flags().String("scriptmap", "", "Comma-separated source-target ID pairs for converting script collection references during create/update [or set environment SCRIPT_COLLECTION_MAP]")
 	artifactCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping")
@@ -60,23 +61,11 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	packageName := config.GetMandatoryString(cmd, "package-name")
 	gitSrcDir := config.GetMandatoryString(cmd, "dir-gitsrc")
 	parametersFile := config.GetString(cmd, "file-param")
+	manifestFile := config.GetString(cmd, "file-manifest")
 	workDir := config.GetString(cmd, "dir-work")
 	scriptMap := config.GetString(cmd, "scriptmap")
 
 	// TODO - ID and package name from file rather than parameter
-
-	// TODO - remove
-	mavenRepoLocation := config.GetString(cmd, "location.mavenrepo")
-	flashpipeLocation := config.GetString(cmd, "location.flashpipe")
-	log4jFile := config.GetString(cmd, "debug.flashpipe")
-	os.Setenv("HOST_TMN", config.GetMandatoryString(cmd, "tmn-host"))
-	os.Setenv("HOST_OAUTH", config.GetMandatoryString(cmd, "oauth-host"))
-	os.Setenv("OAUTH_CLIENTID", config.GetMandatoryString(cmd, "oauth-clientid"))
-	os.Setenv("OAUTH_CLIENTSECRET", config.GetMandatoryString(cmd, "oauth-clientsecret"))
-	os.Setenv("IFLOW_ID", artifactId)
-	os.Setenv("IFLOW_NAME", artifactName)
-	os.Setenv("PACKAGE_ID", packageId)
-	os.Setenv("PACKAGE_NAME", packageName)
 
 	defaultParamFile := fmt.Sprintf("%v/src/main/resources/parameters.prop", gitSrcDir)
 	if parametersFile == "" {
@@ -84,6 +73,15 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	} else if parametersFile != defaultParamFile {
 		log.Info().Msgf("Using %v as parameters.prop file", parametersFile)
 		err := file.CopyFile(parametersFile, defaultParamFile)
+		logger.ExitIfError(err)
+	}
+
+	defaultManifestFile := fmt.Sprintf("%v/META-INF/MANIFEST.MF", gitSrcDir)
+	if manifestFile == "" {
+		manifestFile = defaultManifestFile
+	} else if manifestFile != defaultManifestFile {
+		log.Info().Msgf("Using %v as MANIFEST.MF file", manifestFile)
+		err := file.CopyFile(manifestFile, defaultManifestFile)
 		logger.ExitIfError(err)
 	}
 
@@ -121,13 +119,10 @@ func runUpdateArtifact(cmd *cobra.Command) {
 
 		err = createArtifact(artifactId, artifactName, packageId, workDir+"/upload", scriptMap, dt)
 		logger.ExitIfError(err)
-		//_, err = runner.JavaCmd("io.github.engswee.flashpipe.cpi.exec.UploadDesignTimeArtifact", mavenRepoLocation, flashpipeLocation, log4jFile)
-		//logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
-		// TODO - manifest and BPMN handling
-		//ManifestHandler.newInstance("${this.iFlowDir}/META-INF/MANIFEST.MF").normalizeAttributesInFile(this.iFlowId, this.iFlowName, scriptCollection.getTargetCollectionValues())
-		//
-		//// Update the script collection in IFlow BPMN2 XML before upload
+		// TODO - manifest normalisation currently not in place as using workaround MANIFEST.MF replacement
+
+		// Update the script collection in IFlow BPMN2 XML before upload
 		err = file.UpdateBPMN(gitSrcDir, scriptMap)
 		logger.ExitIfError(err)
 
@@ -142,7 +137,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		logger.ExitIfError(err)
 		// 2 - Diff contents from tenant against Git
 		// TODO - refactor and combine with implementation used in synchroniser
-		changesFound, err := compareIFlowContents(workDir, zipFile, gitSrcDir, artifactId, artifactName, scriptMap, mavenRepoLocation, flashpipeLocation, log4jFile)
+		changesFound, err := compareIFlowContents(workDir, zipFile, gitSrcDir, artifactId, artifactName, scriptMap, dt)
 		logger.ExitIfError(err)
 
 		if changesFound == true {
@@ -185,7 +180,8 @@ func prepareUploadDir(workDir string, gitSrcDir string, artifactType string) (er
 	if err != nil {
 		return
 	}
-	// TODO - Copy META-INF and resources separately so that other directories like QA, STG, PRD not copied
+
+	// Copy META-INF and resources separately so that other directories like QA, STG, PRD not copied
 	err = file.CopyDir(gitSrcDir+"/META-INF", iFlowDir+"/META-INF")
 	if err != nil {
 		return
@@ -199,11 +195,10 @@ func prepareUploadDir(workDir string, gitSrcDir string, artifactType string) (er
 			return
 		}
 	}
-	//os.Setenv("IFLOW_DIR", iFlowDir) // TODO - remove when Java call no longer used
 	return
 }
 
-func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflowId string, iflowName string, scriptMap string, mavenRepoLocation string, flashpipeLocation string, log4jFile string) (bool, error) {
+func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflowId string, iflowName string, scriptMap string, dt odata.DesigntimeArtifact) (bool, error) {
 	err := os.RemoveAll(workDir + "/download")
 	if err != nil {
 		return false, err
@@ -214,34 +209,18 @@ func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflo
 	if err != nil {
 		return false, err
 	}
-	// TODO - Update the script collection in IFlow BPMN2 XML before diff comparison
+	// Update the script collection in IFlow BPMN2 XML before diff comparison
 	err = file.UpdateBPMN(gitSrcDir, scriptMap)
 	if err != nil {
 		return false, err
 	}
 
 	// TODO - Update the MANIFEST.MF file with script collection conversions
-	//_, err = runner.JavaCmdWithArgs(mavenRepoLocation, flashpipeLocation, log4jFile, "io.github.engswee.flashpipe.cpi.util.ManifestHandler", gitSrcDir+"/META-INF/MANIFEST.MF", iflowId, iflowName, scriptMap)
-	//logger.ExitIfErrorWithMsg(err, "Execution of java command failed")
 
-	//// Compare META-INF directory for any differences in the manifest file
-	//log.Info().Msg("Checking for changes in META-INF directory")
-	//metaDirDiffer := file.DiffDirectories(workDir+"/download/META-INF/", gitSrcDir+"/META-INF/")
-	//
-	//log.Info().Msg("Checking for changes in src/main/resources directory")
-	//resourcesDirDiffer := file.DiffDirectories(workDir+"/download/src/main/resources/", gitSrcDir+"/src/main/resources/")
-	//
-	//if metaDirDiffer == false && resourcesDirDiffer == false {
-	//	changesFound = false
-	//} else {
-	//	changesFound = true
-	//}
 	// Diff directories excluding parameters.prop
-	dirDiffer := file.DiffDirectories(workDir+"/download", gitSrcDir)
-	// TODO - skipped, only relevant in sync - Diff parameters.prop ignoring commented lines
-	//# Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
-	//# Therefore diff of parameters.prop may come up with false differences
-
+	// - Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
+	// - Therefore diff of parameters.prop may come up with false differences
+	dirDiffer := dt.DiffContent(workDir+"/download", gitSrcDir)
 	if dirDiffer {
 		return true, nil
 	} else {
