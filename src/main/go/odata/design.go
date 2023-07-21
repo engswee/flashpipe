@@ -18,6 +18,7 @@ type DesigntimeArtifact interface {
 	Exists(id string, version string) (bool, error)
 	GetContent(id string, version string) ([]byte, error)
 	DiffContent(firstDir string, secondDir string) bool
+	CopyContent(srcDir string, tgtDir string) error
 }
 
 type designtimeArtifactData struct {
@@ -182,4 +183,17 @@ func diffContent(firstDir string, secondDir string) bool {
 	} else {
 		return false
 	}
+}
+
+func copyContent(srcDir string, tgtDir string) error {
+	// Copy META-INF and /src/main/resources separately so that other directories like QA, STG, PRD not copied
+	err := file.CopyDir(srcDir+"/META-INF", tgtDir+"/META-INF")
+	if err != nil {
+		return err
+	}
+	err = file.CopyDir(srcDir+"/src/main/resources", tgtDir+"/src/main/resources")
+	if err != nil {
+		return err
+	}
+	return nil
 }

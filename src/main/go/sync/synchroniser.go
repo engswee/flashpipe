@@ -102,21 +102,9 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 		logger.ExitIfError(err)
 		log.Info().Msgf("Downloaded artifact unzipped to %v", downloadedArtifactPath)
 
-		// Normalise MANIFEST.MF before sync to Git - TODO
-		// https://github.com/gnewton/jargo/blob/master/jar.go
-		//https://pkg.go.dev/github.com/quay/claircore/java/jar
-		//https://github.com/quay/claircore/blob/v1.5.8/java/jar/jar.go
-		//https://pkg.go.dev/net/textproto#Reader.ReadMIMEHeader
+		// TODO - Normalise MANIFEST.MF before sync to Git
 
-		//ScriptCollection scriptCollection = ScriptCollection.newInstance(scriptCollectionMap)
-		//Map collections = scriptCollection.getCollections()
-		//ManifestHandler.newInstance("${workDir}/download/${directoryName}/META-INF/MANIFEST.MF").normalizeAttributesInFile(normalizedIFlowID, normalizedIFlowName, scriptCollection.getTargetCollectionValues())
-
-		// Normalise the script collection in IFlow BPMN2 XML before syncing to Git - TODO
-		//if (collections.size()) {
-		//	BPMN2Handler bpmn2Handler = new BPMN2Handler()
-		//	bpmn2Handler.updateFiles(collections, "${workDir}/download/${directoryName}")
-		//}
+		// Normalise the script collection in IFlow BPMN2 XML before syncing to Git
 		err = file.UpdateBPMN(downloadedArtifactPath, scriptCollectionMap)
 		logger.ExitIfError(err)
 

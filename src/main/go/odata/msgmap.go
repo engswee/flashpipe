@@ -41,3 +41,6 @@ func (mm *MessageMapping) GetContent(id string, version string) ([]byte, error) 
 func (mm *MessageMapping) DiffContent(firstDir string, secondDir string) bool {
 	return diffContent(firstDir, secondDir)
 }
+func (mm *MessageMapping) CopyContent(srcDir string, tgtDir string) error {
+	return copyContent(srcDir, tgtDir)
+}

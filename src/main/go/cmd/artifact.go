@@ -100,7 +100,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		// Create artifact
 		log.Info().Msgf("Artifact %v will be created", artifactId)
 
-		err = prepareUploadDir(workDir, gitSrcDir, artifactType)
+		err = prepareUploadDir(workDir, gitSrcDir, dt)
 		logger.ExitIfError(err)
 
 		ip = odata.NewIntegrationPackage(exe)
@@ -142,7 +142,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 
 		if changesFound == true {
 			log.Info().Msg("Changes found in IFlow. IFlow design will be updated in CPI tenant")
-			err = prepareUploadDir(workDir, gitSrcDir, artifactType)
+			err = prepareUploadDir(workDir, gitSrcDir, dt)
 			logger.ExitIfError(err)
 			err = updateArtifact(artifactId, artifactName, packageId, workDir+"/upload", scriptMap, dt)
 			logger.ExitIfError(err)
@@ -173,28 +173,14 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	}
 }
 
-func prepareUploadDir(workDir string, gitSrcDir string, artifactType string) (err error) {
+func prepareUploadDir(workDir string, gitSrcDir string, dt odata.DesigntimeArtifact) (err error) {
 	// Clean up previous uploads
-	iFlowDir := workDir + "/upload"
-	err = os.RemoveAll(iFlowDir)
+	artifactDir := workDir + "/upload"
+	err = os.RemoveAll(artifactDir)
 	if err != nil {
 		return
 	}
-
-	// Copy META-INF and resources separately so that other directories like QA, STG, PRD not copied
-	err = file.CopyDir(gitSrcDir+"/META-INF", iFlowDir+"/META-INF")
-	if err != nil {
-		return
-	}
-	// TODO - for value mapping it only has value_mapping.xml file - implement as method of each type
-	if artifactType == "ValueMapping" {
-		file.CopyFile(gitSrcDir+"/value_mapping.xml", iFlowDir+"/value_mapping.xml")
-	} else {
-		err = file.CopyDir(gitSrcDir+"/src/main/resources", iFlowDir+"/src/main/resources")
-		if err != nil {
-			return
-		}
-	}
+	err = dt.CopyContent(gitSrcDir, artifactDir)
 	return
 }
 

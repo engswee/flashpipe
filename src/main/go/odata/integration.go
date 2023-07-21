@@ -41,3 +41,6 @@ func (int *Integration) GetContent(id string, version string) ([]byte, error) {
 func (int *Integration) DiffContent(firstDir string, secondDir string) bool {
 	return diffContent(firstDir, secondDir)
 }
+func (int *Integration) CopyContent(srcDir string, tgtDir string) error {
+	return copyContent(srcDir, tgtDir)
+}

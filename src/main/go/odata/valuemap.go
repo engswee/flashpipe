@@ -56,3 +56,15 @@ func (vm *ValueMapping) DiffContent(firstDir string, secondDir string) bool {
 		return false
 	}
 }
+func (vm *ValueMapping) CopyContent(srcDir string, tgtDir string) error {
+	// Copy META-INF and value_mapping.xml separately so that other directories like QA, STG, PRD not copied
+	err := file.CopyDir(srcDir+"/META-INF", tgtDir+"/META-INF")
+	if err != nil {
+		return err
+	}
+	err = file.CopyFile(srcDir+"/value_mapping.xml", tgtDir+"/value_mapping.xml")
+	if err != nil {
+		return err
+	}
+	return nil
+}

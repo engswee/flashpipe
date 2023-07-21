@@ -41,3 +41,6 @@ func (sc *ScriptCollection) GetContent(id string, version string) ([]byte, error
 func (sc *ScriptCollection) DiffContent(firstDir string, secondDir string) bool {
 	return diffContent(firstDir, secondDir)
 }
+func (sc *ScriptCollection) CopyContent(srcDir string, tgtDir string) error {
+	return copyContent(srcDir, tgtDir)
+}
