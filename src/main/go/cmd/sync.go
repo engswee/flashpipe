@@ -35,12 +35,12 @@ tenant to a Git repository.`,
 				return fmt.Errorf("invalid value for --drafthandling = %v", draftHandling)
 			}
 			// Validate Normalise Manifest Action
-			normaliseManifestAction := config.GetString(cmd, "normalise-manifest-action")
-			switch normaliseManifestAction {
-			case "NONE", "ADD_PREFIX", "ADD_SUFFIX", "DELETE_PREFIX", "DELETE_SUFFIX":
-			default:
-				return fmt.Errorf("invalid value for --normalise-manifest-action = %v", normaliseManifestAction)
-			}
+			//normaliseManifestAction := config.GetString(cmd, "normalise-manifest-action")
+			//switch normaliseManifestAction {
+			//case "NONE", "ADD_PREFIX", "ADD_SUFFIX", "DELETE_PREFIX", "DELETE_SUFFIX":
+			//default:
+			//	return fmt.Errorf("invalid value for --normalise-manifest-action = %v", normaliseManifestAction)
+			//}
 			// Validate Normalise Package Action
 			normalisePackageAction := config.GetString(cmd, "normalise-package-action")
 			switch normalisePackageAction {
@@ -71,8 +71,8 @@ tenant to a Git repository.`,
 	syncCmd.Flags().String("ids-exclude", "", "List of excluded artifact IDs [or set environment EXCLUDE_IDS]")
 	syncCmd.Flags().String("git-commitmsg", "Sync repo from tenant", "Message used in commit [or set environment COMMIT_MESSAGE]")
 	syncCmd.Flags().String("scriptmap", "", "Comma-separated source-target ID pairs for converting script collection references during sync [or set environment SCRIPT_COLLECTION_MAP]")
-	syncCmd.Flags().String("normalise-manifest-action", "NONE", "Action for normalising artifact ID & Name in MANIFEST.MF. Allowed values: NONE, ADD_PREFIX, ADD_SUFFIX, DELETE_PREFIX, DELETE_SUFFIX [or set environment NORMALISE_MANIFEST_ACTION]")
-	syncCmd.Flags().String("normalise-manifest-prefixsuffix", "", "Prefix/suffix used for normalising artifact ID & Name in MANIFEST.MF [or set environment NORMALISE_MANIFEST_PREFIX_SUFFIX]")
+	//syncCmd.Flags().String("normalise-manifest-action", "NONE", "Action for normalising artifact ID & Name in MANIFEST.MF. Allowed values: NONE, ADD_PREFIX, ADD_SUFFIX, DELETE_PREFIX, DELETE_SUFFIX [or set environment NORMALISE_MANIFEST_ACTION]")
+	//syncCmd.Flags().String("normalise-manifest-prefixsuffix", "", "Prefix/suffix used for normalising artifact ID & Name in MANIFEST.MF [or set environment NORMALISE_MANIFEST_PREFIX_SUFFIX]")
 	syncCmd.Flags().Bool("syncpackagedetails", false, "Sync details of Integration Package [or set environment SYNC_PACKAGE_LEVEL_DETAILS]")
 	syncCmd.Flags().String("normalise-package-action", "NONE", "Action for normalising Package ID & Name package file. Allowed values: NONE, ADD_PREFIX, ADD_SUFFIX, DELETE_PREFIX, DELETE_SUFFIX [or set environment NORMALISE_PACKAGE_ACTION]")
 	syncCmd.Flags().String("normalise-package-prefixsuffix-id", "", "Prefix/suffix used for normalising Package ID [or set environment NORMALISE_PACKAGE_ID_PREFIX_SUFFIX]")
@@ -93,8 +93,8 @@ func runSync(cmd *cobra.Command) {
 	delimitedIdsExclude := config.GetString(cmd, "ids-exclude")
 	commitMsg := config.GetString(cmd, "git-commitmsg")
 	scriptCollectionMap := config.GetString(cmd, "scriptmap")
-	normaliseManifestAction := config.GetString(cmd, "normalise-manifest-action")
-	normaliseManifestPrefixOrSuffix := config.GetString(cmd, "normalise-manifest-prefixsuffix")
+	//normaliseManifestAction := config.GetString(cmd, "normalise-manifest-action")
+	//normaliseManifestPrefixOrSuffix := config.GetString(cmd, "normalise-manifest-prefixsuffix")
 	syncPackageLevelDetails := config.GetBool(cmd, "syncpackagedetails")
 	normalisePackageAction := config.GetString(cmd, "normalise-package-action")
 	normalisePackageIDPrefixOrSuffix := config.GetString(cmd, "normalise-package-prefixsuffix-id")
@@ -120,7 +120,7 @@ func runSync(cmd *cobra.Command) {
 	// Extract IDs from delimited values
 	includedIds := str.ExtractDelimitedValues(delimitedIdsInclude, ",")
 	excludedIds := str.ExtractDelimitedValues(delimitedIdsExclude, ",")
-	synchroniser.SyncArtifacts(packageId, workDir, gitSrcDir, includedIds, excludedIds, draftHandling, dirNamingType, normaliseManifestAction, normaliseManifestPrefixOrSuffix, scriptCollectionMap)
+	synchroniser.SyncArtifacts(packageId, workDir, gitSrcDir, includedIds, excludedIds, draftHandling, dirNamingType, scriptCollectionMap)
 
 	err := repo.CommitToRepo(gitSrcDir, commitMsg)
 	logger.ExitIfError(err)
