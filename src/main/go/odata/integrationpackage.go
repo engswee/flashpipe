@@ -14,19 +14,19 @@ type IntegrationPackage struct {
 
 type PackageSingleData struct {
 	Root struct {
-		Id                string `json:"Id"`
-		Name              string `json:"Name"`
-		Description       string `json:"Description"`
-		ShortText         string `json:"ShortText"`
-		Version           string `json:"Version"`
-		Vendor            string `json:"Vendor,omitempty"`
-		Mode              string `json:"Mode,omitempty"`
-		SupportedPlatform string `json:"SupportedPlatform,omitempty"`
-		Products          string `json:"Products,omitempty"`
-		Keywords          string `json:"Keywords,omitempty"`
-		Countries         string `json:"Countries,omitempty"`
-		Industries        string `json:"Industries,omitempty"`
-		LineOfBusiness    string `json:"LineOfBusiness,omitempty"`
+		Id          string `json:"Id"`
+		Name        string `json:"Name"`
+		Description string `json:"Description"`
+		ShortText   string `json:"ShortText"`
+		Version     string `json:"Version"`
+		Vendor      string `json:"Vendor,omitempty"`
+		Mode        string `json:"Mode,omitempty"`
+		//SupportedPlatform string `json:"SupportedPlatform,omitempty"`
+		Products       string `json:"Products,omitempty"`
+		Keywords       string `json:"Keywords,omitempty"`
+		Countries      string `json:"Countries,omitempty"`
+		Industries     string `json:"Industries,omitempty"`
+		LineOfBusiness string `json:"LineOfBusiness,omitempty"`
 	} `json:"d"`
 }
 
@@ -86,53 +86,60 @@ func (ip *IntegrationPackage) GetPackagesList() ([]string, error) {
 	return packageIds, nil
 }
 
-func (ip *IntegrationPackage) Get(id string) (*PackageSingleData, error) {
+func (ip *IntegrationPackage) Get(id string) (packageData *PackageSingleData, readOnly bool, exists bool, err error) {
 	log.Info().Msgf("Getting details of integration package %v", id)
 	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')", id)
 
 	callType := "Get IntegrationPackages by ID"
 	resp, err := readOnlyCall(urlPath, callType, ip.exe)
 	if err != nil {
-		return nil, err
-	}
-	// Process response to extract details
-	var jsonData *PackageSingleData
-	respBody, err := ip.exe.ReadRespBody(resp)
-	err = json.Unmarshal(respBody, &jsonData)
-	if err != nil {
-		return nil, err
-	}
-	return jsonData, nil
-}
-
-func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
-	log.Info().Msg("Checking if integration package is marked as read only")
-
-	jsonData, err := ip.Get(id)
-	if err != nil {
-		return false, err
-	}
-	if jsonData.Root.Mode == "READ_ONLY" {
-		return true, nil
-	} else {
-		return false, nil
-	}
-}
-
-func (ip *IntegrationPackage) Exists(id string) (bool, error) {
-	log.Info().Msgf("Checking existence of package %v", id)
-
-	callType := "Get IntegrationPackages by ID"
-	_, err := ip.Get(id)
-	if err != nil {
 		if err.Error() == fmt.Sprintf("%v call failed with response code = 404", callType) {
-			return false, nil
+			return nil, false, false, nil
 		} else {
-			return false, err
+			return nil, false, false, err
 		}
 	}
-	return true, nil
+	// Process response to extract details
+	//var jsonData *PackageSingleData
+	respBody, err := ip.exe.ReadRespBody(resp)
+	err = json.Unmarshal(respBody, &packageData)
+	if err != nil {
+		return nil, false, false, err
+	}
+	if packageData.Root.Mode == "READ_ONLY" {
+		readOnly = true
+	}
+	return packageData, readOnly, true, nil
 }
+
+//func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
+//	log.Info().Msg("Checking if integration package is marked as read only")
+//
+//	jsonData, err := ip.Get(id)
+//	if err != nil {
+//		return false, err
+//	}
+//	if jsonData.Root.Mode == "READ_ONLY" {
+//		return true, nil
+//	} else {
+//		return false, nil
+//	}
+//}
+//
+//func (ip *IntegrationPackage) Exists(id string) (bool, error) {
+//	log.Info().Msgf("Checking existence of package %v", id)
+//
+//	callType := "Get IntegrationPackages by ID"
+//	_, err := ip.Get(id)
+//	if err != nil {
+//		if err.Error() == fmt.Sprintf("%v call failed with response code = 404", callType) {
+//			return false, nil
+//		} else {
+//			return false, err
+//		}
+//	}
+//	return true, nil
+//}
 
 func (ip *IntegrationPackage) GetArtifactsData(id string, artifactType string) ([]*ArtifactDetails, error) {
 	log.Info().Msgf("Getting %v designtime artifacts of package %v", artifactType, id)

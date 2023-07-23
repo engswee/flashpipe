@@ -104,7 +104,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		logger.ExitIfError(err)
 
 		ip = odata.NewIntegrationPackage(exe)
-		packageExists, err := ip.Exists(packageId)
+		_, _, packageExists, err := ip.Get(packageId)
 		logger.ExitIfError(err)
 		if !packageExists {
 			jsonData := new(odata.PackageSingleData)

@@ -55,7 +55,7 @@ func runUpdatePackage(cmd *cobra.Command) {
 	ip := odata.NewIntegrationPackage(exe)
 
 	packageId := packageDetails.Root.Id
-	exists, err := ip.Exists(packageId)
+	_, _, exists, err := ip.Get(packageId)
 	if !exists {
 		log.Info().Msgf("Package %v does not exist", packageId)
 		err = ip.Create(packageDetails)

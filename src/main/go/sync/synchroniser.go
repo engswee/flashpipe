@@ -26,7 +26,7 @@ func New(exe *httpclnt.HTTPExecuter) *Synchroniser {
 
 func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, gitSrcDir string) error {
 	log.Info().Msgf("Processing details of integration package %v", packageId)
-	readOnly, err := s.ip.IsReadOnly(packageId)
+	packageFromTenant, readOnly, _, err := s.ip.Get(packageId)
 	if err != nil {
 		return err
 	}
@@ -41,11 +41,6 @@ func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, gitS
 		return err
 	}
 
-	// Get details from tenant
-	packageFromTenant, err := s.ip.Get(packageId)
-	if err != nil {
-		return err
-	}
 	// TODO
 	// Normalize ID
 	// Normalize Name
@@ -58,7 +53,7 @@ func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, gitS
 		return err
 	}
 	defer f.Close()
-	content, err := json.Marshal(packageFromTenant)
+	content, err := json.MarshalIndent(packageFromTenant, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -74,6 +69,7 @@ func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, gitS
 		if err != nil {
 			return err
 		}
+		// TODO - Use Unix diff instead?
 		if contentDiffer(packageFromTenant, packageFromGit) {
 			log.Info().Msg("🏆 Changes detected and will be updated to Git")
 			err = file.CopyFile(packageFile, gitSourceFile)
@@ -94,10 +90,10 @@ func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, gitS
 	return nil
 }
 
-func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, normaliseManifestAction string, normaliseManifestPrefixOrSuffix string, scriptCollectionMap string) {
+func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, scriptCollectionMap string) {
 
 	// Verify the package is downloadable
-	readOnly, err := s.ip.IsReadOnly(packageId)
+	_, readOnly, _, err := s.ip.Get(packageId)
 	logger.ExitIfError(err)
 	if readOnly {
 		log.Warn().Msgf("Skipping package %v as it is Configure-only and cannot be downloaded", packageId)
@@ -144,16 +140,16 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 		logger.ExitIfError(err)
 
 		// Normalise ID and Name
-		normalisedId := str.Normalise(artifact.Id, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
-		normalisedName := str.Normalise(artifact.Name, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
-		log.Debug().Msgf("Normalised artifact ID - %v", normalisedId)
-		log.Debug().Msgf("Normalised artifact name - %v", normalisedName)
+		//normalisedId := str.Normalise(artifact.Id, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
+		//normalisedName := str.Normalise(artifact.Name, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
+		//log.Debug().Msgf("Normalised artifact ID - %v", normalisedId)
+		//log.Debug().Msgf("Normalised artifact name - %v", normalisedName)
 
 		var directoryName string
 		if dirNamingType == "NAME" {
-			directoryName = normalisedName
+			directoryName = artifact.Id
 		} else {
-			directoryName = normalisedId
+			directoryName = artifact.Name
 		}
 		// Unzip artifact contents
 		log.Debug().Msgf("Target artifact directory name - %v", directoryName)
@@ -270,9 +266,9 @@ func contentDiffer(source *odata.PackageSingleData, target *odata.PackageSingleD
 	if source.Root.Mode != target.Root.Mode {
 		return true
 	}
-	if source.Root.SupportedPlatform != target.Root.SupportedPlatform {
-		return true
-	}
+	//if source.Root.SupportedPlatform != target.Root.SupportedPlatform {
+	//	return true
+	//}
 	if source.Root.Products != target.Root.Products {
 		return true
 	}

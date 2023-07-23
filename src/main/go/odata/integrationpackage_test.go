@@ -100,7 +100,7 @@ func (suite *PackageSuite) TestIntegrationPackage_CreateUpdateDelete() {
 	assert.Truef(suite.T(), str.Contains(packageId, packagesList), "%v found in packagesList", packageId)
 
 	// Check not read only
-	readOnly, err := ip.IsReadOnly(packageId)
+	_, readOnly, _, err := ip.Get(packageId)
 	if err != nil {
 		suite.T().Fatalf("IsReadOnly failed with error - %v", err)
 	}
@@ -127,7 +127,7 @@ func (suite *PackageSuite) TestIntegrationPackage_GetArtifacts() {
 func setupPackage(t *testing.T, packageId string, exe *httpclnt.HTTPExecuter) {
 	ip := NewIntegrationPackage(exe)
 
-	packageExists, err := ip.Exists(packageId)
+	_, _, packageExists, err := ip.Get(packageId)
 	if err != nil {
 		t.Fatalf("Exists failed with error - %v", err)
 	}
@@ -147,7 +147,7 @@ func setupPackage(t *testing.T, packageId string, exe *httpclnt.HTTPExecuter) {
 func tearDownPackage(t *testing.T, packageId string, exe *httpclnt.HTTPExecuter) {
 	ip := NewIntegrationPackage(exe)
 
-	packageExists, err := ip.Exists(packageId)
+	_, _, packageExists, err := ip.Get(packageId)
 	if err != nil {
 		t.Fatalf("Exists failed with error - %v", err)
 	}
