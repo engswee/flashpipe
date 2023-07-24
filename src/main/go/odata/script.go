@@ -29,11 +29,8 @@ func (sc *ScriptCollection) Deploy(id string) (err error) {
 func (sc *ScriptCollection) Delete(id string) (err error) {
 	return deleteCall(id, sc.typ, sc.exe)
 }
-func (sc *ScriptCollection) GetVersion(id string, version string) (string, error) {
-	return getVersion(id, version, sc.typ, sc.exe)
-}
-func (sc *ScriptCollection) Exists(id string, version string) (bool, error) {
-	return exists(id, version, sc.typ, sc.exe)
+func (sc *ScriptCollection) Get(id string, version string) (string, bool, error) {
+	return get(id, version, sc.typ, sc.exe)
 }
 func (sc *ScriptCollection) GetContent(id string, version string) ([]byte, error) {
 	return getContent(id, version, sc.typ, sc.exe)

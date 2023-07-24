@@ -29,11 +29,8 @@ func (mm *MessageMapping) Deploy(id string) (err error) {
 func (mm *MessageMapping) Delete(id string) (err error) {
 	return deleteCall(id, mm.typ, mm.exe)
 }
-func (mm *MessageMapping) GetVersion(id string, version string) (string, error) {
-	return getVersion(id, version, mm.typ, mm.exe)
-}
-func (mm *MessageMapping) Exists(id string, version string) (bool, error) {
-	return exists(id, version, mm.typ, mm.exe)
+func (mm *MessageMapping) Get(id string, version string) (string, bool, error) {
+	return get(id, version, mm.typ, mm.exe)
 }
 func (mm *MessageMapping) GetContent(id string, version string) ([]byte, error) {
 	return getContent(id, version, mm.typ, mm.exe)

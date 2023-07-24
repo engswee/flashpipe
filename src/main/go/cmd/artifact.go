@@ -148,7 +148,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 			logger.ExitIfError(err)
 
 			// If runtime has the same version no, then undeploy it, otherwise it gets skipped during deployment
-			designtimeVersion, err := dt.GetVersion(artifactId, "active")
+			designtimeVersion, _, err := dt.Get(artifactId, "active")
 			logger.ExitIfError(err)
 			r := odata.NewRuntime(exe)
 			runtimeVersion, err := r.GetVersion(artifactId)
@@ -215,7 +215,7 @@ func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflo
 }
 
 func artifactExists(artifactId string, artifactType string, packageId string, dt odata.DesigntimeArtifact, ip *odata.IntegrationPackage) (bool, error) {
-	exists, err := dt.Exists(artifactId, "active")
+	_, exists, err := dt.Get(artifactId, "active")
 	if err != nil {
 		return false, err
 	}

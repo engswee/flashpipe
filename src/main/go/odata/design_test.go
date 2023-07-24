@@ -97,7 +97,7 @@ func createUpdateDeployDelete(id string, name string, packageId string, dt Desig
 		t.Fatalf("Create failed with error - %v", err)
 	}
 	// Check existence
-	artifactExists, err := dt.Exists(id, "active")
+	_, artifactExists, err := dt.Get(id, "active")
 	if err != nil {
 		t.Fatalf("Exists failed with error - %v", err)
 	}
@@ -108,7 +108,7 @@ func createUpdateDeployDelete(id string, name string, packageId string, dt Desig
 			t.Fatalf("Update failed with error - %v", err)
 		}
 		// Check version
-		version, err := dt.GetVersion(id, "active")
+		version, _, err := dt.Get(id, "active")
 		if err != nil {
 			t.Fatalf("GetVersion failed with error - %v", err)
 		}
@@ -136,7 +136,7 @@ func createUpdateDeployDelete(id string, name string, packageId string, dt Desig
 func setupArtifact(t *testing.T, artifactId string, packageId string, artifactDir string, artifactType string, exe *httpclnt.HTTPExecuter) {
 	dt := NewDesigntimeArtifact(artifactType, exe)
 
-	artifactExists, err := dt.Exists(artifactId, "active")
+	_, artifactExists, err := dt.Get(artifactId, "active")
 	if err != nil {
 		t.Fatalf("Exists failed with error - %v", err)
 	}

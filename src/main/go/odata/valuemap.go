@@ -36,11 +36,8 @@ func (vm *ValueMapping) Deploy(id string) error {
 func (vm *ValueMapping) Delete(id string) error {
 	return deleteCall(id, vm.typ, vm.exe)
 }
-func (vm *ValueMapping) GetVersion(id string, version string) (string, error) {
-	return getVersion(id, version, vm.typ, vm.exe)
-}
-func (vm *ValueMapping) Exists(id string, version string) (bool, error) {
-	return exists(id, version, vm.typ, vm.exe)
+func (vm *ValueMapping) Get(id string, version string) (string, bool, error) {
+	return get(id, version, vm.typ, vm.exe)
 }
 func (vm *ValueMapping) GetContent(id string, version string) ([]byte, error) {
 	return getContent(id, version, vm.typ, vm.exe)

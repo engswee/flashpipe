@@ -29,11 +29,8 @@ func (int *Integration) Deploy(id string) error {
 func (int *Integration) Delete(id string) error {
 	return deleteCall(id, int.typ, int.exe)
 }
-func (int *Integration) GetVersion(id string, version string) (string, error) {
-	return getVersion(id, version, int.typ, int.exe)
-}
-func (int *Integration) Exists(id string, version string) (bool, error) {
-	return exists(id, version, int.typ, int.exe)
+func (int *Integration) Get(id string, version string) (string, bool, error) {
+	return get(id, version, int.typ, int.exe)
 }
 func (int *Integration) GetContent(id string, version string) ([]byte, error) {
 	return getContent(id, version, int.typ, int.exe)

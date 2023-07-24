@@ -112,35 +112,6 @@ func (ip *IntegrationPackage) Get(id string) (packageData *PackageSingleData, re
 	return packageData, readOnly, true, nil
 }
 
-//func (ip *IntegrationPackage) IsReadOnly(id string) (bool, error) {
-//	log.Info().Msg("Checking if integration package is marked as read only")
-//
-//	jsonData, err := ip.Get(id)
-//	if err != nil {
-//		return false, err
-//	}
-//	if jsonData.Root.Mode == "READ_ONLY" {
-//		return true, nil
-//	} else {
-//		return false, nil
-//	}
-//}
-//
-//func (ip *IntegrationPackage) Exists(id string) (bool, error) {
-//	log.Info().Msgf("Checking existence of package %v", id)
-//
-//	callType := "Get IntegrationPackages by ID"
-//	_, err := ip.Get(id)
-//	if err != nil {
-//		if err.Error() == fmt.Sprintf("%v call failed with response code = 404", callType) {
-//			return false, nil
-//		} else {
-//			return false, err
-//		}
-//	}
-//	return true, nil
-//}
-
 func (ip *IntegrationPackage) GetArtifactsData(id string, artifactType string) ([]*ArtifactDetails, error) {
 	log.Info().Msgf("Getting %v designtime artifacts of package %v", artifactType, id)
 	urlPath := fmt.Sprintf("/api/v1/IntegrationPackages('%v')/%vDesigntimeArtifacts", id, artifactType)
