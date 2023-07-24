@@ -41,6 +41,7 @@ func runUpdatePackage(cmd *cobra.Command) {
 	packageDetails, err := odata.GetPackageDetails(packageFile)
 	logger.ExitIfError(err)
 
+	// TODO - remove this and just use different files like manifest
 	// Overwrite ID & Name
 	if packageOverrideId != "" {
 		packageDetails.Root.Id = packageOverrideId

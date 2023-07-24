@@ -120,8 +120,9 @@ func runSync(cmd *cobra.Command) {
 	// Extract IDs from delimited values
 	includedIds := str.ExtractDelimitedValues(delimitedIdsInclude, ",")
 	excludedIds := str.ExtractDelimitedValues(delimitedIdsExclude, ",")
-	synchroniser.SyncArtifacts(packageId, workDir, gitSrcDir, includedIds, excludedIds, draftHandling, dirNamingType, scriptCollectionMap)
+	err := synchroniser.SyncArtifacts(packageId, workDir, gitSrcDir, includedIds, excludedIds, draftHandling, dirNamingType, scriptCollectionMap)
+	logger.ExitIfError(err)
 
-	err := repo.CommitToRepo(gitSrcDir, commitMsg)
+	err = repo.CommitToRepo(gitSrcDir, commitMsg)
 	logger.ExitIfError(err)
 }
