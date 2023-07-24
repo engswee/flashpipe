@@ -105,7 +105,7 @@ func deploySingle(artifact odata.DesigntimeArtifact, runtime *odata.Runtime, id 
 	}
 
 	if compareVersions == true {
-		runtimeVer, err := runtime.GetVersion(id)
+		runtimeVer, _, err := runtime.Get(id)
 		if err != nil {
 			return err
 		}
@@ -138,7 +138,7 @@ func checkDeploymentStatus(runtime *odata.Runtime, delayLength int, maxCheckLimi
 	log.Info().Msgf("Checking runtime status for artifact %v every %d seconds up to %d times", id, delayLength, maxCheckLimit)
 
 	for i := 0; i < maxCheckLimit; i++ {
-		status, err := runtime.GetStatus(id)
+		_, status, err := runtime.Get(id)
 		if err != nil {
 			return err
 		}

@@ -151,7 +151,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 			designtimeVersion, _, err := dt.Get(artifactId, "active")
 			logger.ExitIfError(err)
 			r := odata.NewRuntime(exe)
-			runtimeVersion, err := r.GetVersion(artifactId)
+			runtimeVersion, _, err := r.Get(artifactId)
 			logger.ExitIfError(err)
 			if runtimeVersion == designtimeVersion {
 				log.Info().Msg("Undeploying existing runtime artifact with same version number due to changes in design")
@@ -287,7 +287,7 @@ func updateConfiguration(artifactId string, parametersFile string, exe *httpclnt
 	}
 	if atLeastOneUpdated {
 		r := odata.NewRuntime(exe)
-		version, err := r.GetVersion(artifactId)
+		version, _, err := r.Get(artifactId)
 		if err != nil {
 			return err
 		}

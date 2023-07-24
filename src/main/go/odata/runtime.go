@@ -36,51 +36,31 @@ func (r *Runtime) UnDeploy(id string) error {
 	return modifyingCall("DELETE", urlPath, nil, 202, "", r.exe)
 }
 
-func (r *Runtime) GetVersion(id string) (string, error) {
-	log.Info().Msgf("Getting version of runtime artifact %v", id)
+func (r *Runtime) Get(id string) (version string, status string, err error) {
+	log.Info().Msgf("Getting details of runtime artifact %v", id)
 	urlPath := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')", id)
 
 	callType := "Get runtime artifact"
 	resp, err := readOnlyCall(urlPath, callType, r.exe)
 	if err != nil {
 		if err.Error() == fmt.Sprintf("%v call failed with response code = 404", callType) { // artifact not deployed to runtime
-			return "NOT_DEPLOYED", nil
+			return "NOT_DEPLOYED", "", nil
 		} else {
-			return "", err
+			return "", "", err
 		}
 	}
-	// Process response to extract version
+	// Process response to extract version and status
 	var jsonData *runtimeData
 	respBody, err := r.exe.ReadRespBody(resp)
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	if jsonData.Root.Status == "STARTED" {
-		return jsonData.Root.Version, nil
+		return jsonData.Root.Version, "STARTED", nil
 	} else { // artifact runtime deployment failed or not complete
-		return "", nil
+		return "", jsonData.Root.Status, nil
 	}
-}
-
-func (r *Runtime) GetStatus(id string) (string, error) {
-	log.Info().Msgf("Getting status of runtime artifact %v", id)
-	urlPath := fmt.Sprintf("/api/v1/IntegrationRuntimeArtifacts('%v')", id)
-
-	callType := "Get runtime artifact"
-	resp, err := readOnlyCall(urlPath, callType, r.exe)
-	if err != nil {
-		return "", err
-	}
-	// Process response to extract status
-	var jsonData *runtimeData
-	respBody, err := r.exe.ReadRespBody(resp)
-	err = json.Unmarshal(respBody, &jsonData)
-	if err != nil {
-		return "", err
-	}
-
-	return jsonData.Root.Status, nil
 }
 
 func (r *Runtime) GetErrorInfo(id string) (string, error) {

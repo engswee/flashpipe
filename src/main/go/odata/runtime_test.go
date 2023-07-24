@@ -85,17 +85,13 @@ func (suite *RuntimeSuite) TestRuntime_GetErrorInfo() {
 	assert.Contains(suite.T(), errorMessage, "Validation of the artifact failed", "errorMessage does not have validation error")
 }
 
-func (suite *RuntimeSuite) TestRuntime_GetStatusVersion() {
+func (suite *RuntimeSuite) TestRuntime_Get() {
 	rt := NewRuntime(suite.exe)
-	status, err := rt.GetStatus("IFlow1")
+	version, status, err := rt.Get("IFlow1")
 	if err != nil {
-		suite.T().Fatalf("GetStatus failed with error - %v", err)
+		suite.T().Fatalf("Get failed with error - %v", err)
 	}
 	assert.Equal(suite.T(), "STARTED", status, "Runtime status of IFlow1 is not STARTED")
-	version, err := rt.GetVersion("IFlow1")
-	if err != nil {
-		suite.T().Fatalf("GetVersion failed with error - %v", err)
-	}
 	assert.Equal(suite.T(), "1.0.1", version, "Runtime version of IFlow1 is not 1.0.1")
 }
 
@@ -110,11 +106,11 @@ func (suite *RuntimeSuite) TestRuntime_UnDeploy() {
 func setupRuntime(t *testing.T, artifactId string, artifactType string, exe *httpclnt.HTTPExecuter) {
 	r := NewRuntime(exe)
 
-	version, err := r.GetVersion(artifactId)
+	_, status, err := r.Get(artifactId)
 	if err != nil {
-		t.Fatalf("GetVersion failed with error - %v", err)
+		t.Fatalf("Get failed with error - %v", err)
 	}
-	if version != "STARTED" {
+	if status != "STARTED" {
 		dt := NewDesigntimeArtifact(artifactType, exe)
 
 		err = dt.Deploy(artifactId)
@@ -127,7 +123,7 @@ func setupRuntime(t *testing.T, artifactId string, artifactType string, exe *htt
 func tearDownRuntime(t *testing.T, artifactId string, exe *httpclnt.HTTPExecuter) {
 	r := NewRuntime(exe)
 
-	version, err := r.GetVersion(artifactId)
+	version, _, err := r.Get(artifactId)
 	if err != nil {
 		t.Fatalf("get failed with error - %v", err)
 	}
