@@ -83,9 +83,9 @@ func deployArtifacts(delimitedIds string, artifactType string, delayLength int, 
 
 	// Delay to allow deployment to start before checking the status
 	// Only applicable if there is only 1 artifact, because if there are many, then there is an inherent delay already
-	if len(ids) == 1 {
-		time.Sleep(time.Duration(delayLength) * time.Second)
-	}
+	//if len(ids) == 1 {
+	//	time.Sleep(time.Duration(delayLength) * time.Second)
+	//}
 
 	// Check deployment status of artifacts
 	for i, id := range ids {
@@ -100,9 +100,12 @@ func deployArtifacts(delimitedIds string, artifactType string, delayLength int, 
 }
 
 func deploySingle(artifact odata.DesigntimeArtifact, runtime *odata.Runtime, id string, compareVersions bool) error {
-	designtimeVer, _, err := artifact.Get(id, "active")
+	designtimeVer, exists, err := artifact.Get(id, "active")
 	if err != nil {
 		return err
+	}
+	if !exists {
+		return fmt.Errorf("Designtime artifact %v does not exist", id)
 	}
 
 	if compareVersions == true {
@@ -139,12 +142,16 @@ func checkDeploymentStatus(runtime *odata.Runtime, delayLength int, maxCheckLimi
 	log.Info().Msgf("Checking runtime status for artifact %v every %d seconds up to %d times", id, delayLength, maxCheckLimit)
 
 	for i := 0; i < maxCheckLimit; i++ {
-		_, status, err := runtime.Get(id)
+		version, status, err := runtime.Get(id)
 		if err != nil {
 			return err
 		}
+		log.Info().Msgf("Check %d - Current artifact runtime status = %s", i+1, status)
+		if version == "NOT_DEPLOYED" {
+			time.Sleep(time.Duration(delayLength) * time.Second)
+			continue
+		}
 
-		log.Info().Msgf("Check %d - Current artifact runtime status = %s", i, status)
 		if status != "STARTING" {
 			if status == "STARTED" {
 				break

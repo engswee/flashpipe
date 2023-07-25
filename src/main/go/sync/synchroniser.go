@@ -160,9 +160,9 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 
 		var directoryName string
 		if dirNamingType == "NAME" {
-			directoryName = artifact.Id
-		} else {
 			directoryName = artifact.Name
+		} else {
+			directoryName = artifact.Id
 		}
 		// Unzip artifact contents
 		log.Debug().Msgf("Target artifact directory name - %v", directoryName)

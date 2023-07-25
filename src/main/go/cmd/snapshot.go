@@ -82,11 +82,13 @@ func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitSrcDir string, w
 	for i, id := range ids {
 		log.Info().Msg("---------------------------------------------------------------------------------")
 		log.Info().Msgf("Processing package %d/%d - ID: %v", i+1, len(ids), id)
+		packageWorkingDir := fmt.Sprintf("%v/%v", workDir, id)
+		packageGitDir := fmt.Sprintf("%v/%v", gitSrcDir, id)
 		if syncPackageLevelDetails {
-			err = synchroniser.SyncPackageDetails(id, workDir, gitSrcDir)
+			err = synchroniser.SyncPackageDetails(id, packageWorkingDir, packageGitDir)
 			logger.ExitIfError(err)
 		}
-		err = synchroniser.SyncArtifacts(id, fmt.Sprintf("%v/%v", workDir, id), fmt.Sprintf("%v/%v", gitSrcDir, id), nil, nil, draftHandling, "ID", "")
+		err = synchroniser.SyncArtifacts(id, packageWorkingDir, packageGitDir, nil, nil, draftHandling, "ID", "")
 		logger.ExitIfError(err)
 	}
 

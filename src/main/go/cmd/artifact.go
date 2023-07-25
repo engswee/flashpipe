@@ -59,7 +59,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	artifactName := config.GetMandatoryString(cmd, "artifact-name")
 	packageId := config.GetMandatoryString(cmd, "package-id")
 	packageName := config.GetMandatoryString(cmd, "package-name")
-	gitSrcDir := config.GetMandatoryString(cmd, "dir-gitsrc")
+	gitSrcDir := config.GetMandatoryString(cmd, "dir-gitsrc") // TODO - rename to artifact directory
 	parametersFile := config.GetString(cmd, "file-param")
 	manifestFile := config.GetString(cmd, "file-manifest")
 	workDir := config.GetString(cmd, "dir-work")
@@ -99,10 +99,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	if !exists {
 		// Create artifact
 		log.Info().Msgf("Artifact %v will be created", artifactId)
-
-		err = prepareUploadDir(workDir, gitSrcDir, dt)
-		logger.ExitIfError(err)
-
+		// Create integration package first if required
 		ip = odata.NewIntegrationPackage(exe)
 		_, _, packageExists, err := ip.Get(packageId)
 		logger.ExitIfError(err)
@@ -117,13 +114,16 @@ func runUpdateArtifact(cmd *cobra.Command) {
 			log.Info().Msgf("Integration package %v created", packageId)
 		}
 
-		err = createArtifact(artifactId, artifactName, packageId, workDir+"/upload", scriptMap, dt)
-		logger.ExitIfError(err)
-
 		// TODO - manifest normalisation currently not in place as using workaround MANIFEST.MF replacement
 
 		// Update the script collection in IFlow BPMN2 XML before upload
 		err = file.UpdateBPMN(gitSrcDir, scriptMap)
+		logger.ExitIfError(err)
+
+		err = prepareUploadDir(workDir, gitSrcDir, dt)
+		logger.ExitIfError(err)
+
+		err = createArtifact(artifactId, artifactName, packageId, workDir+"/upload", scriptMap, dt)
 		logger.ExitIfError(err)
 
 		log.Info().Msg("🏆 Artifact created successfully")
