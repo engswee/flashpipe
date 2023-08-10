@@ -42,10 +42,6 @@ func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, gitS
 		return err
 	}
 
-	// TODO - normalise ID and name - no longer required?
-	// Normalize ID
-	// Normalize Name
-
 	log.Info().Msg("Storing package details from tenant for comparison")
 	// Write package details from tenant to file
 	tenantFile := fmt.Sprintf("%v/from_tenant/%v.json", workDir, packageId)
@@ -87,6 +83,11 @@ func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, gitS
 			return err
 		}
 	}
+	// Clean up working directory
+	err = os.RemoveAll(workDir + "/from_tenant")
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -117,11 +118,6 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 	if err != nil {
 		return err
 	}
-	// TODO - collect error for handling
-	//err = os.MkdirAll(workDir+"/from_git", os.ModePerm)
-	//logger.ExitIfError(err)
-	//err = os.MkdirAll(workDir+"/from_tenant", os.ModePerm)
-	//logger.ExitIfError(err)
 
 	filtered, err := filterArtifacts(artifacts, includedIds, excludedIds)
 	if err != nil {
@@ -152,12 +148,6 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 			return err
 		}
 
-		// Normalise ID and Name
-		//normalisedId := str.Normalise(artifact.Id, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
-		//normalisedName := str.Normalise(artifact.Name, normaliseManifestAction, normaliseManifestPrefixOrSuffix)
-		//log.Debug().Msgf("Normalised artifact ID - %v", normalisedId)
-		//log.Debug().Msgf("Normalised artifact name - %v", normalisedName)
-
 		var directoryName string
 		if dirNamingType == "NAME" {
 			directoryName = artifact.Name
@@ -173,44 +163,48 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 		}
 		log.Info().Msgf("Downloaded artifact unzipped to %v", downloadedArtifactPath)
 
-		// TODO - Normalise MANIFEST.MF before sync to Git
-
-		// Normalise the script collection in IFlow BPMN2 XML before syncing to Git
-		err = file.UpdateBPMN(downloadedArtifactPath, scriptCollectionMap)
-		if err != nil {
-			return err
+		// Update the script collection in IFlow BPMN2 XML before syncing to Git
+		if artifact.ArtifactType == "Integration" {
+			err = file.UpdateBPMN(downloadedArtifactPath, scriptCollectionMap)
+			if err != nil {
+				return err
+			}
 		}
 
 		gitArtifactPath := fmt.Sprintf("%v/%v", gitSrcDir, directoryName)
 		if file.CheckFileExists(fmt.Sprintf("%v/META-INF/MANIFEST.MF", gitArtifactPath)) {
-			// (1) If IFlow already exists in Git, then compare and update
+			// (1) If artifact already exists in Git, then compare and update
 			log.Info().Msg("Comparing content from tenant against Git")
 
-			// TODO - no longer required?
-			// Copy to temp directory for diff comparison
-			// Remove comments from parameters.prop before comparison only if it exists
-
-			// Diff directories excluding parameters.prop
-			// TODO - diff meta and resources/value-mapping instead of whole directory
+			// Diff artifact contents excluding parameters.prop
 			dirDiffer := dt.DiffContent(downloadedArtifactPath, gitArtifactPath)
 
-			// Diff parameters.prop ignoring commented lines
-			downloadedParams := fmt.Sprintf("%v/src/main/resources/parameters.prop", downloadedArtifactPath)
-			gitParams := fmt.Sprintf("%v/src/main/resources/parameters.prop", gitArtifactPath)
+			// Diff parameters.prop ignoring commented lines for integration flows
 			var paramDiffer bool
-			if file.CheckFileExists(downloadedParams) && file.CheckFileExists(gitParams) {
-				paramDiffer = file.DiffParams(downloadedParams, gitParams)
-			} else if !file.CheckFileExists(downloadedParams) && !file.CheckFileExists(gitParams) {
-				log.Warn().Msg("Skipping diff of parameters.prop as it does not exist in both source and target")
-			} else {
-				paramDiffer = true
-				log.Info().Msg("Update required since parameters.prop does not exist in either source or target")
+			if artifact.ArtifactType == "Integration" {
+				downloadedParams := fmt.Sprintf("%v/src/main/resources/parameters.prop", downloadedArtifactPath)
+				gitParams := fmt.Sprintf("%v/src/main/resources/parameters.prop", gitArtifactPath)
+				if file.CheckFileExists(downloadedParams) && file.CheckFileExists(gitParams) {
+					paramDiffer = file.DiffParams(downloadedParams, gitParams)
+				} else if !file.CheckFileExists(downloadedParams) && !file.CheckFileExists(gitParams) {
+					log.Warn().Msg("Skipping diff of parameters.prop as it does not exist in both source and target")
+				} else {
+					paramDiffer = true
+					log.Info().Msg("Update required since parameters.prop does not exist in either source or target")
+				}
 			}
 
 			if dirDiffer || paramDiffer {
 				log.Info().Msg("🏆 Changes detected and will be updated to Git")
+				// TODO - move to designtime artifact so that it caters for different artifact types
 				// Update the changes into the Git directory
-				err = file.ReplaceDir(downloadedArtifactPath, gitArtifactPath)
+				// (a) Replace /src/main/resources
+				err = file.ReplaceDir(downloadedArtifactPath+"/src/main/resources", gitArtifactPath+"/src/main/resources")
+				if err != nil {
+					return err
+				}
+				// (b) Replace /META-INF/MANIFEST.MF
+				err = file.ReplaceDir(downloadedArtifactPath+"/META-INF", gitArtifactPath+"/META-INF")
 				if err != nil {
 					return err
 				}
@@ -218,7 +212,7 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 				log.Info().Msg("🏆 No changes detected. Update to Git not required")
 			}
 
-		} else { // (2) If IFlow does not exist in Git, then add it
+		} else { // (2) If artifact does not exist in Git, then add it
 			log.Info().Msgf("🏆 Artifact %v does not exist, and will be added to Git", artifact.Id)
 
 			err = file.ReplaceDir(downloadedArtifactPath, gitArtifactPath)
@@ -228,16 +222,11 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 		}
 	}
 
-	// TODO - write error wrapper - https://go.dev/blog/errors-are-values
 	// Clean up working directory
 	err = os.RemoveAll(workDir + "/download")
 	if err != nil {
 		return err
 	}
-	//err = os.RemoveAll(workDir + "/from_git")
-	//logger.ExitIfError(err)
-	//err = os.RemoveAll(workDir + "/from_tenant")
-	//logger.ExitIfError(err)
 
 	log.Info().Msg("---------------------------------------------------------------------------------")
 	log.Info().Msgf("🏆 Completed processing of artifacts in integration package %v", packageId)

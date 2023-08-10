@@ -41,12 +41,13 @@ SAP Integration Suite tenant.`,
 	artifactCmd.Flags().String("artifact-name", "", "Name of artifact [or set environment ARTIFACT_NAME]")
 	artifactCmd.Flags().String("package-id", "", "ID of Integration Package [or set environment PACKAGE_ID]")
 	artifactCmd.Flags().String("package-name", "", "Name of Integration Package [or set environment PACKAGE_NAME]")
-	artifactCmd.Flags().String("dir-gitsrc", "", "Directory containing contents of Integration Flow [or set environment GIT_SRC_DIR]")
+	artifactCmd.Flags().String("dir-gitsrc", "", "Directory containing contents of designtime artifact [or set environment GIT_SRC_DIR]")
 	artifactCmd.Flags().String("file-param", "", "Use to a different parameters.prop file instead of the default in src/main/resources/ [or set environment PARAM_FILE]")
 	artifactCmd.Flags().String("file-manifest", "", "Use to a different parameters.prop file instead of the default in src/main/resources/ [or set environment MANIFEST_FILE]")
 	artifactCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files [or set environment WORK_DIR]")
 	artifactCmd.Flags().String("scriptmap", "", "Comma-separated source-target ID pairs for converting script collection references during create/update [or set environment SCRIPT_COLLECTION_MAP]")
 	artifactCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping")
+	// TODO - another flag for replacing value mapping in QAS?
 
 	return artifactCmd
 }
@@ -93,7 +94,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	dt := odata.NewDesigntimeArtifact(artifactType, exe)
 	ip := odata.NewIntegrationPackage(exe)
 
-	// Check if IFlow already exist on tenant
+	// Check if artifact already exist on tenant
 	exists, err := artifactExists(artifactId, artifactType, packageId, dt, ip)
 	logger.ExitIfError(err)
 	if !exists {
@@ -117,8 +118,10 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		// TODO - manifest normalisation currently not in place as using workaround MANIFEST.MF replacement
 
 		// Update the script collection in IFlow BPMN2 XML before upload
-		err = file.UpdateBPMN(gitSrcDir, scriptMap)
-		logger.ExitIfError(err)
+		if artifactType == "Integration" {
+			err = file.UpdateBPMN(gitSrcDir, scriptMap)
+			logger.ExitIfError(err)
+		}
 
 		err = prepareUploadDir(workDir, gitSrcDir, dt)
 		logger.ExitIfError(err)
@@ -129,7 +132,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		log.Info().Msg("🏆 Artifact created successfully")
 
 	} else {
-		// Update IFlow
+		// Update artifact
 		log.Info().Msg("Checking if designtime artifact needs to be updated")
 		// 1 - Download artifact content from tenant
 		zipFile := fmt.Sprintf("%v/%v.zip", workDir, artifactId)
@@ -137,11 +140,11 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		logger.ExitIfError(err)
 		// 2 - Diff contents from tenant against Git
 		// TODO - refactor and combine with implementation used in synchroniser
-		changesFound, err := compareIFlowContents(workDir, zipFile, gitSrcDir, artifactId, artifactName, scriptMap, dt)
+		changesFound, err := compareArtifactContents(workDir, zipFile, gitSrcDir, scriptMap, dt, artifactType)
 		logger.ExitIfError(err)
 
 		if changesFound == true {
-			log.Info().Msg("Changes found in IFlow. IFlow design will be updated in CPI tenant")
+			log.Info().Msg("Changes found in designtime artifact. Designtime artifact will be updated in CPI tenant")
 			err = prepareUploadDir(workDir, gitSrcDir, dt)
 			logger.ExitIfError(err)
 			err = updateArtifact(artifactId, artifactName, packageId, workDir+"/upload", scriptMap, dt)
@@ -159,9 +162,9 @@ func runUpdateArtifact(cmd *cobra.Command) {
 				logger.ExitIfError(err)
 			}
 
-			log.Info().Msg("🏆 IFlow design updated successfully")
+			log.Info().Msg("🏆 Designtime artifact updated successfully")
 		} else {
-			log.Info().Msg("🏆 No changes detected. IFlow design does not need to be updated")
+			log.Info().Msg("🏆 No changes detected. Designtime artifact does not need to be updated")
 		}
 
 		// 4 - Update the configuration of the integration artifact based on parameters.prop file
@@ -184,25 +187,24 @@ func prepareUploadDir(workDir string, gitSrcDir string, dt odata.DesigntimeArtif
 	return
 }
 
-func compareIFlowContents(workDir string, zipFile string, gitSrcDir string, iflowId string, iflowName string, scriptMap string, dt odata.DesigntimeArtifact) (bool, error) {
+func compareArtifactContents(workDir string, zipFile string, gitSrcDir string, scriptMap string, dt odata.DesigntimeArtifact, artifactType string) (bool, error) {
 	err := os.RemoveAll(workDir + "/download")
 	if err != nil {
 		return false, err
 	}
 
-	log.Info().Msgf("Unzipping downloaded IFlow artifact %v to %v/download", zipFile, workDir)
+	log.Info().Msgf("Unzipping downloaded designtime artifact %v to %v/download", zipFile, workDir)
 	err = file.UnzipSource(zipFile, workDir+"/download")
 	if err != nil {
 		return false, err
 	}
 	// Update the script collection in IFlow BPMN2 XML before diff comparison
-	err = file.UpdateBPMN(gitSrcDir, scriptMap)
-	if err != nil {
-		return false, err
+	if artifactType == "Integration" {
+		err = file.UpdateBPMN(gitSrcDir, scriptMap)
+		if err != nil {
+			return false, err
+		}
 	}
-
-	// TODO - Update the MANIFEST.MF file with script collection conversions
-
 	// Diff directories excluding parameters.prop
 	// - Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
 	// - Therefore diff of parameters.prop may come up with false differences

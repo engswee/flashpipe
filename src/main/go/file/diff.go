@@ -7,16 +7,12 @@ import (
 )
 
 func DiffDirectories(firstDir string, secondDir string) bool {
-	// Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
-	// Therefore diff of parameters.prop may come up with false differences
-	//log.Info().Msg(fmt.Sprint("Executing command:", "diff", "--ignore-matching-lines=^Origin.*", "--strip-trailing-cr", "--recursive", "--ignore-all-space", "--ignore-blank-lines", "--exclude=parameters.prop", "--exclude=metainfo.prop", "--exclude=.DS_Store", "--exclude=.project", firstDir, secondDir))
-	//cmd := exec.Command("diff", "--ignore-matching-lines=^Origin.*", "--strip-trailing-cr", "--recursive", "--ignore-all-space", "--ignore-blank-lines", "--exclude=parameters.prop", "--exclude=metainfo.prop", "--exclude=.DS_Store", "--exclude=.project", firstDir, secondDir)
 	log.Info().Msgf("Executing command: diff --ignore-matching-lines=^Origin.* --strip-trailing-cr --recursive --ignore-all-space --ignore-blank-lines --exclude=parameters.prop --exclude=.DS_Store %v %v", firstDir, secondDir)
 	cmd := exec.Command("diff", "--ignore-matching-lines=^Origin.*", "--strip-trailing-cr", "--recursive", "--ignore-all-space", "--ignore-blank-lines", "--exclude=parameters.prop", "--exclude=.DS_Store", firstDir, secondDir)
 
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Println(string(stdoutStderr))
+		fmt.Println(string(stdoutStderr)) // TODO - return output rather than print it out
 	}
 
 	return err != nil

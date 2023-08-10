@@ -21,9 +21,3 @@ func ExitIfError(err error) {
 		log.Fatal().Msg(err.Error())
 	}
 }
-
-func ExitIfErrorWithMsg(err error, msg string) {
-	if err != nil {
-		log.Fatal().Msg(err.Error())
-	}
-}
