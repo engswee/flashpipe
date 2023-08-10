@@ -3,6 +3,9 @@ FROM bitnami/java:1.8.292-prod-debian-10-r23
 # Docker base image reference:
 # https://hub.docker.com/r/bitnami/java
 # ----------------------------------------
+#https://github.com/bitnami/containers/blob/main/bitnami/java/1.8/debian-11/Dockerfile
+#FROM docker.io/bitnami/minideb:bullseye
+#https://hub.docker.com/r/bitnami/minideb
 
 # ----------------------------------------
 # 1 - Install unzip functionality
@@ -14,6 +17,7 @@ RUN install_packages git unzip
 # ----------------------------------------
 ARG MAVEN_REPO_DIR="/usr/share/maven/ref/repository"
 ARG BASE_URL=https://repo1.maven.org/maven2
+ARG USER_HOME_DIR="/root"
 
 ARG GROOVY_VER=2.4.21
 RUN mkdir -p       ${MAVEN_REPO_DIR}/org/codehaus/groovy/groovy-all/${GROOVY_VER} \
@@ -54,10 +58,15 @@ RUN mkdir -p       ${MAVEN_REPO_DIR}/org/zeroturnaround/zt-zip/${ZT_ZIP_VER} \
 # ----------------------------------------
 ARG FLASHPIPE_VERSION=2.7.2-SNAPSHOT
 RUN mkdir -p ${MAVEN_REPO_DIR}/io/github/engswee/flashpipe/${FLASHPIPE_VERSION}
-COPY target/flashpipe-${FLASHPIPE_VERSION}.jar ${MAVEN_REPO_DIR}/io/github/engswee/flashpipe/${FLASHPIPE_VERSION}/flashpipe-${FLASHPIPE_VERSION}.jar
+COPY target/flashpipe.jar ${MAVEN_REPO_DIR}/io/github/engswee/flashpipe/${FLASHPIPE_VERSION}/flashpipe-${FLASHPIPE_VERSION}.jar
 
 COPY src/main/docker/script/*.sh /usr/bin/
 RUN chmod +x /usr/bin/*.sh
 
 RUN mkdir -p /tmp/log4j2-config
 COPY src/main/docker/log4j2-config/*.xml /tmp/log4j2-config/
+
+COPY src/main/docker/gitconfig ${USER_HOME_DIR}/.gitconfig
+
+COPY target/flashpipe /usr/bin/
+RUN chmod +x /usr/bin/flashpipe

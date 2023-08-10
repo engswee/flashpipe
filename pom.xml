@@ -19,7 +19,7 @@
         <bytebuddy.version>1.11.0</bytebuddy.version>
         <camel.core.version>2.24.2</camel.core.version>
         <skip.unit.tests>false</skip.unit.tests>
-        <mvn.golang.go.version>1.20.4</mvn.golang.go.version>
+        <mvn.golang.go.version>1.21.0</mvn.golang.go.version>
     </properties>
 
     <dependencies>
@@ -202,6 +202,8 @@
                         </goals>
                         <configuration>
                             <sources>src/main/go</sources>
+                            <targetArch>amd64</targetArch>
+                            <targetOs>linux</targetOs>
                         </configuration>
                     </execution>
                 </executions>
