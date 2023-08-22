@@ -28,6 +28,7 @@ log/
 out/
 target/
 builder.sh
+output/
 
 # IntelliJ IDEA files
 .idea/
