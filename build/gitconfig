@@ -1,2 +1,4 @@
 [core]
 	autocrlf = input
+[safe]
+    directory = *

@@ -178,6 +178,5 @@ func copyContent(srcDir string, tgtDir string) error {
 	if err != nil {
 		return err
 	}
-	// TODO - test artifact that has archive /lib directory
 	return nil
 }

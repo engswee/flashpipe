@@ -72,7 +72,7 @@ func CommitToRepo(gitSrcDir string, commitMsg string, commitUser string, commitE
 		log.Info().Msgf("Commit object:\n%v", obj)
 		log.Info().Msg("🏆 Changes committed")
 
-		// TODO - git add safe directory
+		// TODO - git config --global --add safe.directory '*'
 	}
 	return
 }
