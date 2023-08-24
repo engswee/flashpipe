@@ -10,6 +10,9 @@ import (
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 func NewSyncCommand() *cobra.Command {
@@ -40,6 +43,14 @@ tenant to a Git repository.`,
 			if includedIds != "" && excludedIds != "" {
 				return fmt.Errorf("--ids.include and --ids.exclude are mutually exclusive - use only one of them")
 			}
+			// If artifacts directory is provided, validate that is it a subdirectory of Git repo
+			gitRepoDir := config.GetMandatoryString(cmd, "dir-git-repo")
+			artifactsDir := config.GetString(cmd, "dir-artifacts")
+			gitRepoDirClean := filepath.Clean(gitRepoDir) + string(os.PathSeparator)
+			if artifactsDir != "" && !strings.HasPrefix(artifactsDir, gitRepoDirClean) {
+				return fmt.Errorf("--dir-artifacts [%v] should be a subdirectory of --dir-git-repo [%v]", artifactsDir, gitRepoDirClean)
+			}
+			// TODO - PRIO2 Validate secrets in env var
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
@@ -49,7 +60,8 @@ tenant to a Git repository.`,
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
 	syncCmd.Flags().String("packageid", "", "ID of Integration Package [or set environment PACKAGE_ID]")
-	syncCmd.Flags().String("dir-gitsrc", "", "Base directory containing contents of artifacts [or set environment GIT_SRC_DIR]")
+	syncCmd.Flags().String("dir-git-repo", "", "Directory of Git repository")
+	syncCmd.Flags().String("dir-artifacts", "", "Directory containing contents of artifacts")
 	syncCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files [or set environment WORK_DIR]")
 	syncCmd.Flags().String("dirnamingtype", "ID", "Name artifact directory by ID or Name. Allowed values: ID, NAME [or set environment DIR_NAMING_TYPE]")
 	syncCmd.Flags().String("drafthandling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR [or set environment DRAFT_HANDLING]")
@@ -68,7 +80,8 @@ func runSync(cmd *cobra.Command) {
 	log.Info().Msg("Executing sync command")
 
 	packageId := config.GetMandatoryString(cmd, "packageid")
-	gitSrcDir := config.GetMandatoryString(cmd, "dir-gitsrc")
+	gitRepoDir := config.GetMandatoryString(cmd, "dir-git-repo")
+	artifactsDir := config.GetStringWithDefault(cmd, "dir-artifacts", gitRepoDir)
 	workDir := config.GetString(cmd, "dir-work")
 	dirNamingType := config.GetString(cmd, "dirnamingtype")
 	draftHandling := config.GetString(cmd, "drafthandling")
@@ -87,16 +100,16 @@ func runSync(cmd *cobra.Command) {
 	synchroniser := sync.New(exe)
 
 	if syncPackageLevelDetails {
-		err := synchroniser.SyncPackageDetails(packageId, workDir, gitSrcDir)
+		err := synchroniser.SyncPackageDetails(packageId, workDir, artifactsDir)
 		logger.ExitIfError(err)
 	}
 
 	// Extract IDs from delimited values
 	includedIds := str.ExtractDelimitedValues(delimitedIdsInclude, ",")
 	excludedIds := str.ExtractDelimitedValues(delimitedIdsExclude, ",")
-	err := synchroniser.SyncArtifacts(packageId, workDir, gitSrcDir, includedIds, excludedIds, draftHandling, dirNamingType, scriptCollectionMap)
+	err := synchroniser.SyncArtifacts(packageId, workDir, artifactsDir, includedIds, excludedIds, draftHandling, dirNamingType, scriptCollectionMap)
 	logger.ExitIfError(err)
 
-	err = repo.CommitToRepo(gitSrcDir, commitMsg, commitUser, commitEmail)
+	err = repo.CommitToRepo(gitRepoDir, commitMsg, commitUser, commitEmail)
 	logger.ExitIfError(err)
 }

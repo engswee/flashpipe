@@ -18,6 +18,14 @@ func GetString(cmd *cobra.Command, flagName string) string {
 	return val
 }
 
+func GetStringWithDefault(cmd *cobra.Command, flagName string, defaultValue string) string {
+	val, _ := cmd.Flags().GetString(flagName)
+	if val == "" {
+		return defaultValue
+	}
+	return val
+}
+
 func GetInt(cmd *cobra.Command, flagName string) int {
 	val, _ := cmd.Flags().GetInt(flagName)
 	return val

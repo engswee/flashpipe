@@ -23,7 +23,7 @@ func New(exe *httpclnt.HTTPExecuter) *Synchroniser {
 	return s
 }
 
-func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, gitSrcDir string) error {
+func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, artifactsDir string) error {
 	packageFromTenant, readOnly, packageExists, err := s.ip.Get(packageId)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, gitS
 	}
 
 	// Get existing package details file if it exists and compare values
-	gitSourceFile := fmt.Sprintf("%v/%v.json", gitSrcDir, packageId)
+	gitSourceFile := fmt.Sprintf("%v/%v.json", artifactsDir, packageId)
 	if file.Exists(gitSourceFile) {
 		packageFromGit, err := odata.GetPackageDetails(tenantFile)
 		if err != nil {
@@ -91,7 +91,7 @@ func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, gitS
 	return nil
 }
 
-func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, scriptCollectionMap string) error {
+func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, artifactsDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, scriptCollectionMap string) error {
 	// Verify the package is downloadable (not read only)
 	_, readOnly, packageExists, err := s.ip.Get(packageId)
 	if err != nil {
@@ -147,6 +147,7 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 			return err
 		}
 
+		// TODO - PRIO1 override directory name - to cater for syncing from Staging artifact
 		var directoryName string
 		if dirNamingType == "NAME" {
 			directoryName = artifact.Name
@@ -162,7 +163,7 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, gitSrcDir
 		}
 		log.Info().Msgf("Downloaded artifact unzipped to %v", downloadedArtifactPath)
 
-		gitArtifactPath := fmt.Sprintf("%v/%v", gitSrcDir, directoryName)
+		gitArtifactPath := fmt.Sprintf("%v/%v", artifactsDir, directoryName)
 		if file.Exists(fmt.Sprintf("%v/META-INF/MANIFEST.MF", gitArtifactPath)) {
 			// (1) If artifact already exists in Git, then compare and update
 			log.Info().Msg("Comparing content from tenant against Git")

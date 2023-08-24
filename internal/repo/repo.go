@@ -8,13 +8,13 @@ import (
 	"time"
 )
 
-func CommitToRepo(gitSrcDir string, commitMsg string, commitUser string, commitEmail string) (err error) {
+func CommitToRepo(gitRepoDir string, commitMsg string, commitUser string, commitEmail string) (err error) {
 	// References:
 	// https://github.com/go-git/go-git/tree/master/_examples
 	// https://github.com/ad-m/github-push-action/blob/master/start.js
 
-	log.Info().Msgf("Opening Git repository at %v", gitSrcDir)
-	repo, err := git.PlainOpen(gitSrcDir)
+	log.Info().Msgf("Opening Git repository at %v", gitRepoDir)
+	repo, err := git.PlainOpen(gitRepoDir)
 	if err != nil {
 		return
 	}
@@ -47,10 +47,6 @@ func CommitToRepo(gitSrcDir string, commitMsg string, commitUser string, commitE
 
 		log.Info().Msg("Trying to commit changes")
 		var commit plumbing.Hash
-		// https://github.com/marketplace/actions/go-coverage-badge
-		// action@github.com
-		// GitHub Action
-		// https://github.com/actions/checkout/discussions/479
 		commit, err = w.Commit(commitMsg, &git.CommitOptions{
 			All: true,
 			Author: &object.Signature{
@@ -71,8 +67,6 @@ func CommitToRepo(gitSrcDir string, commitMsg string, commitUser string, commitE
 
 		log.Info().Msgf("Commit object:\n%v", obj)
 		log.Info().Msg("🏆 Changes committed")
-
-		// TODO - git config --global --add safe.directory '*'
 	}
 	return
 }

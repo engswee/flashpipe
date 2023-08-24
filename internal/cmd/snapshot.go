@@ -36,7 +36,7 @@ tenant to a Git repository.`,
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	snapshotCmd.Flags().String("dir-gitsrc", "", "Base directory containing contents of artifacts (grouped into packages) [or set environment GIT_SRC_DIR]")
+	snapshotCmd.Flags().String("dir-git-repo", "", "Directory of Git repository containing contents of artifacts (grouped into packages)")
 	snapshotCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files [or set environment WORK_DIR]")
 	snapshotCmd.Flags().String("drafthandling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR [or set environment DRAFT_HANDLING]")
 	snapshotCmd.Flags().String("git-commitmsg", "Tenant snapshot of "+time.Now().Format(time.UnixDate), "Message used in commit [or set environment COMMIT_MESSAGE]")
@@ -50,7 +50,7 @@ tenant to a Git repository.`,
 func runSnapshot(cmd *cobra.Command) {
 	log.Info().Msg("Executing snapshot command")
 
-	gitSrcDir := config.GetMandatoryString(cmd, "dir-gitsrc")
+	gitRepoDir := config.GetMandatoryString(cmd, "dir-git-repo")
 	workDir := config.GetString(cmd, "dir-work")
 	draftHandling := config.GetString(cmd, "drafthandling")
 	commitMsg := config.GetString(cmd, "git-commitmsg")
@@ -59,14 +59,14 @@ func runSnapshot(cmd *cobra.Command) {
 	syncPackageLevelDetails := config.GetBool(cmd, "syncpackagedetails")
 
 	serviceDetails := odata.GetServiceDetails(cmd)
-	err := getTenantSnapshot(serviceDetails, gitSrcDir, workDir, draftHandling, syncPackageLevelDetails)
+	err := getTenantSnapshot(serviceDetails, gitRepoDir, workDir, draftHandling, syncPackageLevelDetails)
 	logger.ExitIfError(err)
 
-	err = repo.CommitToRepo(gitSrcDir, commitMsg, commitUser, commitEmail)
+	err = repo.CommitToRepo(gitRepoDir, commitMsg, commitUser, commitEmail)
 	logger.ExitIfError(err)
 }
 
-func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitSrcDir string, workDir string, draftHandling string, syncPackageLevelDetails bool) error {
+func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitRepoDir string, workDir string, draftHandling string, syncPackageLevelDetails bool) error {
 	log.Info().Msg("---------------------------------------------------------------------------------")
 	log.Info().Msg("📢 Begin taking a snapshot of the tenant")
 
@@ -87,12 +87,12 @@ func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitSrcDir string, w
 		log.Info().Msg("---------------------------------------------------------------------------------")
 		log.Info().Msgf("Processing package %d/%d - ID: %v", i+1, len(ids), id)
 		packageWorkingDir := fmt.Sprintf("%v/%v", workDir, id)
-		packageGitDir := fmt.Sprintf("%v/%v", gitSrcDir, id)
+		packageArtifactsDir := fmt.Sprintf("%v/%v", gitRepoDir, id)
 		if syncPackageLevelDetails {
-			err = synchroniser.SyncPackageDetails(id, packageWorkingDir, packageGitDir)
+			err = synchroniser.SyncPackageDetails(id, packageWorkingDir, packageArtifactsDir)
 			logger.ExitIfError(err)
 		}
-		err = synchroniser.SyncArtifacts(id, packageWorkingDir, packageGitDir, nil, nil, draftHandling, "ID", "")
+		err = synchroniser.SyncArtifacts(id, packageWorkingDir, packageArtifactsDir, nil, nil, draftHandling, "ID", "")
 		logger.ExitIfError(err)
 	}
 
