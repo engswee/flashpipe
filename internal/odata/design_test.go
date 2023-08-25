@@ -2,6 +2,7 @@ package odata
 
 import (
 	"fmt"
+	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
 	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/spf13/viper"
@@ -68,6 +69,11 @@ func (suite *DesigntimeSuite) TearDownSuite() {
 	tearDownRuntime(suite.T(), "Integration_Test_Message_Mapping", suite.exe)
 	tearDownRuntime(suite.T(), "Integration_Test_Script_Collection", suite.exe)
 	tearDownRuntime(suite.T(), "Integration_Test_Value_Mapping", suite.exe)
+
+	err := os.RemoveAll("../../output/download")
+	if err != nil {
+		suite.T().Fatalf("Directory removal failed with error - %v", err)
+	}
 }
 
 func (suite *DesigntimeSuite) TestIntegration_CreateUpdateDeployDelete() {
@@ -118,12 +124,13 @@ func createUpdateDeployDelete(id string, name string, packageId string, dt Desig
 			if err != nil {
 				t.Fatalf("Deploy failed with error - %v", err)
 			}
-			// Get content
-			content, err := dt.GetContent(id, "active")
+			// Download
+			targetFile := fmt.Sprintf("../../output/download/%v.zip", id)
+			err = dt.Download(targetFile, id)
 			if err != nil {
-				t.Fatalf("GetContent failed with error - %v", err)
+				t.Fatalf("Download failed with error - %v", err)
 			}
-			assert.Greater(t, len(content), 0, "Expected len(content) > 0")
+			assert.Truef(t, file.Exists(targetFile), "Target file % not found", targetFile)
 			// Delete
 			err = dt.Delete(id)
 			if err != nil {

@@ -32,8 +32,8 @@ func (mm *MessageMapping) Delete(id string) (err error) {
 func (mm *MessageMapping) Get(id string, version string) (string, bool, error) {
 	return get(id, version, mm.typ, mm.exe)
 }
-func (mm *MessageMapping) GetContent(id string, version string) ([]byte, error) {
-	return getContent(id, version, mm.typ, mm.exe)
+func (mm *MessageMapping) Download(targetFile string, id string) error {
+	return download(targetFile, id, mm.typ, mm.exe)
 }
 func (mm *MessageMapping) CopyContent(srcDir string, tgtDir string) error {
 	return copyContent(srcDir, tgtDir)

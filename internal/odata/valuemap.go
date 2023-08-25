@@ -39,8 +39,8 @@ func (vm *ValueMapping) Delete(id string) error {
 func (vm *ValueMapping) Get(id string, version string) (string, bool, error) {
 	return get(id, version, vm.typ, vm.exe)
 }
-func (vm *ValueMapping) GetContent(id string, version string) ([]byte, error) {
-	return getContent(id, version, vm.typ, vm.exe)
+func (vm *ValueMapping) Download(targetFile string, id string) error {
+	return download(targetFile, id, vm.typ, vm.exe)
 }
 func (vm *ValueMapping) CopyContent(srcDir string, tgtDir string) error {
 	// Copy META-INF and value_mapping.xml separately so that other directories like QA, STG, PRD not copied

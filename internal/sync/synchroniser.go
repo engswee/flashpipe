@@ -142,12 +142,12 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, artifacts
 		// Download artifact content
 		dt := odata.NewDesigntimeArtifact(artifact.ArtifactType, s.exe)
 		targetDownloadFile := fmt.Sprintf("%v/download/%v.zip", workDir, artifact.Id)
-		err = odata.Download(targetDownloadFile, artifact.Id, dt)
+		err = dt.Download(targetDownloadFile, artifact.Id)
 		if err != nil {
 			return err
 		}
 
-		// TODO - PRIO1 override directory name - to cater for syncing from Staging artifact
+		// TODO - PRIO1 override directory name - to cater for syncing from Staging artifact, using key value pair
 		var directoryName string
 		if dirNamingType == "NAME" {
 			directoryName = artifact.Name

@@ -7,6 +7,7 @@ import (
 	"github.com/engswee/flashpipe/internal/httpclnt"
 	"github.com/rs/zerolog/log"
 	"os"
+	"path/filepath"
 )
 
 type DesigntimeArtifact interface {
@@ -15,7 +16,7 @@ type DesigntimeArtifact interface {
 	Deploy(id string) error
 	Delete(id string) error
 	Get(id string, version string) (string, bool, error)
-	GetContent(id string, version string) ([]byte, error)
+	Download(targetFile string, id string) error
 	CopyContent(srcDir string, tgtDir string) error
 	CompareContent(srcDir string, tgtDir string, scriptMap string, source string) (bool, error)
 }
@@ -68,9 +69,15 @@ func constructUpdateBody(method string, id string, name string, packageId string
 	return requestBody, nil
 }
 
-func Download(targetFile string, id string, dt DesigntimeArtifact) error {
+func download(targetFile string, id string, artifactType string, exe *httpclnt.HTTPExecuter) error {
 	log.Info().Msgf("Getting content of artifact %v from tenant for comparison", id)
-	content, err := dt.GetContent(id, "active")
+	content, err := getContent(id, "active", artifactType, exe)
+	if err != nil {
+		return err
+	}
+
+	// Create directory for target file if it doesn't exist yet
+	err = os.MkdirAll(filepath.Dir(targetFile), os.ModePerm)
 	if err != nil {
 		return err
 	}

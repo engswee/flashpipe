@@ -35,8 +35,8 @@ func (int *Integration) Delete(id string) error {
 func (int *Integration) Get(id string, version string) (string, bool, error) {
 	return get(id, version, int.typ, int.exe)
 }
-func (int *Integration) GetContent(id string, version string) ([]byte, error) {
-	return getContent(id, version, int.typ, int.exe)
+func (int *Integration) Download(targetFile string, id string) error {
+	return download(targetFile, id, int.typ, int.exe)
 }
 func (int *Integration) CopyContent(srcDir string, tgtDir string) error {
 	return copyContent(srcDir, tgtDir)

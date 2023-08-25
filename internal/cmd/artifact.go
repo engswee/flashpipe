@@ -133,7 +133,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		log.Info().Msg("Checking if designtime artifact needs to be updated")
 		// 1 - Download artifact content from tenant
 		zipFile := fmt.Sprintf("%v/%v.zip", workDir, artifactId)
-		err = odata.Download(zipFile, artifactId, dt)
+		err = dt.Download(zipFile, artifactId)
 		logger.ExitIfError(err)
 		// 2 - Diff contents from tenant against Git
 		changesFound, err := compareArtifactContents(workDir, zipFile, gitSrcDir, scriptMap, dt)

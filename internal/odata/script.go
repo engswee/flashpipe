@@ -35,8 +35,8 @@ func (sc *ScriptCollection) Delete(id string) (err error) {
 func (sc *ScriptCollection) Get(id string, version string) (string, bool, error) {
 	return get(id, version, sc.typ, sc.exe)
 }
-func (sc *ScriptCollection) GetContent(id string, version string) ([]byte, error) {
-	return getContent(id, version, sc.typ, sc.exe)
+func (sc *ScriptCollection) Download(targetFile string, id string) error {
+	return download(targetFile, id, sc.typ, sc.exe)
 }
 func (sc *ScriptCollection) CopyContent(srcDir string, tgtDir string) error {
 	// Copy META-INF and /src/main/resources separately so that other directories like QA, STG, PRD not copied
