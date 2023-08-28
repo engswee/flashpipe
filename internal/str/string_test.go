@@ -1,39 +1,42 @@
 package str
 
-import "testing"
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
-func TestSingleEntry(t *testing.T) {
+func TestExtractDelimitedValues_SingleEntry(t *testing.T) {
 	output := ExtractDelimitedValues("ABC", ",")
-	size := len(output)
-	if size != 1 {
-		t.Fatalf("Actual size = %d -> expected = 1", size)
-	}
-	if output[0] != "ABC" {
-		t.Fatalf("Actual entry = %v -> expected = ABC", output[0])
-	}
+
+	assert.Equal(t, 1, len(output), "Expected size = 1")
+	assert.Equal(t, "ABC", output[0], "Expected entry = ABC")
 }
 
-func TestMultipleEntries(t *testing.T) {
+func TestExtractDelimitedValues_MultipleEntries(t *testing.T) {
 	output := ExtractDelimitedValues("ABC, 123,XYZ ", ",")
-	size := len(output)
-	if size != 3 {
-		t.Fatalf("Actual size = %d -> expected = 3", size)
-	}
-	if output[0] != "ABC" {
-		t.Fatalf("Actual entry = %v -> expected = ABC", output[0])
-	}
-	if output[1] != "123" {
-		t.Fatalf("Actual entry = %v -> expected = 123", output[1])
-	}
-	if output[2] != "XYZ" {
-		t.Fatalf("Actual entry = %v -> expected = XYZ", output[3])
-	}
+
+	assert.Equal(t, 3, len(output), "Expected size = 1")
+	assert.Equal(t, "ABC", output[0], "Expected entry = ABC")
+	assert.Equal(t, "123", output[1], "Expected entry = 123")
+	assert.Equal(t, "XYZ", output[2], "Expected entry = XYZ")
 }
 
-func TestNoEntry(t *testing.T) {
+func TestExtractDelimitedValues_NoEntry(t *testing.T) {
 	output := ExtractDelimitedValues("", ",")
-	size := len(output)
-	if size != 0 {
-		t.Fatalf("Actual size = %d -> expected = 0", size)
-	}
+
+	assert.Equal(t, 0, len(output), "Expected size = ")
+}
+
+func TestContains_True(t *testing.T) {
+	entries := []string{"ABC", "123", "XYZ"}
+	output := Contains("ABC", entries)
+
+	assert.True(t, output, "ABC not found in list")
+}
+
+func TestContains_False(t *testing.T) {
+	entries := []string{"123", "XYZ"}
+	output := Contains("ABC", entries)
+
+	assert.False(t, output, "ABC found in list")
 }

@@ -10,6 +10,7 @@ func DiffDirectories(firstDir string, secondDir string) bool {
 	cmd := exec.Command("diff", "--ignore-matching-lines=^Origin.*", "--strip-trailing-cr", "--recursive", "--ignore-all-space", "--ignore-blank-lines", "--exclude=parameters.prop", "--exclude=.DS_Store", firstDir, secondDir)
 
 	stdoutStderr, err := cmd.CombinedOutput()
+	// An error means there is a difference
 	if err != nil {
 		log.Info().Msgf("Diff results:\n%v", string(stdoutStderr))
 	}
@@ -24,6 +25,7 @@ func DiffFile(firstFile string, secondFile string) bool {
 	cmd := exec.Command("diff", "--ignore-matching-lines=^#.*", "--strip-trailing-cr", "--ignore-all-space", "--ignore-blank-lines", firstFile, secondFile)
 
 	stdoutStderr, err := cmd.CombinedOutput()
+	// An error means there is a difference
 	if err != nil {
 		log.Info().Msgf("Diff results:\n%v", string(stdoutStderr))
 	}
