@@ -88,12 +88,7 @@ func TestIntegration_DeployMockOauth(t *testing.T) {
 }
 
 func TestIntegration_diffParam(t *testing.T) {
-	exe := httpclnt.New("", "", "", "", "", "", "localhost", "http", 8081)
-	dt := NewDesigntimeArtifact("Integration", exe)
+	dirDiffer := diffParam("../../test/testdata/artifacts/collection/IFlow1", "../../test/testdata/artifacts/update/Integration_Test_IFlow")
 
-	dirDiffer, err := dt.CompareContent("../../test/testdata/artifacts/collection/IFlow1", "../../test/testdata/artifacts/update/Integration_Test_IFlow", "", "remote")
-	if err != nil {
-		t.Fatalf("CompareContent failed with error - %v", err)
-	}
 	assert.True(t, dirDiffer, "Directory contents do not differ")
 }

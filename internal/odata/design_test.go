@@ -92,12 +92,6 @@ func (suite *DesigntimeSuite) Test_CreateUpdateDeployDelete() {
 		createUpdateDeployDelete(value, strings.ReplaceAll(value, "_", " "), "FlashPipeIntegrationTest", dt, suite.T())
 	}
 }
-func (suite *DesigntimeSuite) Test_Compare() {
-	for key, value := range suite.artifacts {
-		dt := NewDesigntimeArtifact(key, suite.exe)
-		compare(value, dt, suite.T())
-	}
-}
 
 func createUpdateDeployDelete(id string, name string, packageId string, dt DesigntimeArtifact, t *testing.T) {
 	// Create
@@ -143,6 +137,21 @@ func createUpdateDeployDelete(id string, name string, packageId string, dt Desig
 	}
 }
 
+func TestDesigntime_Compare(t *testing.T) {
+	// List the artifacts that will be tested
+	artifacts := map[string]string{
+		"Integration":      "Integration_Test_IFlow",
+		"MessageMapping":   "Integration_Test_Message_Mapping",
+		"ScriptCollection": "Integration_Test_Script_Collection",
+		"ValueMapping":     "Integration_Test_Value_Mapping",
+	}
+	exe := httpclnt.New("", "", "", "", "dummy", "dummy", "localhost", "http", 8081)
+
+	for key, value := range artifacts {
+		dt := NewDesigntimeArtifact(key, exe)
+		compare(value, dt, t)
+	}
+}
 func compare(id string, dt DesigntimeArtifact, t *testing.T) {
 	// Diff artifact content
 	srcDir := fmt.Sprintf("../../test/testdata/artifacts/update/%v", id)
