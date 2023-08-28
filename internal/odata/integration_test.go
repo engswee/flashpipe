@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestMockDeployBasic(t *testing.T) {
+func TestIntegration_DeployMockBasic(t *testing.T) {
 	const csrfToken = "dummycsrfToken"
 	const artifactId = "DummyIFlow"
 
@@ -49,7 +49,7 @@ func TestMockDeployBasic(t *testing.T) {
 	}
 }
 
-func TestMockDeployOauth(t *testing.T) {
+func TestIntegration_DeployMockOauth(t *testing.T) {
 	const oauthToken = "dummyoauthToken"
 	const artifactId = "DummyIFlow"
 
@@ -85,3 +85,5 @@ func TestMockDeployOauth(t *testing.T) {
 		t.Fatalf("Deployment failed with error - %v", err)
 	}
 }
+
+// TODO - add unit and integration tests

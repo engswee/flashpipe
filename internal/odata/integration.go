@@ -56,7 +56,8 @@ func (int *Integration) CompareContent(srcDir string, tgtDir string, scriptMap s
 	// - Therefore diff of parameters.prop may come up with false differences
 	if source == "remote" {
 		// When syncing (from tenant to Git), include diff of parameter.prop separately
-		return dirDiffer || int.diffParam(srcDir, tgtDir), nil
+		paramDiffer := int.diffParam(srcDir, tgtDir)
+		return dirDiffer || paramDiffer, nil
 	} else {
 		// When uploading (from Git to tenant), API is used to update the configuration parameters separately
 		return dirDiffer, nil

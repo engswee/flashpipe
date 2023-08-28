@@ -89,6 +89,13 @@ func (suite *RuntimeSuite) TestRuntime_Get() {
 	if err != nil {
 		suite.T().Fatalf("Get failed with error - %v", err)
 	}
+	if status == "STARTING" {
+		time.Sleep(5 * time.Second)
+		version, status, err = rt.Get("Integration_Test_IFlow")
+		if err != nil {
+			suite.T().Fatalf("Get failed with error - %v", err)
+		}
+	}
 	assert.Equal(suite.T(), "STARTED", status, "Runtime status of Integration_Test_IFlow is not STARTED")
 	assert.Equal(suite.T(), "1.0.0", version, "Runtime version of Integration_Test_IFlow is not 1.0.0")
 }

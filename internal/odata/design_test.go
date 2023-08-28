@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -16,6 +17,7 @@ type DesigntimeSuite struct {
 	suite.Suite
 	serviceDetails *ServiceDetails
 	exe            *httpclnt.HTTPExecuter
+	artifacts      map[string]string
 }
 
 func TestDesigntimeBasicAuth(t *testing.T) {
@@ -44,6 +46,14 @@ func (suite *DesigntimeSuite) SetupSuite() {
 	println("========== Setting up suite ==========")
 	suite.exe = InitHTTPExecuter(suite.serviceDetails)
 
+	// List the artifacts that will be tested
+	suite.artifacts = map[string]string{
+		"Integration":      "Integration_Test_IFlow",
+		"MessageMapping":   "Integration_Test_Message_Mapping",
+		"ScriptCollection": "Integration_Test_Script_Collection",
+		"ValueMapping":     "Integration_Test_Value_Mapping",
+	}
+
 	// Setup viper in case debug logs are required
 	viper.SetEnvPrefix("FLASHPIPE")
 	viper.AutomaticEnv()
@@ -65,10 +75,10 @@ func (suite *DesigntimeSuite) TearDownSuite() {
 
 	tearDownPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
 
-	tearDownRuntime(suite.T(), "Integration_Test_IFlow", suite.exe)
-	tearDownRuntime(suite.T(), "Integration_Test_Message_Mapping", suite.exe)
-	tearDownRuntime(suite.T(), "Integration_Test_Script_Collection", suite.exe)
-	tearDownRuntime(suite.T(), "Integration_Test_Value_Mapping", suite.exe)
+	// Remove all the runtime artifacts
+	for _, value := range suite.artifacts {
+		tearDownRuntime(suite.T(), value, suite.exe)
+	}
 
 	err := os.RemoveAll("../../output/download")
 	if err != nil {
@@ -76,24 +86,17 @@ func (suite *DesigntimeSuite) TearDownSuite() {
 	}
 }
 
-func (suite *DesigntimeSuite) TestIntegration_CreateUpdateDeployDelete() {
-	dt := NewDesigntimeArtifact("Integration", suite.exe)
-	createUpdateDeployDelete("Integration_Test_IFlow", "Integration Test IFlow", "FlashPipeIntegrationTest", dt, suite.T())
+func (suite *DesigntimeSuite) Test_CreateUpdateDeployDelete() {
+	for key, value := range suite.artifacts {
+		dt := NewDesigntimeArtifact(key, suite.exe)
+		createUpdateDeployDelete(value, strings.ReplaceAll(value, "_", " "), "FlashPipeIntegrationTest", dt, suite.T())
+	}
 }
-
-func (suite *DesigntimeSuite) TestMessageMapping_CreateUpdateDeployDelete() {
-	dt := NewDesigntimeArtifact("MessageMapping", suite.exe)
-	createUpdateDeployDelete("Integration_Test_Message_Mapping", "Integration Test Message Mapping", "FlashPipeIntegrationTest", dt, suite.T())
-}
-
-func (suite *DesigntimeSuite) TestScriptCollection_CreateUpdateDeployDelete() {
-	dt := NewDesigntimeArtifact("ScriptCollection", suite.exe)
-	createUpdateDeployDelete("Integration_Test_Script_Collection", "Integration Test Script Collection", "FlashPipeIntegrationTest", dt, suite.T())
-}
-
-func (suite *DesigntimeSuite) TestValueMapping_CreateUpdateDeployDelete() {
-	dt := NewDesigntimeArtifact("ValueMapping", suite.exe)
-	createUpdateDeployDelete("Integration_Test_Value_Mapping", "Integration Test Value Mapping", "FlashPipeIntegrationTest", dt, suite.T())
+func (suite *DesigntimeSuite) Test_Compare() {
+	for key, value := range suite.artifacts {
+		dt := NewDesigntimeArtifact(key, suite.exe)
+		compare(value, dt, suite.T())
+	}
 }
 
 func createUpdateDeployDelete(id string, name string, packageId string, dt DesigntimeArtifact, t *testing.T) {
@@ -130,13 +133,38 @@ func createUpdateDeployDelete(id string, name string, packageId string, dt Desig
 			if err != nil {
 				t.Fatalf("Download failed with error - %v", err)
 			}
-			assert.Truef(t, file.Exists(targetFile), "Target file % not found", targetFile)
+			assert.Truef(t, file.Exists(targetFile), "Target file %v not found", targetFile)
 			// Delete
 			err = dt.Delete(id)
 			if err != nil {
 				t.Fatalf("Delete failed with error - %v", err)
 			}
 		}
+	}
+}
+
+func compare(id string, dt DesigntimeArtifact, t *testing.T) {
+	// Diff artifact content
+	srcDir := fmt.Sprintf("../../test/testdata/artifacts/update/%v", id)
+	tgtDir := fmt.Sprintf("../../test/testdata/artifacts/create/%v", id)
+	dirDiffer, err := dt.CompareContent(srcDir, tgtDir, "", "remote")
+	if err != nil {
+		t.Fatalf("CompareContent failed with error - %v", err)
+	}
+	assert.True(t, dirDiffer, "Directory contents do not differ")
+
+	// Copy to output folder
+	destinationDir := fmt.Sprintf("../../output/download/%v", id)
+	err = dt.CopyContent(srcDir, destinationDir)
+	if err != nil {
+		t.Fatalf("CopyContent failed with error - %v", err)
+	}
+	assert.True(t, file.Exists(destinationDir+"/META-INF/MANIFEST.MF"), "MANIFEST.MF missing in destination")
+	switch dt.(type) {
+	case *Integration, *MessageMapping, *ScriptCollection:
+		assert.True(t, file.Exists(destinationDir+"/src/main/resources"), "/src/main/resources missing in destination")
+	case *ValueMapping:
+		assert.True(t, file.Exists(destinationDir+"/value_mapping.xml"), "value_mapping.xml missing in destination")
 	}
 }
 
