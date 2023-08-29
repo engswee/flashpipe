@@ -147,7 +147,7 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, artifacts
 			return err
 		}
 
-		// TODO - PRIO1 override directory name - to cater for syncing from Staging artifact, using key value pair
+		// TODO - override directory name using key value pair - to cater for syncing artifact from different environment
 		var directoryName string
 		if dirNamingType == "NAME" {
 			directoryName = artifact.Name

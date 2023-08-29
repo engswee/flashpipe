@@ -50,7 +50,7 @@ tenant to a Git repository.`,
 			if artifactsDir != "" && !strings.HasPrefix(artifactsDir, gitRepoDirClean) {
 				return fmt.Errorf("--dir-artifacts [%v] should be a subdirectory of --dir-git-repo [%v]", artifactsDir, gitRepoDirClean)
 			}
-			// TODO - PRIO2 Validate secrets in env var - validateInputContainsNoSecrets
+			// TODO - Validate secrets in env var, lower priority as it is no longer resolved in GitHub action workflow
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
