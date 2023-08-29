@@ -22,11 +22,11 @@ func NewSnapshotCommand() *cobra.Command {
 tenant to a Git repository.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// Validate Draft Handling
-			draftHandling := config.GetString(cmd, "drafthandling")
+			draftHandling := config.GetString(cmd, "draft-handling")
 			switch draftHandling {
 			case "SKIP", "ADD", "ERROR":
 			default:
-				return fmt.Errorf("invalid value for --drafthandling = %v", draftHandling)
+				return fmt.Errorf("invalid value for --draft-handling = %v", draftHandling)
 			}
 			return nil
 		},
@@ -37,12 +37,12 @@ tenant to a Git repository.`,
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
 	snapshotCmd.Flags().String("dir-git-repo", "", "Directory of Git repository containing contents of artifacts (grouped into packages)")
-	snapshotCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files [or set environment WORK_DIR]")
-	snapshotCmd.Flags().String("drafthandling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR [or set environment DRAFT_HANDLING]")
-	snapshotCmd.Flags().String("git-commitmsg", "Tenant snapshot of "+time.Now().Format(time.UnixDate), "Message used in commit [or set environment COMMIT_MESSAGE]")
+	snapshotCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files")
+	snapshotCmd.Flags().String("draft-handling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR")
+	snapshotCmd.Flags().String("git-commit-msg", "Tenant snapshot of "+time.Now().Format(time.UnixDate), "Message used in commit")
 	snapshotCmd.Flags().String("git-commit-user", "github-actions[bot]", "User used in commit")
 	snapshotCmd.Flags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit")
-	snapshotCmd.Flags().Bool("syncpackagedetails", false, "Sync details of Integration Packages [or set environment SYNC_PACKAGE_LEVEL_DETAILS]")
+	snapshotCmd.Flags().Bool("sync-package-details", false, "Sync details of Integration Packages")
 
 	return snapshotCmd
 }
@@ -52,11 +52,11 @@ func runSnapshot(cmd *cobra.Command) {
 
 	gitRepoDir := config.GetMandatoryString(cmd, "dir-git-repo")
 	workDir := config.GetString(cmd, "dir-work")
-	draftHandling := config.GetString(cmd, "drafthandling")
-	commitMsg := config.GetString(cmd, "git-commitmsg")
+	draftHandling := config.GetString(cmd, "draft-handling")
+	commitMsg := config.GetString(cmd, "git-commit-msg")
 	commitUser := config.GetString(cmd, "git-commit-user")
 	commitEmail := config.GetString(cmd, "git-commit-email")
-	syncPackageLevelDetails := config.GetBool(cmd, "syncpackagedetails")
+	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 
 	serviceDetails := odata.GetServiceDetails(cmd)
 	err := getTenantSnapshot(serviceDetails, gitRepoDir, workDir, draftHandling, syncPackageLevelDetails)

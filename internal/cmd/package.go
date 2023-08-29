@@ -22,7 +22,7 @@ SAP Integration Suite tenant.`,
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	packageCmd.Flags().String("package-file", "", "Path to location of package file [or set environment PACKAGE_FILE]")
+	packageCmd.Flags().String("package-file", "", "Path to location of package file")
 
 	return packageCmd
 }

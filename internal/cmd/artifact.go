@@ -36,15 +36,15 @@ SAP Integration Suite tenant.`,
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	artifactCmd.Flags().String("artifact-id", "", "ID of artifact [or set environment ARTIFACT_ID]")
-	artifactCmd.Flags().String("artifact-name", "", "Name of artifact [or set environment ARTIFACT_NAME]")
-	artifactCmd.Flags().String("package-id", "", "ID of Integration Package [or set environment PACKAGE_ID]")
-	artifactCmd.Flags().String("package-name", "", "Name of Integration Package [or set environment PACKAGE_NAME]")
-	artifactCmd.Flags().String("dir-gitsrc", "", "Directory containing contents of designtime artifact [or set environment GIT_SRC_DIR]")
-	artifactCmd.Flags().String("file-param", "", "Use to a different parameters.prop file instead of the default in src/main/resources/ [or set environment PARAM_FILE]")
-	artifactCmd.Flags().String("file-manifest", "", "Use to a different MANIFEST.MF file instead of the default in src/main/resources/ [or set environment MANIFEST_FILE]")
-	artifactCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files [or set environment WORK_DIR]")
-	artifactCmd.Flags().String("scriptmap", "", "Comma-separated source-target ID pairs for converting script collection references during create/update [or set environment SCRIPT_COLLECTION_MAP]")
+	artifactCmd.Flags().String("artifact-id", "", "ID of artifact")
+	artifactCmd.Flags().String("artifact-name", "", "Name of artifact")
+	artifactCmd.Flags().String("package-id", "", "ID of Integration Package")
+	artifactCmd.Flags().String("package-name", "", "Name of Integration Package")
+	artifactCmd.Flags().String("dir-artifact", "", "Directory containing contents of designtime artifact")
+	artifactCmd.Flags().String("file-param", "", "Use to a different parameters.prop file instead of the default in src/main/resources/ ")
+	artifactCmd.Flags().String("file-manifest", "", "Use to a different MANIFEST.MF file instead of the default in src/main/resources/")
+	artifactCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files")
+	artifactCmd.Flags().String("script-collection-map", "", "Comma-separated source-target ID pairs for converting script collection references during create/update")
 	artifactCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping")
 	// TODO - another flag for replacing value mapping in QAS?
 
@@ -59,13 +59,13 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	artifactName := config.GetMandatoryString(cmd, "artifact-name")
 	packageId := config.GetMandatoryString(cmd, "package-id")
 	packageName := config.GetMandatoryString(cmd, "package-name")
-	gitSrcDir := config.GetMandatoryString(cmd, "dir-gitsrc") // TODO - rename to artifact directory
+	artifactDir := config.GetMandatoryString(cmd, "dir-artifact")
 	parametersFile := config.GetString(cmd, "file-param")
 	manifestFile := config.GetString(cmd, "file-manifest")
 	workDir := config.GetString(cmd, "dir-work")
-	scriptMap := config.GetString(cmd, "scriptmap")
+	scriptMap := config.GetString(cmd, "script-collection-map")
 
-	defaultParamFile := fmt.Sprintf("%v/src/main/resources/parameters.prop", gitSrcDir)
+	defaultParamFile := fmt.Sprintf("%v/src/main/resources/parameters.prop", artifactDir)
 	if parametersFile == "" {
 		parametersFile = defaultParamFile
 	} else if parametersFile != defaultParamFile {
@@ -74,7 +74,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		logger.ExitIfError(err)
 	}
 
-	defaultManifestFile := fmt.Sprintf("%v/META-INF/MANIFEST.MF", gitSrcDir)
+	defaultManifestFile := fmt.Sprintf("%v/META-INF/MANIFEST.MF", artifactDir)
 	if manifestFile == "" {
 		manifestFile = defaultManifestFile
 	} else if manifestFile != defaultManifestFile {
@@ -116,11 +116,11 @@ func runUpdateArtifact(cmd *cobra.Command) {
 
 		// Update the script collection in IFlow BPMN2 XML before upload
 		if artifactType == "Integration" {
-			err = file.UpdateBPMN(gitSrcDir, scriptMap)
+			err = file.UpdateBPMN(artifactDir, scriptMap)
 			logger.ExitIfError(err)
 		}
 
-		err = prepareUploadDir(workDir, gitSrcDir, dt)
+		err = prepareUploadDir(workDir, artifactDir, dt)
 		logger.ExitIfError(err)
 
 		err = createArtifact(artifactId, artifactName, packageId, workDir+"/upload", dt)
@@ -136,12 +136,12 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		err = dt.Download(zipFile, artifactId)
 		logger.ExitIfError(err)
 		// 2 - Diff contents from tenant against Git
-		changesFound, err := compareArtifactContents(workDir, zipFile, gitSrcDir, scriptMap, dt)
+		changesFound, err := compareArtifactContents(workDir, zipFile, artifactDir, scriptMap, dt)
 		logger.ExitIfError(err)
 
 		if changesFound == true {
 			log.Info().Msg("Changes found in designtime artifact. Designtime artifact will be updated in CPI tenant")
-			err = prepareUploadDir(workDir, gitSrcDir, dt)
+			err = prepareUploadDir(workDir, artifactDir, dt)
 			logger.ExitIfError(err)
 			err = updateArtifact(artifactId, artifactName, packageId, workDir+"/upload", dt)
 			logger.ExitIfError(err)
@@ -172,18 +172,18 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	}
 }
 
-func prepareUploadDir(workDir string, gitSrcDir string, dt odata.DesigntimeArtifact) (err error) {
+func prepareUploadDir(workDir string, artifactDir string, dt odata.DesigntimeArtifact) (err error) {
 	// Clean up previous uploads
-	artifactDir := workDir + "/upload"
-	err = os.RemoveAll(artifactDir)
+	uploadDir := workDir + "/upload"
+	err = os.RemoveAll(uploadDir)
 	if err != nil {
 		return
 	}
-	err = dt.CopyContent(gitSrcDir, artifactDir)
+	err = dt.CopyContent(artifactDir, uploadDir)
 	return
 }
 
-func compareArtifactContents(workDir string, zipFile string, gitSrcDir string, scriptMap string, dt odata.DesigntimeArtifact) (bool, error) {
+func compareArtifactContents(workDir string, zipFile string, artifactDir string, scriptMap string, dt odata.DesigntimeArtifact) (bool, error) {
 	tgtDir := fmt.Sprintf("%v/download", workDir)
 	err := os.RemoveAll(tgtDir)
 	if err != nil {
@@ -196,7 +196,7 @@ func compareArtifactContents(workDir string, zipFile string, gitSrcDir string, s
 		return false, err
 	}
 
-	return dt.CompareContent(gitSrcDir, tgtDir, scriptMap, "local")
+	return dt.CompareContent(artifactDir, tgtDir, scriptMap, "local")
 }
 
 func artifactExists(artifactId string, artifactType string, packageId string, dt odata.DesigntimeArtifact, ip *odata.IntegrationPackage) (bool, error) {

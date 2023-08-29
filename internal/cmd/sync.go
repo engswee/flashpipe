@@ -24,24 +24,24 @@ func NewSyncCommand() *cobra.Command {
 tenant to a Git repository.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// Validate Directory Naming Type
-			dirNamingType := config.GetString(cmd, "dirnamingtype")
+			dirNamingType := config.GetString(cmd, "dir-naming-type")
 			switch dirNamingType {
 			case "ID", "NAME":
 			default:
-				return fmt.Errorf("invalid value for --dirnamingtype = %v", dirNamingType)
+				return fmt.Errorf("invalid value for --dir-naming-type = %v", dirNamingType)
 			}
 			// Validate Draft Handling
-			draftHandling := config.GetString(cmd, "drafthandling")
+			draftHandling := config.GetString(cmd, "draft-handling")
 			switch draftHandling {
 			case "SKIP", "ADD", "ERROR":
 			default:
-				return fmt.Errorf("invalid value for --drafthandling = %v", draftHandling)
+				return fmt.Errorf("invalid value for --draft-handling = %v", draftHandling)
 			}
 			// Validate Include/Exclude IDs
-			includedIds := config.GetString(cmd, "ids.include")
-			excludedIds := config.GetString(cmd, "ids.exclude")
+			includedIds := config.GetString(cmd, "ids-include")
+			excludedIds := config.GetString(cmd, "ids-exclude")
 			if includedIds != "" && excludedIds != "" {
-				return fmt.Errorf("--ids.include and --ids.exclude are mutually exclusive - use only one of them")
+				return fmt.Errorf("--ids-include and --ids-exclude are mutually exclusive - use only one of them")
 			}
 			// If artifacts directory is provided, validate that is it a subdirectory of Git repo
 			gitRepoDir := config.GetMandatoryString(cmd, "dir-git-repo")
@@ -50,7 +50,7 @@ tenant to a Git repository.`,
 			if artifactsDir != "" && !strings.HasPrefix(artifactsDir, gitRepoDirClean) {
 				return fmt.Errorf("--dir-artifacts [%v] should be a subdirectory of --dir-git-repo [%v]", artifactsDir, gitRepoDirClean)
 			}
-			// TODO - PRIO2 Validate secrets in env var
+			// TODO - PRIO2 Validate secrets in env var - validateInputContainsNoSecrets
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
@@ -59,19 +59,19 @@ tenant to a Git repository.`,
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	syncCmd.Flags().String("packageid", "", "ID of Integration Package [or set environment PACKAGE_ID]")
+	syncCmd.Flags().String("package-id", "", "ID of Integration Package")
 	syncCmd.Flags().String("dir-git-repo", "", "Directory of Git repository")
 	syncCmd.Flags().String("dir-artifacts", "", "Directory containing contents of artifacts")
-	syncCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files [or set environment WORK_DIR]")
-	syncCmd.Flags().String("dirnamingtype", "ID", "Name artifact directory by ID or Name. Allowed values: ID, NAME [or set environment DIR_NAMING_TYPE]")
-	syncCmd.Flags().String("drafthandling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR [or set environment DRAFT_HANDLING]")
-	syncCmd.Flags().String("ids-include", "", "List of included artifact IDs [or set environment INCLUDE_IDS]")
-	syncCmd.Flags().String("ids-exclude", "", "List of excluded artifact IDs [or set environment EXCLUDE_IDS]")
-	syncCmd.Flags().String("git-commitmsg", "Sync repo from tenant", "Message used in commit [or set environment COMMIT_MESSAGE]")
+	syncCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files")
+	syncCmd.Flags().String("dir-naming-type", "ID", "Name artifact directory by ID or Name. Allowed values: ID, NAME")
+	syncCmd.Flags().String("draft-handling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR")
+	syncCmd.Flags().String("ids-include", "", "List of included artifact IDs")
+	syncCmd.Flags().String("ids-exclude", "", "List of excluded artifact IDs")
+	syncCmd.Flags().String("git-commit-msg", "Sync repo from tenant", "Message used in commit")
 	syncCmd.Flags().String("git-commit-user", "github-actions[bot]", "User used in commit")
 	syncCmd.Flags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit")
-	syncCmd.Flags().String("scriptmap", "", "Comma-separated source-target ID pairs for converting script collection references during sync [or set environment SCRIPT_COLLECTION_MAP]")
-	syncCmd.Flags().Bool("syncpackagedetails", false, "Sync details of Integration Package [or set environment SYNC_PACKAGE_LEVEL_DETAILS]")
+	syncCmd.Flags().String("script-collection-map", "", "Comma-separated source-target ID pairs for converting script collection references during sync ")
+	syncCmd.Flags().Bool("sync-package-details", false, "Sync details of Integration Package")
 
 	return syncCmd
 }
@@ -79,19 +79,19 @@ tenant to a Git repository.`,
 func runSync(cmd *cobra.Command) {
 	log.Info().Msg("Executing sync command")
 
-	packageId := config.GetMandatoryString(cmd, "packageid")
+	packageId := config.GetMandatoryString(cmd, "package-id")
 	gitRepoDir := config.GetMandatoryString(cmd, "dir-git-repo")
 	artifactsDir := config.GetStringWithDefault(cmd, "dir-artifacts", gitRepoDir)
 	workDir := config.GetString(cmd, "dir-work")
-	dirNamingType := config.GetString(cmd, "dirnamingtype")
-	draftHandling := config.GetString(cmd, "drafthandling")
+	dirNamingType := config.GetString(cmd, "dir-naming-type")
+	draftHandling := config.GetString(cmd, "draft-handling")
 	delimitedIdsInclude := config.GetString(cmd, "ids-include")
 	delimitedIdsExclude := config.GetString(cmd, "ids-exclude")
-	commitMsg := config.GetString(cmd, "git-commitmsg")
+	commitMsg := config.GetString(cmd, "git-commit-msg")
 	commitUser := config.GetString(cmd, "git-commit-user")
 	commitEmail := config.GetString(cmd, "git-commit-email")
-	scriptCollectionMap := config.GetString(cmd, "scriptmap")
-	syncPackageLevelDetails := config.GetBool(cmd, "syncpackagedetails")
+	scriptCollectionMap := config.GetString(cmd, "script-collection-map")
+	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 
 	serviceDetails := odata.GetServiceDetails(cmd)
 

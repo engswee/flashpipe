@@ -36,13 +36,13 @@ automating time-consuming manual tasks like:
 	rootCmd.PersistentFlags().String("config", "", "config file (default is $HOME/flashpipe.yaml)")
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	rootCmd.PersistentFlags().String("tmn-host", "", "Host for tenant management node of Cloud Integration excluding https:// [or set environment HOST_TMN]")
-	rootCmd.PersistentFlags().String("tmn-userid", "", "User ID for Basic Auth [or set environment BASIC_USERID]")
-	rootCmd.PersistentFlags().String("tmn-password", "", "Password for Basic Auth [or set environment BASIC_PASSWORD]")
-	rootCmd.PersistentFlags().String("oauth-host", "", "Host for OAuth token server excluding https:// [or set environment HOST_OAUTH]")
-	rootCmd.PersistentFlags().String("oauth-clientid", "", "Client ID for using OAuth [or set environment OAUTH_CLIENTID]")
-	rootCmd.PersistentFlags().String("oauth-clientsecret", "", "Client Secret for using OAuth [or set environment OAUTH_CLIENTSECRET]")
-	rootCmd.PersistentFlags().String("oauth-path", "/oauth/token", "Path for OAuth token server, e.g /oauth2/api/v1/token for Neo [or set environment HOST_OAUTH_PATH]")
+	rootCmd.PersistentFlags().String("tmn-host", "", "Host for tenant management node of Cloud Integration excluding https://")
+	rootCmd.PersistentFlags().String("tmn-userid", "", "User ID for Basic Auth")
+	rootCmd.PersistentFlags().String("tmn-password", "", "Password for Basic Auth")
+	rootCmd.PersistentFlags().String("oauth-host", "", "Host for OAuth token server excluding https:// ")
+	rootCmd.PersistentFlags().String("oauth-clientid", "", "Client ID for using OAuth")
+	rootCmd.PersistentFlags().String("oauth-clientsecret", "", "Client Secret for using OAuth")
+	rootCmd.PersistentFlags().String("oauth-path", "/oauth/token", "Path for OAuth token server")
 
 	rootCmd.PersistentFlags().Bool("debug", false, "Show debug logs")
 

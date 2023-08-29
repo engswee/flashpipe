@@ -34,11 +34,11 @@ runtime of SAP Integration Suite tenant.`,
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	deployCmd.Flags().String("artifact-ids", "", "Comma separated list of artifact IDs [or set environment ARTIFACT_IDS]")
-	deployCmd.Flags().Int("delaylength", 30, "Delay (in seconds) between each check of artifact deployment status [or set environment DELAY_LENGTH]")
-	deployCmd.Flags().Int("maxchecklimit", 10, "Max number of times to check for artifact deployment status [or set environment MAX_CHECK_LIMIT]")
-	// To set to false, use --compareversions=false
-	deployCmd.Flags().Bool("compareversions", true, "Perform version comparison of design time against runtime before deployment [or set environment COMPARE_VERSIONS]")
+	deployCmd.Flags().String("artifact-ids", "", "Comma separated list of artifact IDs")
+	deployCmd.Flags().Int("delay-length", 30, "Delay (in seconds) between each check of artifact deployment status")
+	deployCmd.Flags().Int("max-check-limit", 10, "Max number of times to check for artifact deployment status")
+	// To set to false, use --compare-versions=false
+	deployCmd.Flags().Bool("compare-versions", true, "Perform version comparison of design time against runtime before deployment")
 	deployCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping")
 
 	return deployCmd
@@ -51,9 +51,9 @@ func runDeploy(cmd *cobra.Command) {
 	log.Info().Msgf("Executing deploy %v command", artifactType)
 
 	artifactIds := config.GetMandatoryString(cmd, "artifact-ids")
-	delayLength := config.GetInt(cmd, "delaylength")
-	maxCheckLimit := config.GetInt(cmd, "maxchecklimit")
-	compareVersions := config.GetBool(cmd, "compareversions")
+	delayLength := config.GetInt(cmd, "delay-length")
+	maxCheckLimit := config.GetInt(cmd, "max-check-limit")
+	compareVersions := config.GetBool(cmd, "compare-versions")
 
 	deployArtifacts(artifactIds, artifactType, delayLength, maxCheckLimit, compareVersions, serviceDetails)
 }
