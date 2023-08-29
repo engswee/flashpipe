@@ -20,9 +20,9 @@ type RuntimeSuite struct {
 func TestRuntimeBasicAuth(t *testing.T) {
 	suite.Run(t, &RuntimeSuite{
 		serviceDetails: &ServiceDetails{
-			Host:     os.Getenv("HOST_TMN"),
-			Userid:   os.Getenv("BASIC_USERID"),
-			Password: os.Getenv("BASIC_PASSWORD"),
+			Host:     os.Getenv("FLASHPIPE_TMN_HOST"),
+			Userid:   os.Getenv("FLASHPIPE_TMN_USERID"),
+			Password: os.Getenv("FLASHPIPE_TMN_PASSWORD"),
 		},
 	})
 }
@@ -30,11 +30,11 @@ func TestRuntimeBasicAuth(t *testing.T) {
 func TestRuntimeOauth(t *testing.T) {
 	suite.Run(t, &RuntimeSuite{
 		serviceDetails: &ServiceDetails{
-			Host:              os.Getenv("HOST_TMN"),
-			OauthHost:         os.Getenv("HOST_OAUTH"),
-			OauthPath:         os.Getenv("HOST_OAUTH_PATH"),
-			OauthClientId:     os.Getenv("OAUTH_CLIENTID"),
-			OauthClientSecret: os.Getenv("OAUTH_CLIENTSECRET"),
+			Host:              os.Getenv("FLASHPIPE_TMN_HOST"),
+			OauthHost:         os.Getenv("FLASHPIPE_OAUTH_HOST"),
+			OauthPath:         os.Getenv("FLASHPIPE_OAUTH_PATH"),
+			OauthClientId:     os.Getenv("FLASHPIPE_OAUTH_CLIENTID"),
+			OauthClientSecret: os.Getenv("FLASHPIPE_OAUTH_CLIENTSECRET"),
 		},
 	})
 }

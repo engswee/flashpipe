@@ -149,11 +149,11 @@ func TestMockBasicAuthIDNotFound(t *testing.T) {
 }
 
 func TestOauth(t *testing.T) {
-	host := os.Getenv("HOST_TMN")
-	oauthHost := os.Getenv("HOST_OAUTH")
-	oauthPath := os.Getenv("HOST_OAUTH_PATH")
-	clientId := os.Getenv("OAUTH_CLIENTID")
-	clientSecret := os.Getenv("OAUTH_CLIENTSECRET")
+	host := os.Getenv("FLASHPIPE_TMN_HOST")
+	oauthHost := os.Getenv("FLASHPIPE_OAUTH_HOST")
+	oauthPath := os.Getenv("FLASHPIPE_OAUTH_PATH")
+	clientId := os.Getenv("FLASHPIPE_OAUTH_CLIENTID")
+	clientSecret := os.Getenv("FLASHPIPE_OAUTH_CLIENTSECRET")
 	exe := New(oauthHost, oauthPath, clientId, clientSecret, "", "", host, "https", 443)
 
 	headers := map[string]string{
@@ -169,9 +169,9 @@ func TestOauth(t *testing.T) {
 }
 
 func TestBasicAuth(t *testing.T) {
-	host := os.Getenv("HOST_TMN")
-	userId := os.Getenv("BASIC_USERID")
-	password := os.Getenv("BASIC_PASSWORD")
+	host := os.Getenv("FLASHPIPE_TMN_HOST")
+	userId := os.Getenv("FLASHPIPE_TMN_USERID")
+	password := os.Getenv("FLASHPIPE_TMN_PASSWORD")
 	exe := New("", "", "", "", userId, password, host, "https", 443)
 
 	headers := map[string]string{

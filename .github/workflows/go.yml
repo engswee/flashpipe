@@ -1,13 +1,13 @@
 # This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-#     https://docs.docker.com/build/ci/github-actions/
+# For more information see:
+# https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+# https://docs.docker.com/build/ci/github-actions/
 
 name: Go
 
+# TODO - handle productive release
 on:
   push:
-    branches: [ "go" ]
-  pull_request:
     branches: [ "go" ]
 
 jobs:
@@ -29,13 +29,13 @@ jobs:
         go tool cover -html=c.out -o coverage.html
       env:
         FLASHPIPE_DEBUG: true
-        HOST_TMN: equaliseit.it-cpi023.cfapps.eu20-001.hana.ondemand.com
-        HOST_OAUTH: equaliseit.authentication.eu20.hana.ondemand.com
-        HOST_OAUTH_PATH: /oauth/token
-        OAUTH_CLIENTID: ${{ secrets.OAUTH_CLIENTID }}
-        OAUTH_CLIENTSECRET: ${{ secrets.OAUTH_CLIENTSECRET }}
-        BASIC_PASSWORD: ${{ secrets.BASIC_PASSWORD }}
-        BASIC_USERID: ${{ secrets.BASIC_USERID }}
+        FLASHPIPE_TMN_HOST: equaliseit.it-cpi023.cfapps.eu20-001.hana.ondemand.com
+        FLASHPIPE_OAUTH_HOST: equaliseit.authentication.eu20.hana.ondemand.com
+        FLASHPIPE_OAUTH_PATH: /oauth/token
+        FLASHPIPE_OAUTH_CLIENTID: ${{ secrets.OAUTH_CLIENTID }}
+        FLASHPIPE_OAUTH_CLIENTSECRET: ${{ secrets.OAUTH_CLIENTSECRET }}
+        FLASHPIPE_TMN_PASSWORD: ${{ secrets.BASIC_PASSWORD }}
+        FLASHPIPE_TMN_USERID: ${{ secrets.BASIC_USERID }}
 
     - name: Build Go application
       run: go build -v -o output/ ./...
