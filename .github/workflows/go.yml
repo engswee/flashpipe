@@ -25,7 +25,7 @@ jobs:
 
     - name: Test
       run: |
-        go test -coverprofile=c.out -v ./...
+        go test -p 1 -coverprofile=c.out -v ./...
         go tool cover -html=c.out -o coverage.html
       env:
         FLASHPIPE_DEBUG: true
