@@ -43,7 +43,7 @@ func TestDesigntimeOauth(t *testing.T) {
 }
 
 func (suite *DesigntimeSuite) SetupSuite() {
-	println("========== Setting up suite ==========")
+	println("========== Setting up suite - start ==========")
 	suite.exe = InitHTTPExecuter(suite.serviceDetails)
 
 	// List the artifacts that will be tested
@@ -60,18 +60,21 @@ func (suite *DesigntimeSuite) SetupSuite() {
 	logger.InitConsoleLogger(viper.GetBool("debug"))
 
 	setupPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
+	println("========== Setting up suite - end ==========")
 }
 
 func (suite *DesigntimeSuite) SetupTest() {
-	println("---------- Setting up test ----------")
+	println("---------- Setting up test - start ----------")
+	println("---------- Setting up test - end ----------")
 }
 
 func (suite *DesigntimeSuite) TearDownTest() {
-	println("---------- Tearing down test ----------")
+	println("---------- Tearing down test - start ----------")
+	println("---------- Tearing down test - end ----------")
 }
 
 func (suite *DesigntimeSuite) TearDownSuite() {
-	println("========== Tearing down suite ==========")
+	println("========== Tearing down suite - start ==========")
 
 	tearDownPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
 
@@ -84,6 +87,7 @@ func (suite *DesigntimeSuite) TearDownSuite() {
 	if err != nil {
 		suite.T().Fatalf("Directory removal failed with error - %v", err)
 	}
+	println("========== Tearing down suite - end ==========")
 }
 
 func (suite *DesigntimeSuite) Test_CreateUpdateDeployDelete() {

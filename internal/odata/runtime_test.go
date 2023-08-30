@@ -40,7 +40,7 @@ func TestRuntimeOauth(t *testing.T) {
 }
 
 func (suite *RuntimeSuite) SetupSuite() {
-	println("========== Setting up suite ==========")
+	println("========== Setting up suite - start ==========")
 	suite.exe = InitHTTPExecuter(suite.serviceDetails)
 
 	// Setup viper in case debug logs are required
@@ -55,23 +55,27 @@ func (suite *RuntimeSuite) SetupSuite() {
 
 	setupArtifact(suite.T(), "Integration_Test_Message_Mapping", "FlashPipeIntegrationTest", "../../test/testdata/artifacts/create/Integration_Test_Message_Mapping", "MessageMapping", suite.exe)
 	setupRuntime(suite.T(), "Integration_Test_Message_Mapping", "MessageMapping", suite.exe)
+	println("========== Setting up suite - end ==========")
 }
 
 func (suite *RuntimeSuite) SetupTest() {
-	println("---------- Setting up test ----------")
+	println("---------- Setting up test - start ----------")
+	println("---------- Setting up test - end ----------")
 }
 
 func (suite *RuntimeSuite) TearDownTest() {
-	println("---------- Tearing down test ----------")
+	println("---------- Tearing down test - start ----------")
+	println("---------- Tearing down test - end ----------")
 }
 
 func (suite *RuntimeSuite) TearDownSuite() {
-	println("========== Tearing down suite ==========")
+	println("========== Tearing down suite - start ==========")
 
 	tearDownPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
 
 	tearDownRuntime(suite.T(), "Integration_Test_IFlow", suite.exe)
 	tearDownRuntime(suite.T(), "Integration_Test_Message_Mapping", suite.exe)
+	println("========== Tearing down suite - end ==========")
 }
 
 func (suite *RuntimeSuite) TestRuntime_GetErrorInfo() {

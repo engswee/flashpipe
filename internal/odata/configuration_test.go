@@ -39,7 +39,7 @@ func TestConfigurationOauth(t *testing.T) {
 }
 
 func (suite *ConfigurationSuite) SetupSuite() {
-	println("========== Setting up suite ==========")
+	println("========== Setting up suite - start ==========")
 	suite.exe = InitHTTPExecuter(suite.serviceDetails)
 
 	// Setup viper in case debug logs are required
@@ -50,20 +50,24 @@ func (suite *ConfigurationSuite) SetupSuite() {
 	setupPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
 
 	setupArtifact(suite.T(), "Integration_Test_IFlow", "FlashPipeIntegrationTest", "../../test/testdata/artifacts/update/Integration_Test_IFlow", "Integration", suite.exe)
+	println("========== Setting up suite - end ==========")
 }
 
 func (suite *ConfigurationSuite) SetupTest() {
-	println("---------- Setting up test ----------")
+	println("---------- Setting up test - start ----------")
+	println("---------- Setting up test - end ----------")
 }
 
 func (suite *ConfigurationSuite) TearDownTest() {
-	println("---------- Tearing down test ----------")
+	println("---------- Tearing down test - start ----------")
+	println("---------- Tearing down test - end ----------")
 }
 
 func (suite *ConfigurationSuite) TearDownSuite() {
-	println("========== Tearing down suite ==========")
+	println("========== Tearing down suite - start ==========")
 
 	tearDownPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
+	println("========== Tearing down suite - end ==========")
 }
 
 func (suite *ConfigurationSuite) TestConfiguration_Get() {
