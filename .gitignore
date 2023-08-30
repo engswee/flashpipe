@@ -6,8 +6,10 @@
 
 # Ignore everything
 *
+# But descend into directories
+!*/
 
-# But not these files...
+# Allow these files...
 !/.gitignore
 
 !*.go
@@ -19,15 +21,12 @@
 !NOTICE
 !.gitattributes
 
-# Also not these directories...
-!.github
-!build
-!docs
-!licenses
-!test
+# Allow also these directories...
+!.github/**
+!build/**
+!docs/**
+!licenses/**
+!test/**
 
 
 # !Makefile
-
-# ...even if they are in subdirectories
-!*/
