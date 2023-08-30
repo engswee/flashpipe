@@ -111,6 +111,7 @@ func TestCommands(t *testing.T) {
 	}
 	assert.True(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/META-INF/MANIFEST.MF"), "MANIFEST.MF does not exist")
 	assert.False(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/src/main/resources/parameters.prop"), "parameters.prop exists")
+	assert.True(t, file.Exists("../../output/sync/artifact/FlashPipeIntegrationTest.json"), "FlashPipeIntegrationTest.json does not exist")
 
 	// 5 - Update integration package
 	args = nil
