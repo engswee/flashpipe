@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
@@ -10,7 +11,7 @@ import (
 	"testing"
 )
 
-func TestArtifact(t *testing.T) {
+func TestCommands(t *testing.T) {
 
 	// ------------ Set up ------------
 	println("---------- Setting up test - start ----------")
@@ -32,6 +33,7 @@ func TestArtifact(t *testing.T) {
 	rootCmd := NewCmdRoot()
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(NewDeployCommand())
+	rootCmd.AddCommand(NewSyncCommand())
 
 	// 1 - Create integration package
 	var args []string
@@ -59,7 +61,7 @@ func TestArtifact(t *testing.T) {
 	args = append(args, "--package-id", "FlashPipeIntegrationTest")
 	args = append(args, "--package-name", "FlashPipe Integration Test")
 	args = append(args, "--dir-artifact", "../../test/testdata/artifacts/create/Integration_Test_IFlow")
-	args = append(args, "--dir-work", "../../output/work")
+	args = append(args, "--dir-work", "../../output/update/work")
 	rootCmd.SetArgs(args)
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
@@ -78,6 +80,7 @@ func TestArtifact(t *testing.T) {
 	args = nil
 	args = append(args, "deploy")
 	args = append(args, "--artifact-ids", "Integration_Test_IFlow")
+	args = append(args, "--delay-length", "15")
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
 	if err != nil {
@@ -91,7 +94,25 @@ func TestArtifact(t *testing.T) {
 	}
 	assert.True(t, strings.HasPrefix(status, "START"), "Integration flow was not deployed")
 
-	// 4 - Update integration package
+	// 4 - Sync to local
+	args = nil
+	args = append(args, "sync", "package")
+	args = append(args, "--package-id", "FlashPipeIntegrationTest")
+	args = append(args, "--dir-git-repo", "../../")
+	args = append(args, "--dir-artifacts", "../../output/sync/artifact")
+	args = append(args, "--dir-work", "../../output/sync/work")
+	args = append(args, "--sync-package-details")
+	args = append(args, "--git-skip-commit")
+	rootCmd.SetArgs(args)
+
+	_, _, err = ExecuteCommandC(rootCmd, args...)
+	if err != nil {
+		t.Fatalf("sync failed with error %v", err)
+	}
+	assert.True(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/META-INF/MANIFEST.MF"), "MANIFEST.MF does not exist")
+	assert.False(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/src/main/resources/parameters.prop"), "parameters.prop exists")
+
+	// 5 - Update integration package
 	args = nil
 	args = append(args, "update", "package")
 	args = append(args, "--package-file", "../../test/testdata/FlashPipeIntegrationTest_Update.json")
@@ -108,7 +129,7 @@ func TestArtifact(t *testing.T) {
 	}
 	assert.Equal(t, "1.0.1", packageData.Root.Version, "Integration package was not updated to version 1.0.1")
 
-	// 5 - Update integration flow
+	// 6 - Update integration flow
 	args = nil
 	args = append(args, "update", "artifact")
 	args = append(args, "--artifact-id", "Integration_Test_IFlow")
@@ -116,7 +137,7 @@ func TestArtifact(t *testing.T) {
 	args = append(args, "--package-id", "FlashPipeIntegrationTest")
 	args = append(args, "--package-name", "FlashPipe Integration Test")
 	args = append(args, "--dir-artifact", "../../test/testdata/artifacts/update/Integration_Test_IFlow")
-	args = append(args, "--dir-work", "../../output/work")
+	args = append(args, "--dir-work", "../../output/update/work")
 	rootCmd.SetArgs(args)
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
@@ -131,10 +152,11 @@ func TestArtifact(t *testing.T) {
 	}
 	assert.Equal(t, "1.0.1", integrationVersion, "Integration flow was not updated to version 1.0.1")
 
-	// 6 - Deploy integration flow
+	// 7 - Deploy integration flow
 	args = nil
 	args = append(args, "deploy")
 	args = append(args, "--artifact-ids", "Integration_Test_IFlow")
+	args = append(args, "--delay-length", "15")
 	args = append(args, "--compare-versions=false")
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
@@ -149,6 +171,24 @@ func TestArtifact(t *testing.T) {
 	}
 	assert.Equal(t, "1.0.1", runtimeVersion, "Runtime version of integration flow was not updated to version 1.0.1")
 
+	// 8 - Sync updates to local
+	args = nil
+	args = append(args, "sync", "package")
+	args = append(args, "--package-id", "FlashPipeIntegrationTest")
+	args = append(args, "--dir-git-repo", "../../")
+	args = append(args, "--dir-artifacts", "../../output/sync/artifact")
+	args = append(args, "--dir-work", "../../output/sync/work")
+	args = append(args, "--sync-package-details")
+	args = append(args, "--git-skip-commit")
+	rootCmd.SetArgs(args)
+
+	_, _, err = ExecuteCommandC(rootCmd, args...)
+	if err != nil {
+		t.Fatalf("sync failed with error %v", err)
+	}
+	assert.True(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/META-INF/MANIFEST.MF"), "MANIFEST.MF does not exist")
+	assert.True(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/src/main/resources/parameters.prop"), "parameters.prop does not exist")
+
 	// ------------ Clean up ------------
 	println("---------- Tearing down test - start ----------")
 	err = ip.Delete("FlashPipeIntegrationTest")
@@ -158,6 +198,14 @@ func TestArtifact(t *testing.T) {
 	err = rt.UnDeploy("Integration_Test_IFlow")
 	if err != nil {
 		t.Fatalf("Undeploy integration failed with error %v", err)
+	}
+	err = os.RemoveAll("../../output/update")
+	if err != nil {
+		t.Fatalf("Directory removal failed with error - %v", err)
+	}
+	err = os.RemoveAll("../../output/sync")
+	if err != nil {
+		t.Fatalf("Directory removal failed with error - %v", err)
 	}
 	println("---------- Tearing down test - end ----------")
 }

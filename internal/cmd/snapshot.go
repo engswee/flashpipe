@@ -42,6 +42,7 @@ tenant to a Git repository.`,
 	snapshotCmd.Flags().String("git-commit-msg", "Tenant snapshot of "+time.Now().Format(time.UnixDate), "Message used in commit")
 	snapshotCmd.Flags().String("git-commit-user", "github-actions[bot]", "User used in commit")
 	snapshotCmd.Flags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit")
+	snapshotCmd.Flags().Bool("git-skip-commit", false, "Skip committing changes to Git repository")
 	snapshotCmd.Flags().Bool("sync-package-details", false, "Sync details of Integration Packages")
 
 	return snapshotCmd
@@ -56,14 +57,17 @@ func runSnapshot(cmd *cobra.Command) {
 	commitMsg := config.GetString(cmd, "git-commit-msg")
 	commitUser := config.GetString(cmd, "git-commit-user")
 	commitEmail := config.GetString(cmd, "git-commit-email")
+	skipCommit := config.GetBool(cmd, "git-skip-commit")
 	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 
 	serviceDetails := odata.GetServiceDetails(cmd)
 	err := getTenantSnapshot(serviceDetails, gitRepoDir, workDir, draftHandling, syncPackageLevelDetails)
 	logger.ExitIfError(err)
 
-	err = repo.CommitToRepo(gitRepoDir, commitMsg, commitUser, commitEmail)
-	logger.ExitIfError(err)
+	if !skipCommit {
+		err = repo.CommitToRepo(gitRepoDir, commitMsg, commitUser, commitEmail)
+		logger.ExitIfError(err)
+	}
 }
 
 func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitRepoDir string, workDir string, draftHandling string, syncPackageLevelDetails bool) error {

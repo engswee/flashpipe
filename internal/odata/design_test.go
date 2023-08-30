@@ -155,6 +155,11 @@ func TestDesigntime_Compare(t *testing.T) {
 		dt := NewDesigntimeArtifact(key, exe)
 		compare(value, dt, t)
 	}
+
+	err := os.RemoveAll("../../output/download")
+	if err != nil {
+		t.Fatalf("Directory removal failed with error - %v", err)
+	}
 }
 func compare(id string, dt DesigntimeArtifact, t *testing.T) {
 	// Diff artifact content

@@ -71,6 +71,7 @@ tenant to a Git repository.`,
 	syncCmd.Flags().String("git-commit-user", "github-actions[bot]", "User used in commit")
 	syncCmd.Flags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit")
 	syncCmd.Flags().String("script-collection-map", "", "Comma-separated source-target ID pairs for converting script collection references during sync ")
+	syncCmd.Flags().Bool("git-skip-commit", false, "Skip committing changes to Git repository")
 	syncCmd.Flags().Bool("sync-package-details", false, "Sync details of Integration Package")
 
 	return syncCmd
@@ -91,6 +92,7 @@ func runSync(cmd *cobra.Command) {
 	commitUser := config.GetString(cmd, "git-commit-user")
 	commitEmail := config.GetString(cmd, "git-commit-email")
 	scriptCollectionMap := config.GetString(cmd, "script-collection-map")
+	skipCommit := config.GetBool(cmd, "git-skip-commit")
 	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 
 	serviceDetails := odata.GetServiceDetails(cmd)
@@ -110,6 +112,8 @@ func runSync(cmd *cobra.Command) {
 	err := synchroniser.SyncArtifacts(packageId, workDir, artifactsDir, includedIds, excludedIds, draftHandling, dirNamingType, scriptCollectionMap)
 	logger.ExitIfError(err)
 
-	err = repo.CommitToRepo(gitRepoDir, commitMsg, commitUser, commitEmail)
-	logger.ExitIfError(err)
+	if !skipCommit {
+		err = repo.CommitToRepo(gitRepoDir, commitMsg, commitUser, commitEmail)
+		logger.ExitIfError(err)
+	}
 }
