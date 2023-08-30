@@ -20,6 +20,12 @@ func CopyFile(src, dst string) (err error) {
 	}
 	defer in.Close()
 
+	// Create directory for target file if it doesn't exist yet
+	err = os.MkdirAll(filepath.Dir(dst), os.ModePerm)
+	if err != nil {
+		return
+	}
+
 	out, err := os.Create(dst)
 	if err != nil {
 		return
