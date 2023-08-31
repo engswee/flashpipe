@@ -34,6 +34,7 @@ func TestCommands(t *testing.T) {
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(NewDeployCommand())
 	rootCmd.AddCommand(NewSyncCommand())
+	rootCmd.AddCommand(NewSnapshotCommand())
 
 	// 1 - Create integration package
 	var args []string
@@ -96,7 +97,7 @@ func TestCommands(t *testing.T) {
 
 	// 4 - Sync to local
 	args = nil
-	args = append(args, "sync", "package")
+	args = append(args, "sync")
 	args = append(args, "--package-id", "FlashPipeIntegrationTest")
 	args = append(args, "--dir-git-repo", "../../")
 	args = append(args, "--dir-artifacts", "../../output/sync/artifact")
@@ -174,7 +175,7 @@ func TestCommands(t *testing.T) {
 
 	// 8 - Sync updates to local
 	args = nil
-	args = append(args, "sync", "package")
+	args = append(args, "sync")
 	args = append(args, "--package-id", "FlashPipeIntegrationTest")
 	args = append(args, "--dir-git-repo", "../../")
 	args = append(args, "--dir-artifacts", "../../output/sync/artifact")
@@ -189,6 +190,22 @@ func TestCommands(t *testing.T) {
 	}
 	assert.True(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/META-INF/MANIFEST.MF"), "MANIFEST.MF does not exist")
 	assert.True(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/src/main/resources/parameters.prop"), "parameters.prop does not exist")
+
+	// 9 - Snapshot to local
+	args = nil
+	args = append(args, "snapshot")
+	args = append(args, "--dir-git-repo", "../../output/snapshot/repo")
+	args = append(args, "--dir-work", "../../output/snapshot/work")
+	args = append(args, "--sync-package-details")
+	args = append(args, "--git-skip-commit")
+	rootCmd.SetArgs(args)
+
+	_, _, err = ExecuteCommandC(rootCmd, args...)
+	if err != nil {
+		t.Fatalf("sync failed with error %v", err)
+	}
+	assert.True(t, file.Exists("../../output/snapshot/repo/FlashPipeIntegrationTest/Integration_Test_IFlow/META-INF/MANIFEST.MF"), "MANIFEST.MF does not exist")
+	assert.True(t, file.Exists("../../output/snapshot/repo/FlashPipeIntegrationTest/Integration_Test_IFlow/src/main/resources/parameters.prop"), "parameters.prop does not exist")
 
 	// ------------ Clean up ------------
 	println("---------- Tearing down test - start ----------")
@@ -205,6 +222,10 @@ func TestCommands(t *testing.T) {
 		t.Fatalf("Directory removal failed with error - %v", err)
 	}
 	err = os.RemoveAll("../../output/sync")
+	if err != nil {
+		t.Fatalf("Directory removal failed with error - %v", err)
+	}
+	err = os.RemoveAll("../../output/snapshot")
 	if err != nil {
 		t.Fatalf("Directory removal failed with error - %v", err)
 	}
