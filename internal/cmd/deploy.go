@@ -144,17 +144,14 @@ func checkDeploymentStatus(runtime *odata.Runtime, delayLength int, maxCheckLimi
 			time.Sleep(time.Duration(delayLength) * time.Second)
 			continue
 		}
-
-		if status != "STARTING" {
-			if status == "STARTED" {
-				break
-			} else {
-				errorMessage, err := runtime.GetErrorInfo(id)
-				if err != nil {
-					return err
-				}
-				return fmt.Errorf("Artifact deployment unsuccessful, ended with status %s. Error message = %s", status, errorMessage)
+		if status == "STARTED" {
+			return nil
+		} else if status != "STARTING" {
+			errorMessage, err := runtime.GetErrorInfo(id)
+			if err != nil {
+				return err
 			}
+			return fmt.Errorf("Artifact deployment unsuccessful, ended with status %s. Error message = %s", status, errorMessage)
 		}
 		if i == (maxCheckLimit-1) && status != "STARTED" {
 			return fmt.Errorf("Artifact status remained in %s after %d checks", status, maxCheckLimit)

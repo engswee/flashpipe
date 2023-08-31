@@ -69,6 +69,7 @@ func (r *Runtime) GetErrorInfo(id string) (string, error) {
 
 	callType := "Get runtime artifact error information"
 	resp, err := readOnlyCall(urlPath, callType, r.exe)
+	// TODO - sometimes the error information is only available after some time, so the API returns 204 No content (instead of 200) in the meantime
 	if err != nil {
 		return "", err
 	}
