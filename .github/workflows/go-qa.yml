@@ -3,12 +3,21 @@
 # https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 # https://docs.docker.com/build/ci/github-actions/
 
-name: Go
+name: Go - QA
 
-# TODO - handle productive release
 on:
   push:
-    branches: [ "go" ]
+    branches:
+      - release
+    paths-ignore:
+      - 'docs/**'
+      - 'licenses/**'
+      - '*.md'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.gitattributes'
+      - 'LICENSE'
+      - 'NOTICE'
 
 jobs:
 
@@ -56,6 +65,9 @@ jobs:
         name: results
         path: coverage.html
 
+  # ----------------------------------------------------------------
+  # Private image for QA testing
+  # ----------------------------------------------------------------
   build_docker:
     needs: test_and_build_go
     runs-on: ubuntu-latest

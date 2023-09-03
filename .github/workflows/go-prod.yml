@@ -1,0 +1,97 @@
+# This workflow will build a golang project
+# For more information see:
+# https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+# https://docs.docker.com/build/ci/github-actions/
+
+name: Go - Prod
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - 'licenses/**'
+      - '*.md'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.gitattributes'
+      - 'LICENSE'
+      - 'NOTICE'
+
+jobs:
+
+  test_and_build_go:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out Git repository
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version-file: 'go.mod'
+
+    - name: Test
+      run: |
+        go test -p 1 -coverpkg=./... -coverprofile=c.out -v ./...
+        go tool cover -html=c.out -o coverage.html
+      env:
+        FLASHPIPE_DEBUG: true
+        FLASHPIPE_TMN_HOST: equaliseit.it-cpi023.cfapps.eu20-001.hana.ondemand.com
+        FLASHPIPE_OAUTH_HOST: equaliseit.authentication.eu20.hana.ondemand.com
+        FLASHPIPE_OAUTH_PATH: /oauth/token
+        FLASHPIPE_OAUTH_CLIENTID: ${{ secrets.OAUTH_CLIENTID }}
+        FLASHPIPE_OAUTH_CLIENTSECRET: ${{ secrets.OAUTH_CLIENTSECRET }}
+        FLASHPIPE_TMN_PASSWORD: ${{ secrets.BASIC_PASSWORD }}
+        FLASHPIPE_TMN_USERID: ${{ secrets.BASIC_USERID }}
+
+    - name: Build Go application
+      run: go build -v -o output/ ./...
+      env:
+        CGO_ENABLED: 0
+
+    - name: Save output for Docker build
+      uses: actions/cache/save@v3
+      with:
+        path: |
+          build/*
+          output/*
+        key: ${{ github.sha }}
+
+    - name: Save output as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: results
+        path: coverage.html
+
+  # ----------------------------------------------------------------
+  # Public image for production release
+  # ----------------------------------------------------------------
+  build_docker:
+    needs: test_and_build_go
+    runs-on: ubuntu-latest
+    steps:
+    - name: Restore output for Docker build
+      uses: actions/cache/restore@v3
+      with:
+        path: |
+          build/*
+          output/*
+        key: ${{ github.sha }}
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        file: ./build/Dockerfile
+        push: true
+        tags: |
+          engswee/flashpipe:3.0.0
+          engswee/flashpipe:latest

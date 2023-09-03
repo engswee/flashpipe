@@ -1,0 +1,53 @@
+# This workflow will build a golang project
+# For more information see:
+# https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+# https://docs.docker.com/build/ci/github-actions/
+
+name: Go - Dev
+
+on:
+  push:
+    branches:
+      - develop
+    paths-ignore:
+      - 'docs/**'
+      - 'licenses/**'
+      - '*.md'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.gitattributes'
+      - 'LICENSE'
+      - 'NOTICE'
+
+jobs:
+
+  test_and_build_go:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out Git repository
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version-file: 'go.mod'
+
+    - name: Test
+      run: |
+        go test -p 1 -coverpkg=./... -coverprofile=c.out -v ./...
+        go tool cover -html=c.out -o coverage.html
+      env:
+        FLASHPIPE_DEBUG: true
+        FLASHPIPE_TMN_HOST: equaliseit.it-cpi023.cfapps.eu20-001.hana.ondemand.com
+        FLASHPIPE_OAUTH_HOST: equaliseit.authentication.eu20.hana.ondemand.com
+        FLASHPIPE_OAUTH_PATH: /oauth/token
+        FLASHPIPE_OAUTH_CLIENTID: ${{ secrets.OAUTH_CLIENTID }}
+        FLASHPIPE_OAUTH_CLIENTSECRET: ${{ secrets.OAUTH_CLIENTSECRET }}
+        FLASHPIPE_TMN_PASSWORD: ${{ secrets.BASIC_PASSWORD }}
+        FLASHPIPE_TMN_USERID: ${{ secrets.BASIC_USERID }}
+
+    - name: Save output as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: results
+        path: coverage.html
