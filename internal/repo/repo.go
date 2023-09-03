@@ -50,7 +50,7 @@ func CommitToRepo(gitRepoDir string, commitMsg string, commitUser string, commit
 		commit, err = w.Commit(commitMsg, &git.CommitOptions{
 			All: true,
 			Author: &object.Signature{
-				Name:  commitUser, // TODO - Update as new feature in readme
+				Name:  commitUser,
 				Email: commitEmail,
 				When:  time.Now(),
 			},

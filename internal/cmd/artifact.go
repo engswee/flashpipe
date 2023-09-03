@@ -42,7 +42,7 @@ SAP Integration Suite tenant.`,
 	artifactCmd.Flags().String("package-name", "", "Name of Integration Package")
 	artifactCmd.Flags().String("dir-artifact", "", "Directory containing contents of designtime artifact")
 	artifactCmd.Flags().String("file-param", "", "Use to a different parameters.prop file instead of the default in src/main/resources/ ")
-	artifactCmd.Flags().String("file-manifest", "", "Use to a different MANIFEST.MF file instead of the default in src/main/resources/")
+	artifactCmd.Flags().String("file-manifest", "", "Use to a different MANIFEST.MF file instead of the default in META-INF/")
 	artifactCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files")
 	artifactCmd.Flags().String("script-collection-map", "", "Comma-separated source-target ID pairs for converting script collection references during create/update")
 	artifactCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping")
