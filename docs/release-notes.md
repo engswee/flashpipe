@@ -1,6 +1,6 @@
 # Release Notes
 
-## 3.0.0 (Released 17 September 2023)
+## 3.0.0 (Released 4 September 2023)
 
 ---
 
@@ -14,11 +14,11 @@
     - Environment variables
     - Config file (flashpipe.yaml)
   - Consolidate to just a single Docker image, with the introduction of `latest` rolling tag
-  - Reduced image size
+  - Reduced Docker image size of up to 60% compared to the previous lite image
   - Names of environment variables have changed, refer to [FlashPipe CLI page](flashpipe-cli.md)
   - `sync` and `snapshot` commands
     - New parameters for configuring username and email when committing changes to Git repository
-  - Support for Neo is dropped due to sunset [here](https://blogs.sap.com/2023/06/14/farewell-neo-sap-btp-multi-cloud-environment-the-deployment-environment-of-choice/)
+  - Support for Neo is dropped due to sunset of the platform as described [here](https://blogs.sap.com/2023/06/14/farewell-neo-sap-btp-multi-cloud-environment-the-deployment-environment-of-choice/)
 
 ## 2.7.1 (Released 17 January 2023)
 
