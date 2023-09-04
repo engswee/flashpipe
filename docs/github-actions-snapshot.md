@@ -2,7 +2,7 @@
 The page describes the steps to set up _FlashPipe_ on [GitHub Actions](https://github.com/features/actions) to snapshot contents of a Cloud Integration tenant to a GitHub repository.
 
 ### 1. Create GitHub repository
-Create (or use) and existing repository on GitHub.
+Create (or use) an existing repository on GitHub.
 
 ![New Repo](images/setup/git-sync/01_new_repo.png)
 Ensure that the repository includes the following files at the root directory. The links provide samples for each file that can be used.
@@ -38,10 +38,10 @@ In the GitHub repository, go to `Actions` to create new workflow.
 
 Skip the templates and choose `set up a workflow yourself`.
 
-Provide a suitable name for the workflow file e.g. `snapshot-tenant.yml` and replace the default content with the code sample below. Replace the tenant and authentication details accordingly (adjusting the OAuth token path on Neo environment where applicable).
+Provide a suitable name for the workflow file e.g. `snapshot-tenant.yml` and replace the default content with the code sample below. Replace the tenant and authentication details accordingly.
 ![Snapshot Workflow](images/setup/snapshot/03b_snapshot_workflow.png)
 
-<script src="https://gist.github.com/engswee/6781109e47d4a4617b12a47082bb4730.js"></script>
+<script src="https://gist.github.com/engswee/95ff1aed35e19cbfb51075add2da3b87.js"></script>
 
 Save and commit the new workflow file.
 
@@ -70,8 +70,8 @@ Click on the particular commit to review details of the changes.
 ### 6. [Optional] Create workflow for executing snapshot on a periodic schedule
 Once the initial Git repository has been populated, additional workflow can be created to snapshot the tenant on a periodic schedule.
 
-Create a new workflow file in the `.github/workflow` directory. Populate the content with the code sample below. Replace the tenant and authentication details accordingly (adjusting the OAuth token path on Neo environment where applicable). Then, save and commit the file.
-<script src="https://gist.github.com/engswee/c1ccfff831e00c9647837507ea8941fa.js"></script>
+Create a new workflow file in the `.github/workflow` directory. Populate the content with the code sample below. Replace the tenant and authentication details accordingly. Then, save and commit the file.
+<script src="https://gist.github.com/engswee/541e951ca7aaec16fcc5deea3e290504.js"></script>
 
 This workflow has been hardcoded with specific values for `GIT_SRC_DIR` using the root of the repository. It has the following triggering event:
 - `on: schedule` - executed periodically based on a cron schedule (refer to [crontab guru](https://crontab.guru) for help in generation of the cron syntax)

@@ -1,5 +1,25 @@
 # Release Notes
 
+## 3.0.0 (Released 17 September 2023)
+
+---
+
+- 🔥🔥 New major release 🔥🔥 - _FlashPipe_ reimplemented fully in [Go](https://go.dev) 
+  - Additional support for the following artifact types
+    - Message Mapping
+    - Script Collection
+    - Value Mapping
+  - A ✨✨ shiny new CLI ✨✨ built on [Cobra](https://cobra.dev), and together with [Viper](https://github.com/spf13/viper), configuration parameters can be passed with the following methods
+    - CLI flags
+    - Environment variables
+    - Config file (flashpipe.yaml)
+  - Consolidate to just a single Docker image, with the introduction of `latest` rolling tag
+  - Reduced image size
+  - Names of environment variables have changed, refer to [FlashPipe CLI page](flashpipe-cli.md)
+  - `sync` and `snapshot` commands
+    - New parameters for configuring username and email when committing changes to Git repository
+  - Support for Neo is dropped due to sunset [here](https://blogs.sap.com/2023/06/14/farewell-neo-sap-btp-multi-cloud-environment-the-deployment-environment-of-choice/)
+
 ## 2.7.1 (Released 17 January 2023)
 
 ---
@@ -112,7 +132,7 @@
 
 ---
 
-- 🔥🔥 New feature 🔥🔥 - _FlashPipe_ now supports [testing using simulation mode](simulation-testing.md) in Neo environments. While this is just a one-liner in this release notes, it is a power-packed feature! 😎
+- 🔥🔥 New feature 🔥🔥 - _FlashPipe_ now supports testing using simulation mode in Neo environments. While this is just a one-liner in this release notes, it is a power-packed feature! 😎
 
 ## 2.3.0 (Released 2 August 2021)
 
