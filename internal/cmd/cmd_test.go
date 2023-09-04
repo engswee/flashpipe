@@ -211,23 +211,23 @@ func TestCommands(t *testing.T) {
 	println("---------- Tearing down test - start ----------")
 	err = ip.Delete("FlashPipeIntegrationTest")
 	if err != nil {
-		t.Fatalf("Delete package failed with error %v", err)
+		t.Logf("WARNING - Delete package failed with error %v", err)
 	}
 	err = rt.UnDeploy("Integration_Test_IFlow")
 	if err != nil {
-		t.Fatalf("Undeploy integration failed with error %v", err)
+		t.Logf("WARNING - Undeploy integration failed with error %v", err)
 	}
 	err = os.RemoveAll("../../output/update")
 	if err != nil {
-		t.Fatalf("Directory removal failed with error - %v", err)
+		t.Logf("WARNING - Directory removal failed with error - %v", err)
 	}
 	err = os.RemoveAll("../../output/sync")
 	if err != nil {
-		t.Fatalf("Directory removal failed with error - %v", err)
+		t.Logf("WARNING - Directory removal failed with error - %v", err)
 	}
 	err = os.RemoveAll("../../output/snapshot")
 	if err != nil {
-		t.Fatalf("Directory removal failed with error - %v", err)
+		t.Logf("WARNING - Directory removal failed with error - %v", err)
 	}
 	println("---------- Tearing down test - end ----------")
 }

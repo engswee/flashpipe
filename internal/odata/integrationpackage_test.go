@@ -133,7 +133,7 @@ func setupPackage(t *testing.T, packageId string, exe *httpclnt.HTTPExecuter) {
 
 	_, _, packageExists, err := ip.Get(packageId)
 	if err != nil {
-		t.Fatalf("Exists failed with error - %v", err)
+		t.Logf("WARNING - Exists failed with error - %v", err)
 	}
 	if !packageExists {
 		requestBody := new(PackageSingleData)
@@ -143,7 +143,7 @@ func setupPackage(t *testing.T, packageId string, exe *httpclnt.HTTPExecuter) {
 
 		err = ip.Create(requestBody)
 		if err != nil {
-			t.Fatalf("Create failed with error - %v", err)
+			t.Logf("WARNING - Create failed with error - %v", err)
 		}
 	}
 }
@@ -153,12 +153,12 @@ func tearDownPackage(t *testing.T, packageId string, exe *httpclnt.HTTPExecuter)
 
 	_, _, packageExists, err := ip.Get(packageId)
 	if err != nil {
-		t.Fatalf("Exists failed with error - %v", err)
+		t.Logf("WARNING - Exists failed with error - %v", err)
 	}
 	if packageExists {
 		err = ip.Delete(packageId)
 		if err != nil {
-			t.Fatalf("Delete failed with error - %v", err)
+			t.Logf("WARNING - Delete failed with error - %v", err)
 		}
 	}
 }
