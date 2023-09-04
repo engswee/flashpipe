@@ -3,7 +3,7 @@
 # https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 # https://docs.docker.com/build/ci/github-actions/
 
-name: Go - QA
+name: Build and Deploy (QA)
 
 on:
   push:

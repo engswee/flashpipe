@@ -2,9 +2,7 @@
 
 ## The CI/CD Companion for SAP Integration Suite
 
-[//]: # (TODO - update build status to GitHub Actions)
-
-[//]: # ([![Build Status]&#40;https://dev.azure.com/engswee/flashpipe/_apis/build/status/engswee.flashpipe?branchName=main&#41;]&#40;https://dev.azure.com/engswee/flashpipe/_build/latest?definitionId=11&branchName=main&#41;)
+[![Build and Deploy](https://github.com/engswee/flashpipe/actions/workflows/go-prod.yml/badge.svg)](https://github.com/engswee/flashpipe/actions/workflows/go-prod.yml)
 [![GitHub license](https://img.shields.io/github/license/engswee/flashpipe)](https://github.com/engswee/flashpipe/blob/main/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/engswee/flashpipe.svg)](https://github.com/engswee/flashpipe/releases/latest)
 [![Docker Image Size (latest semver)](https://img.shields.io/docker/image-size/engswee/flashpipe)](https://hub.docker.com/r/engswee/flashpipe/tags?page=1&ordering=last_updated)
