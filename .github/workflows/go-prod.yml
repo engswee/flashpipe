@@ -93,5 +93,5 @@ jobs:
         file: ./build/Dockerfile
         push: true
         tags: |
-          engswee/flashpipe:3.0.0
+          engswee/flashpipe:3.1.0
           engswee/flashpipe:latest
