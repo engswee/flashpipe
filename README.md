@@ -2,7 +2,9 @@
 
 ## The CI/CD Companion for SAP Integration Suite
 
-[![Build Status](https://dev.azure.com/engswee/flashpipe/_apis/build/status/engswee.flashpipe?branchName=main)](https://dev.azure.com/engswee/flashpipe/_build/latest?definitionId=11&branchName=main)
+[//]: # (TODO - update build status to GitHub Actions)
+
+[//]: # ([![Build Status]&#40;https://dev.azure.com/engswee/flashpipe/_apis/build/status/engswee.flashpipe?branchName=main&#41;]&#40;https://dev.azure.com/engswee/flashpipe/_build/latest?definitionId=11&branchName=main&#41;)
 [![GitHub license](https://img.shields.io/github/license/engswee/flashpipe)](https://github.com/engswee/flashpipe/blob/main/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/engswee/flashpipe.svg)](https://github.com/engswee/flashpipe/releases/latest)
 [![Docker Image Size (latest semver)](https://img.shields.io/docker/image-size/engswee/flashpipe)](https://hub.docker.com/r/engswee/flashpipe/tags?page=1&ordering=last_updated)
@@ -37,3 +39,11 @@ To contribute to _FlashPipe_, check the [contribution guidelines page](CONTRIBUT
 ### License
 
 _FlashPipe_ is licensed under the terms of Apache License, Version 2.0 - see the [LICENSE](LICENSE) file for details.
+
+### Development
+
+_FlashPipe_ is developed using [GoLand](https://www.jetbrains.com/go/) courtesy of JetBrains' [Free License Program for Open Source Development](https://www.jetbrains.com/community/opensource/#support).
+
+![GoLand logo](https://resources.jetbrains.com/storage/products/company/brand/logos/GoLand_icon.svg)
+
+
