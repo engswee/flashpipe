@@ -163,7 +163,6 @@ Next, move on to create a new pipeline in the Azure DevOps project.
 Select the Git repository to be used in the pipeline.
 ![Select Repo](images/setup/azure-pipelines/07b_select_repo.png)
 
-[//]: # (TODO - update the screenshot with YAML showing version 3.0.0)
 Since the pipeline YAML file is already created in the repository, it will be loaded. Review it and then select `Run` to execute the pipeline.
 ![Review Run](images/setup/azure-pipelines/07c_review_run.png)
 
@@ -172,6 +171,5 @@ Once the run is triggered, you can monitor its execution and job logs.
 
 **Note**: On the first run of the pipeline, you may be asked to approve access to the Variable Group from the pipeline.
 
-[//]: # (TODO - update the screenshot with run from Go image)
 Upon completion of the run, you can review the logs, and also check the artifact (designtime and runtime) in the Cloud Integration tenant.
 ![Monitor](images/setup/azure-pipelines/08a_job_run.png)

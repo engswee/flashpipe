@@ -38,7 +38,6 @@ In the GitHub repository, go to `Actions` to create new workflow.
 
 Skip the templates and choose `set up a workflow yourself`.
 
-[//]: # (TODO - update screenshot with YAML showing version 3.0.0)
 Provide a suitable name for the workflow file e.g. `sync-any-iflows.yml` and replace the default content with the code sample below. Replace the tenant and authentication details accordingly.
 ![Sync Workflow](images/setup/git-sync/03b_sync_workflow.png)
 
@@ -54,14 +53,11 @@ This workflow has been configured with `on: workflow_dispatch` event triggering 
 In the GitHub repository, go to `Actions`, select the workflow and click `Run workflow`.
 ![Execute Workflow](images/setup/git-sync/04a_run_workflow.png)
 
-[//]: # (TODO - update screenshot with execution with Go image)
-
 Provide input details for the workflow execution. The mandatory field is the Integration Package ID. 
 ![Workflow Input](images/setup/git-sync/04b_workflow_input.png)
 
 ### 5. View execution results
 
-[//]: # (TODO - update screenshot with execution with Go image)
 During or upon completion of the workflow run, the logs can be viewed by clicking on the workflow run.
 ![Workflow Logs](images/setup/git-sync/05a_logs.png)
 
@@ -80,16 +76,14 @@ Once the initial Git repository has been populated, additional workflows can be 
 Create a new workflow file in the `.github/workflow` directory. Populate the content with the code sample below. Replace the tenant and authentication details accordingly. Then, save and commit the file.
 <script src="https://gist.github.com/engswee/8c1de1b50a51d93a2e4cc6c31d4664f3.js"></script>
 
-This workflow has been hardcoded with specific values for `FLASHPIPE_DIR_GIT_REPO` and `FLASHPIPE_PACKAGE_ID`. It also has two triggering events:
+This workflow has been hardcoded with specific values for `FLASHPIPE_DIR_GIT_REPO`, `FLASHPIPE_DIR_ARTIFACTS` and `FLASHPIPE_PACKAGE_ID`. It also has two triggering events:
 - `on: workflow_dispatch` - which allows it to be executed manually
 - `on: schedule` - executed periodically based on a cron schedule (refer to [crontab guru](https://crontab.guru) for help in generation of the cron syntax)
   
-[//]: # (TODO - update screenshot with YAML with version 3.0.0)
 ![Specific Workflow](images/setup/git-sync/06a_specific_workflow.png)
 
 The workflow can now be triggered manually from the GitHub UI.
 ![Run Specific Workflow](images/setup/git-sync/06b_run_specific.png)
 
-[//]: # (TODO - update screenshot with execution with Go image)
 During any workflow run, if there are no differences between the tenant content and the Git repository, no changes will be committed.
 ![No Changes](images/setup/git-sync/06c_no_changes.png)

@@ -56,7 +56,5 @@ Create the following repository secrets. Refer to [OAuth client setup page](oaut
 Once all is in place, commit/push the workflow YAML. This will automatically trigger the workflow to be executed, you can monitor its execution and job logs. Go to `Actions` to view the workflows.
 ![Monitor](images/setup/github-actions/06a_action_workflow.png)
 
-[//]: # (TODO - update screenshot with execution with Go image)
-
 Upon completion of the run, you can review the logs, and also check the artifact (designtime and runtime) in the Cloud Integration tenant.
 ![Monitor](images/setup/github-actions/06b_action_logs.png)
