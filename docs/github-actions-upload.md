@@ -18,6 +18,7 @@ Add the contents to a new or existing Git repository.
 Add a [GitHub Actions workflow YAML file](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions) (`<workflow-name>.yml`) in the `.github/workflows` directory of the Git repository.
 
 #### Template YAML with steps to create/update and deploy one integration artifact
+[//]: # (Gist is used because inline YAML does not render ${{ variables }} correctly)
 <script src="https://gist.github.com/engswee/b040f9c520c42ed8eb3307ec29c1e77a.js"></script>
 
 Where:
