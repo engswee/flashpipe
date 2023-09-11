@@ -32,7 +32,13 @@ Create the following repository secrets. Refer to [OAuth client setup page](oaut
 
 **Note**: GitHub does not provide functionality to store unencrypted plain text variables, which would be useful for values like the base URLs. Optionally, these can be stored as encrypted secrets instead of being hardcoded in the YAML configuration file.
 
-### 3. Create GitHub Actions workflow
+### 3. Configure workflow permissions
+In order for the workflows to be able to make changes to the repository, correct permissiongs need to be configured.
+
+In the GitHub repository, go to `Settings` > `Actions` > `General`. Scroll down to the `Workflow permissions` section and select `Read and write permissions` and click `Save`.
+![Workflow permissions](images/setup/git-sync/03c_workflow_permissions.png)
+
+### 4. Create GitHub Actions workflow
 In the GitHub repository, go to `Actions` to create new workflow.
 ![New Workflow](images/setup/git-sync/03a_new_workflow.png)
 
@@ -45,7 +51,7 @@ Provide a suitable name for the workflow file e.g. `snapshot-tenant.yml` and rep
 
 Save and commit the new workflow file.
 
-### 4. Trigger workflow execution
+### 5. Trigger workflow execution
 This workflow has been configured with `on: workflow_dispatch` event triggering which allows it to be executed manually.
 
 In the GitHub repository, go to `Actions`, select the workflow and click `Run workflow`.
@@ -54,7 +60,7 @@ In the GitHub repository, go to `Actions`, select the workflow and click `Run wo
 [Optional] Provide input details for the workflow execution.
 ![Workflow Input](images/setup/snapshot/04b_workflow_input.png)
 
-### 5. View execution results
+### 6. View execution results
 During or upon completion of the workflow run, the logs can be viewed by clicking on the workflow run.
 ![Workflow Logs](images/setup/snapshot/05a_logs.png)
 
@@ -67,7 +73,7 @@ The changes can be viewed from the commit history.
 Click on the particular commit to review details of the changes.
 ![Commit Details](images/setup/snapshot/05d_commit_details.png)
 
-### 6. [Optional] Create workflow for executing snapshot on a periodic schedule
+### 7. [Optional] Create workflow for executing snapshot on a periodic schedule
 Once the initial Git repository has been populated, additional workflow can be created to snapshot the tenant on a periodic schedule.
 
 Create a new workflow file in the `.github/workflow` directory. Populate the content with the code sample below. Replace the tenant and authentication details accordingly. Then, save and commit the file.
