@@ -20,6 +20,57 @@ Add a [GitHub Actions workflow YAML file](https://docs.github.com/en/actions/ref
 #### Template YAML with steps to create/update and deploy one integration artifact
 <script src="https://gist.github.com/engswee/b040f9c520c42ed8eb3307ec29c1e77a.js"></script>
 
+```yaml
+# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
+name: <workflow-name>
+on:
+  push:
+    branches:
+      - <branch_name>
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: engswee/flashpipe:<flashpipe_version>
+    env:
+      FLASHPIPE_TMN_HOST: <base URL of tenant management node>
+      FLASHPIPE_TMN_USERID: ${{ secrets.DEV_USER_ID }} # When using Basic authentication
+      FLASHPIPE_TMN_PASSWORD: ${{ secrets.DEV_PASSWORD }} # When using Basic authentication
+      FLASHPIPE_OAUTH_HOST: <base URL of OAuth token server> # When using OAuth authentication
+      FLASHPIPE_OAUTH_CLIENTID: ${{ secrets.DEV_CLIENT_ID }} # When using OAuth authentication
+      FLASHPIPE_OAUTH_CLIENTSECRET: ${{ secrets.DEV_CLIENT_SECRET }} # When using OAuth authentication
+      FLASHPIPE_OAUTH_PATH: <oauth_path> # Optional
+    steps:
+      - uses: actions/checkout@v4
+      # Upload/Update design time artifact
+      - name: 'Update/Upload artifact to design time'
+        run: flashpipe update artifact
+        shell: bash
+        env:
+          FLASHPIPE_ARTIFACT_ID: <artifact_id>
+          FLASHPIPE_ARTIFACT_NAME: <artifact_name>
+          FLASHPIPE_PACKAGE_ID: <package_id>
+          FLASHPIPE_PACKAGE_NAME: <package_name>
+          FLASHPIPE_DIR_ARTIFACT: ${{ github.workspace }}/<path_to_artifact_dir> # Optional
+          FLASHPIPE_FILE_PARAM: ${{ github.workspace }}/<path_to_param_file> # Optional
+          FLASHPIPE_FILE_MANIFEST: ${{ github.workspace }}/<path_to_manifest_file> # Optional
+          FLASHPIPE_DIR_WORK: <working_directory> # Optional
+          FLASHPIPE_SCRIPT_COLLECTION_MAP: <comma_separated_source/target_pairs> # Optional
+          FLASHPIPE_ARTIFACT_TYPE: <artifact_type> # Optional
+          FLASHPIPE_PACKAGE_FILE: <package_file> # Optional
+      # Deploy to runtime
+      - name: 'Deploy artifact to runtime'
+        run: flashpipe deploy
+        shell: bash
+        env:
+          FLASHPIPE_ARTIFACT_IDS: <iflow_id>
+          FLASHPIPE_DELAY_LENGTH: <delay_in_seconds> # Optional
+          FLASHPIPE_MAX_CHECK_LIMIT: <max_check_limit> # Optional          
+          FLASHPIPE_COMPARE_VERSIONS: <compare_versions> # Optional
+          FLASHPIPE_ARTIFACT_TYPE: <artifact_type> # Optional
+```
+
 Where:
 - `<branch_name>` - branch name of Git repository that will automatically trigger pipeline
 - `<flashpipe_version>` - version of _FlashPipe_
