@@ -45,6 +45,10 @@ In the GitHub repository, go to `Actions` to create new workflow.
 Skip the templates and choose `set up a workflow yourself`.
 
 Provide a suitable name for the workflow file e.g. `snapshot-tenant.yml` and replace the default content with the code sample below. Replace the tenant and authentication details accordingly.
+
+**NOTE** - FlashPipe comes with companion GitHub Action [engswee/flashpipe-action](https://github.com/engswee/flashpipe-action) that simplifies usage in a workflow. The following action is used in the workflow:
+- [engswee/flashpipe-action/snapshot@v1](https://github.com/engswee/flashpipe-action#snapshot)
+
 ![Snapshot Workflow](images/setup/snapshot/03b_snapshot_workflow.png)
 
 <script src="https://gist.github.com/engswee/95ff1aed35e19cbfb51075add2da3b87.js"></script>
@@ -79,9 +83,9 @@ Once the initial Git repository has been populated, additional workflow can be c
 Create a new workflow file in the `.github/workflow` directory. Populate the content with the code sample below. Replace the tenant and authentication details accordingly. Then, save and commit the file.
 <script src="https://gist.github.com/engswee/541e951ca7aaec16fcc5deea3e290504.js"></script>
 
-This workflow has been hardcoded with specific values for `GIT_SRC_DIR` using the root of the repository. It has the following triggering event:
+This workflow has the following triggering event:
 - `on: schedule` - executed periodically based on a cron schedule (refer to [crontab guru](https://crontab.guru) for help in generation of the cron syntax)
 
-![Specific Workflow](images/setup/snapshot/06a_specific_workflow.png)
+![Specific Workflow](images/setup/snapshot/06a_snapshot_specific_workflow.png)
 
 When it reaches the period configured in the schedule, the workflow will be executed. If there are no differences between the tenant content and the Git repository, no changes will be committed.

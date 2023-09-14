@@ -2,6 +2,7 @@
 The key components of _FlashPipe_ are
 - **Go binary executable** - a Unix-based CLI which provides commands to interact with an SAP Integration Suite tenant
 - **Docker image** - fully contained image that can be used to execute _FlashPipe_ commands in a CI/CD pipeline
+- **Companion GitHub Action** [engswee/flashpipe-action](https://github.com/engswee/flashpipe-action) - custom action to simplify usage in GitHub Actions workflows
 
 _FlashPipe_ uses the [public APIs of the SAP Integration Suite](https://api.sap.com/package/CloudIntegrationAPI/odata) to automate the Build-To-Deploy cycle. The components are implemented in Go and compiled as Unix executables.
 

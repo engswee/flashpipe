@@ -45,13 +45,15 @@ In the GitHub repository, go to `Actions` to create new workflow.
 Skip the templates and choose `set up a workflow yourself`.
 
 Provide a suitable name for the workflow file e.g. `sync-any-iflows.yml` and replace the default content with the code sample below. Replace the tenant and authentication details accordingly.
+
+**NOTE** - FlashPipe comes with companion GitHub Action [engswee/flashpipe-action](https://github.com/engswee/flashpipe-action) that simplifies usage in a workflow. The following action is used in the workflow:
+- [engswee/flashpipe-action/sync@v1](https://github.com/engswee/flashpipe-action#sync)
+
 ![Sync Workflow](images/setup/git-sync/03b_sync_workflow.png)
 
 <script src="https://gist.github.com/engswee/7d72bf90d3eebfbb742560ff61f851be.js"></script>
 
 Save and commit the new workflow file.
-
-**NOTE:** From version 3.0.0 onwards, the GitHub action [ad-m/github-push-action@master](https://github.com/ad-m/github-push-action) doesn't work well with FlashPipe's `sync` command. The recommendation is to directly run `git push` providing the environment variable `HOME: /root`.
 
 ### 5. Trigger workflow execution
 This workflow has been configured with `on: workflow_dispatch` event triggering which allows it to be executed manually.
@@ -82,11 +84,11 @@ Once the initial Git repository has been populated, additional workflows can be 
 Create a new workflow file in the `.github/workflow` directory. Populate the content with the code sample below. Replace the tenant and authentication details accordingly. Then, save and commit the file.
 <script src="https://gist.github.com/engswee/8c1de1b50a51d93a2e4cc6c31d4664f3.js"></script>
 
-This workflow has been hardcoded with specific values for `FLASHPIPE_DIR_GIT_REPO`, `FLASHPIPE_DIR_ARTIFACTS` and `FLASHPIPE_PACKAGE_ID`. It also has two triggering events:
+This workflow has been hardcoded with specific values for `dir-artifacts-relative` and `package-id`. It also has two triggering events:
 - `on: workflow_dispatch` - which allows it to be executed manually
 - `on: schedule` - executed periodically based on a cron schedule (refer to [crontab guru](https://crontab.guru) for help in generation of the cron syntax)
   
-![Specific Workflow](images/setup/git-sync/06a_specific_workflow.png)
+![Specific Workflow](images/setup/git-sync/06a_sync_specific_workflow.png)
 
 The workflow can now be triggered manually from the GitHub UI.
 ![Run Specific Workflow](images/setup/git-sync/06b_run_specific.png)

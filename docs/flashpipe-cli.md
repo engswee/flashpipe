@@ -57,8 +57,8 @@ Flags:
       --artifact-type string           Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping (default "Integration")
       --dir-artifact string            Directory containing contents of designtime artifact
       --dir-work string                Working directory for in-transit files (default "/tmp")
-      --file-manifest string           Use to a different MANIFEST.MF file instead of the default in META-INF/
-      --file-param string              Use to a different parameters.prop file instead of the default in src/main/resources/ 
+      --file-manifest string           Use a different MANIFEST.MF file instead of the default in META-INF/
+      --file-param string              Use a different parameters.prop file instead of the default in src/main/resources/ 
   -h, --help                           help for artifact
       --package-id string              ID of Integration Package
       --package-name string            Name of Integration Package
