@@ -26,17 +26,3 @@ func TestExtractDelimitedValues_NoEntry(t *testing.T) {
 
 	assert.Equal(t, 0, len(output), "Expected size = ")
 }
-
-func TestContains_True(t *testing.T) {
-	entries := []string{"ABC", "123", "XYZ"}
-	output := Contains("ABC", entries)
-
-	assert.True(t, output, "ABC not found in list")
-}
-
-func TestContains_False(t *testing.T) {
-	entries := []string{"123", "XYZ"}
-	output := Contains("ABC", entries)
-
-	assert.False(t, output, "ABC found in list")
-}

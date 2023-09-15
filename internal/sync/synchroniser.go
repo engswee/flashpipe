@@ -6,9 +6,9 @@ import (
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
 	"github.com/engswee/flashpipe/internal/odata"
-	"github.com/engswee/flashpipe/internal/str"
 	"github.com/rs/zerolog/log"
 	"os"
+	"slices"
 )
 
 type Synchroniser struct {
@@ -232,7 +232,7 @@ func filterArtifacts(artifacts []*odata.ArtifactDetails, includedIds []string, e
 			}
 		}
 		for _, artifact := range artifacts {
-			if !str.Contains(artifact.Id, excludedIds) {
+			if !slices.Contains(excludedIds, artifact.Id) {
 				output = append(output, artifact)
 			}
 		}

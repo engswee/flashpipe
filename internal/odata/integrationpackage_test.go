@@ -3,11 +3,11 @@ package odata
 import (
 	"github.com/engswee/flashpipe/internal/httpclnt"
 	"github.com/engswee/flashpipe/internal/logger"
-	"github.com/engswee/flashpipe/internal/str"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"os"
+	"slices"
 	"testing"
 )
 
@@ -101,7 +101,7 @@ func (suite *PackageSuite) TestIntegrationPackage_CreateUpdateDelete() {
 	if err != nil {
 		suite.T().Fatalf("GetPackagesList failed with error - %v", err)
 	}
-	assert.Truef(suite.T(), str.Contains(packageId, packagesList), "%v found in packagesList", packageId)
+	assert.Truef(suite.T(), slices.Contains(packagesList, packageId), "%v found in packagesList", packageId)
 
 	// Check not read only
 	_, readOnly, _, err := ip.Get(packageId)
