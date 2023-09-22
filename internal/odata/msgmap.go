@@ -38,7 +38,7 @@ func (mm *MessageMapping) Download(targetFile string, id string) error {
 func (mm *MessageMapping) CopyContent(srcDir string, tgtDir string) error {
 	return copyContent(srcDir, tgtDir)
 }
-func (mm *MessageMapping) CompareContent(srcDir string, tgtDir string, _ string, _ string) (bool, error) {
+func (mm *MessageMapping) CompareContent(srcDir string, tgtDir string, _ []string, _ string) (bool, error) {
 	// Diff directories
 	return diffContent(srcDir, tgtDir), nil
 }

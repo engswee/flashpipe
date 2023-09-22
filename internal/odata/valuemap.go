@@ -54,7 +54,7 @@ func (vm *ValueMapping) CopyContent(srcDir string, tgtDir string) error {
 	}
 	return nil
 }
-func (vm *ValueMapping) CompareContent(srcDir string, tgtDir string, _ string, _ string) (bool, error) {
+func (vm *ValueMapping) CompareContent(srcDir string, tgtDir string, _ []string, _ string) (bool, error) {
 	// Diff directories
 	log.Info().Msg("Checking for changes in META-INF directory")
 	metaDiffer := file.DiffDirectories(srcDir+"/META-INF", tgtDir+"/META-INF")

@@ -61,7 +61,7 @@ func (sc *ScriptCollection) CopyContent(srcDir string, tgtDir string) error {
 	}
 	return nil
 }
-func (sc *ScriptCollection) CompareContent(srcDir string, tgtDir string, _ string, _ string) (bool, error) {
+func (sc *ScriptCollection) CompareContent(srcDir string, tgtDir string, _ []string, _ string) (bool, error) {
 	// Diff directories
 	// It is technically possible to have an empty script collection
 	if file.Exists(srcDir+"/src/main/resources") && file.Exists(tgtDir+"/src/main/resources") {

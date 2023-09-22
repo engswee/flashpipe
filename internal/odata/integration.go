@@ -41,7 +41,7 @@ func (int *Integration) Download(targetFile string, id string) error {
 func (int *Integration) CopyContent(srcDir string, tgtDir string) error {
 	return copyContent(srcDir, tgtDir)
 }
-func (int *Integration) CompareContent(srcDir string, tgtDir string, scriptMap string, source string) (bool, error) {
+func (int *Integration) CompareContent(srcDir string, tgtDir string, scriptMap []string, source string) (bool, error) {
 	// Update the script collection in IFlow BPMN2 XML of source side before diff comparison
 	err := file.UpdateBPMN(srcDir, scriptMap)
 	if err != nil {

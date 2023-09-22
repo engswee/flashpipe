@@ -165,7 +165,7 @@ func compare(id string, dt DesigntimeArtifact, t *testing.T) {
 	// Diff artifact content
 	srcDir := fmt.Sprintf("../../test/testdata/artifacts/update/%v", id)
 	tgtDir := fmt.Sprintf("../../test/testdata/artifacts/create/%v", id)
-	dirDiffer, err := dt.CompareContent(srcDir, tgtDir, "", "remote")
+	dirDiffer, err := dt.CompareContent(srcDir, tgtDir, nil, "remote")
 	if err != nil {
 		t.Fatalf("CompareContent failed with error - %v", err)
 	}

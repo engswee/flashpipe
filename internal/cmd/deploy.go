@@ -5,6 +5,7 @@ import (
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/engswee/flashpipe/internal/odata"
+	"github.com/engswee/flashpipe/internal/str"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"time"
@@ -68,6 +69,8 @@ func deployArtifacts(artifactIds []string, artifactType string, delayLength int,
 
 	// Initialised runtime artifact
 	rt := odata.NewRuntime(exe)
+
+	artifactIds = str.TrimSlice(artifactIds)
 
 	// Loop and deploy each artifact
 	for i, id := range artifactIds {

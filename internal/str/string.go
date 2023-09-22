@@ -9,9 +9,13 @@ func ExtractDelimitedValues(input string, delimiter string) []string {
 		return []string{}
 	} else {
 		extract := strings.Split(input, delimiter)
-		for i, s := range extract {
-			extract[i] = strings.TrimSpace(s)
-		}
-		return extract
+		return TrimSlice(extract)
 	}
+}
+
+func TrimSlice(input []string) []string {
+	for i, s := range input {
+		input[i] = strings.TrimSpace(s)
+	}
+	return input
 }

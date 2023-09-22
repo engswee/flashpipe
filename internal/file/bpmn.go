@@ -8,12 +8,12 @@ import (
 	"os"
 )
 
-func UpdateBPMN(artifactDir string, scriptMap string) error {
-	if scriptMap != "" {
+func UpdateBPMN(artifactDir string, scriptMap []string) error {
+	if len(scriptMap) > 0 {
 		// Extract collection into key pairs
 		output := map[string]string{}
 		log.Debug().Msgf("Updating files in %v with collection %v", artifactDir, scriptMap)
-		pairs := str.ExtractDelimitedValues(scriptMap, ",")
+		pairs := str.TrimSlice(scriptMap)
 		for _, pair := range pairs {
 			srcTgt := str.ExtractDelimitedValues(pair, "=")
 			output[srcTgt[0]] = srcTgt[1]

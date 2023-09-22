@@ -44,7 +44,7 @@ SAP Integration Suite tenant.`,
 	artifactCmd.Flags().String("file-param", "", "Use a different parameters.prop file instead of the default in src/main/resources/ ")
 	artifactCmd.Flags().String("file-manifest", "", "Use a different MANIFEST.MF file instead of the default in META-INF/")
 	artifactCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files")
-	artifactCmd.Flags().String("script-collection-map", "", "Comma-separated source-target ID pairs for converting script collection references during create/update")
+	artifactCmd.Flags().StringSlice("script-collection-map", nil, "Comma-separated source-target ID pairs for converting script collection references during create/update")
 	artifactCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping")
 	// TODO - another flag for replacing value mapping in QAS?
 
@@ -69,7 +69,7 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	parametersFile := config.GetString(cmd, "file-param")
 	manifestFile := config.GetString(cmd, "file-manifest")
 	workDir := config.GetString(cmd, "dir-work")
-	scriptMap := config.GetString(cmd, "script-collection-map")
+	scriptMap := config.GetStringSlice(cmd, "script-collection-map")
 
 	defaultParamFile := fmt.Sprintf("%v/src/main/resources/parameters.prop", artifactDir)
 	if parametersFile == "" {
@@ -189,7 +189,7 @@ func prepareUploadDir(workDir string, artifactDir string, dt odata.DesigntimeArt
 	return
 }
 
-func compareArtifactContents(workDir string, zipFile string, artifactDir string, scriptMap string, dt odata.DesigntimeArtifact) (bool, error) {
+func compareArtifactContents(workDir string, zipFile string, artifactDir string, scriptMap []string, dt odata.DesigntimeArtifact) (bool, error) {
 	tgtDir := fmt.Sprintf("%v/download", workDir)
 	err := os.RemoveAll(tgtDir)
 	if err != nil {

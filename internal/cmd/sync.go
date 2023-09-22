@@ -66,7 +66,7 @@ tenant to a Git repository.`,
 	syncCmd.Flags().String("git-commit-msg", "Sync repo from tenant", "Message used in commit")
 	syncCmd.Flags().String("git-commit-user", "github-actions[bot]", "User used in commit")
 	syncCmd.Flags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit")
-	syncCmd.Flags().String("script-collection-map", "", "Comma-separated source-target ID pairs for converting script collection references during sync ")
+	syncCmd.Flags().StringSlice("script-collection-map", nil, "Comma-separated source-target ID pairs for converting script collection references during sync ")
 	syncCmd.Flags().Bool("git-skip-commit", false, "Skip committing changes to Git repository")
 	syncCmd.Flags().Bool("sync-package-details", false, "Sync details of Integration Package")
 
@@ -91,7 +91,7 @@ func runSync(cmd *cobra.Command) {
 	commitMsg := config.GetString(cmd, "git-commit-msg")
 	commitUser := config.GetString(cmd, "git-commit-user")
 	commitEmail := config.GetString(cmd, "git-commit-email")
-	scriptCollectionMap := config.GetString(cmd, "script-collection-map")
+	scriptCollectionMap := config.GetStringSlice(cmd, "script-collection-map")
 	skipCommit := config.GetBool(cmd, "git-skip-commit")
 	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 

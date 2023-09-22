@@ -98,7 +98,7 @@ func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitRepoDir string, 
 			err = synchroniser.SyncPackageDetails(id, packageWorkingDir, packageArtifactsDir)
 			logger.ExitIfError(err)
 		}
-		err = synchroniser.SyncArtifacts(id, packageWorkingDir, packageArtifactsDir, nil, nil, draftHandling, "ID", "")
+		err = synchroniser.SyncArtifacts(id, packageWorkingDir, packageArtifactsDir, nil, nil, draftHandling, "ID", nil)
 		logger.ExitIfError(err)
 	}
 

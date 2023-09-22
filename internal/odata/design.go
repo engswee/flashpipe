@@ -18,7 +18,7 @@ type DesigntimeArtifact interface {
 	Get(id string, version string) (string, bool, error)
 	Download(targetFile string, id string) error
 	CopyContent(srcDir string, tgtDir string) error
-	CompareContent(srcDir string, tgtDir string, scriptMap string, source string) (bool, error)
+	CompareContent(srcDir string, tgtDir string, scriptMap []string, source string) (bool, error)
 }
 
 type designtimeArtifactData struct {

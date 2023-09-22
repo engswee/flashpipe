@@ -6,6 +6,7 @@ import (
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
 	"github.com/engswee/flashpipe/internal/odata"
+	"github.com/engswee/flashpipe/internal/str"
 	"github.com/rs/zerolog/log"
 	"os"
 	"slices"
@@ -91,7 +92,7 @@ func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, arti
 	return nil
 }
 
-func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, artifactsDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, scriptCollectionMap string) error {
+func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, artifactsDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, scriptCollectionMap []string) error {
 	// Verify the package is downloadable (not read only)
 	_, readOnly, packageExists, err := s.ip.Get(packageId)
 	if err != nil {
@@ -214,6 +215,9 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, artifacts
 
 func filterArtifacts(artifacts []*odata.ArtifactDetails, includedIds []string, excludedIds []string) ([]*odata.ArtifactDetails, error) {
 	var output []*odata.ArtifactDetails
+	// Trim whitespace from IDs
+	includedIds = str.TrimSlice(includedIds)
+	excludedIds = str.TrimSlice(excludedIds)
 	if len(includedIds) > 0 {
 		for _, id := range includedIds {
 			artifact := odata.FindArtifactById(id, artifacts)
