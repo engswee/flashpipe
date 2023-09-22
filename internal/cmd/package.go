@@ -24,13 +24,14 @@ SAP Integration Suite tenant.`,
 	// Define cobra flags, the default value has the lowest (least significant) precedence
 	packageCmd.Flags().String("package-file", "", "Path to location of package file")
 
+	_ = packageCmd.MarkFlagRequired("package-file")
 	return packageCmd
 }
 
 func runUpdatePackage(cmd *cobra.Command) {
 	log.Info().Msg("Executing update package command")
 
-	packageFile := config.GetMandatoryString(cmd, "package-file")
+	packageFile := config.GetString(cmd, "package-file")
 
 	// Get package details from JSON file
 	log.Info().Msgf("Getting package details from %v file", packageFile)

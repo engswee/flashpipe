@@ -45,13 +45,15 @@ tenant to a Git repository.`,
 	snapshotCmd.Flags().Bool("git-skip-commit", false, "Skip committing changes to Git repository")
 	snapshotCmd.Flags().Bool("sync-package-details", false, "Sync details of Integration Packages")
 
+	_ = snapshotCmd.MarkFlagRequired("dir-git-repo")
+
 	return snapshotCmd
 }
 
 func runSnapshot(cmd *cobra.Command) {
 	log.Info().Msg("Executing snapshot command")
 
-	gitRepoDir := config.GetMandatoryString(cmd, "dir-git-repo")
+	gitRepoDir := config.GetString(cmd, "dir-git-repo")
 	workDir := config.GetString(cmd, "dir-work")
 	draftHandling := config.GetString(cmd, "draft-handling")
 	commitMsg := config.GetString(cmd, "git-commit-msg")

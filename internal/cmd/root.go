@@ -46,6 +46,10 @@ automating time-consuming manual tasks like:
 
 	rootCmd.PersistentFlags().Bool("debug", false, "Show debug logs")
 
+	_ = rootCmd.MarkPersistentFlagRequired("tmn-host")
+	rootCmd.MarkFlagsRequiredTogether("tmn-userid", "tmn-password")
+	rootCmd.MarkFlagsRequiredTogether("oauth-host", "oauth-clientid", "oauth-clientsecret")
+
 	return rootCmd
 }
 
@@ -106,6 +110,10 @@ func initializeConfig(cmd *cobra.Command) error {
 	// Set debug flag from command line to viper
 	if !viper.IsSet("debug") {
 		viper.Set("debug", config.GetBool(cmd, "debug"))
+	}
+
+	if config.GetString(cmd, "oauth-host") == "" && config.GetString(cmd, "tmn-userid") == "" {
+		return fmt.Errorf("required flag \"tmn-userid\" (Basic Auth) or \"oauth-host\" (OAuth) not set")
 	}
 
 	logger.InitConsoleLogger(viper.GetBool("debug"))

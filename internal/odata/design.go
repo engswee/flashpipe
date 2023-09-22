@@ -120,6 +120,7 @@ func upsert(id string, name string, packageId string, artifactDir string, method
 	if err != nil {
 		return err
 	}
+	// NOTE - PUT requires that the Id in the request matches the Bundle-SymbolicName in the MANIFEST.MF
 	requestBody, err := constructUpdateBody(method, id, name, packageId, encoded)
 	if err != nil {
 		return err

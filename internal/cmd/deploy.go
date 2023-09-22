@@ -5,7 +5,6 @@ import (
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/engswee/flashpipe/internal/odata"
-	"github.com/engswee/flashpipe/internal/str"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"time"
@@ -34,13 +33,14 @@ runtime of SAP Integration Suite tenant.`,
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	deployCmd.Flags().String("artifact-ids", "", "Comma separated list of artifact IDs")
+	deployCmd.Flags().StringSlice("artifact-ids", nil, "Comma separated list of artifact IDs")
 	deployCmd.Flags().Int("delay-length", 30, "Delay (in seconds) between each check of artifact deployment status")
 	deployCmd.Flags().Int("max-check-limit", 10, "Max number of times to check for artifact deployment status")
 	// To set to false, use --compare-versions=false
 	deployCmd.Flags().Bool("compare-versions", true, "Perform version comparison of design time against runtime before deployment")
 	deployCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping")
 
+	_ = deployCmd.MarkFlagRequired("artifact-ids")
 	return deployCmd
 }
 
@@ -50,7 +50,7 @@ func runDeploy(cmd *cobra.Command) {
 	artifactType := config.GetString(cmd, "artifact-type")
 	log.Info().Msgf("Executing deploy %v command", artifactType)
 
-	artifactIds := config.GetMandatoryString(cmd, "artifact-ids")
+	artifactIds := config.GetStringSlice(cmd, "artifact-ids")
 	delayLength := config.GetInt(cmd, "delay-length")
 	maxCheckLimit := config.GetInt(cmd, "max-check-limit")
 	compareVersions := config.GetBool(cmd, "compare-versions")
@@ -58,10 +58,7 @@ func runDeploy(cmd *cobra.Command) {
 	deployArtifacts(artifactIds, artifactType, delayLength, maxCheckLimit, compareVersions, serviceDetails)
 }
 
-func deployArtifacts(delimitedIds string, artifactType string, delayLength int, maxCheckLimit int, compareVersions bool, serviceDetails *odata.ServiceDetails) {
-
-	// Extract IDs from delimited values
-	ids := str.ExtractDelimitedValues(delimitedIds, ",")
+func deployArtifacts(artifactIds []string, artifactType string, delayLength int, maxCheckLimit int, compareVersions bool, serviceDetails *odata.ServiceDetails) {
 
 	// Initialise HTTP executer
 	exe := odata.InitHTTPExecuter(serviceDetails)
@@ -73,7 +70,8 @@ func deployArtifacts(delimitedIds string, artifactType string, delayLength int, 
 	rt := odata.NewRuntime(exe)
 
 	// Loop and deploy each artifact
-	for i, id := range ids {
+	for i, id := range artifactIds {
+		// TODO - Trim IDs
 		log.Info().Msgf("Processing artifact %d - %v", i+1, id)
 		err := deploySingle(dt, rt, id, compareVersions)
 		// TODO - PRIO1 write error wrapper - https://go.dev/blog/errors-are-values
@@ -81,7 +79,7 @@ func deployArtifacts(delimitedIds string, artifactType string, delayLength int, 
 	}
 
 	// Check deployment status of artifacts
-	for i, id := range ids {
+	for i, id := range artifactIds {
 		err := checkDeploymentStatus(rt, delayLength, maxCheckLimit, id)
 		logger.ExitIfError(err)
 		// TODO - PRIO1 write error wrapper - https://go.dev/blog/errors-are-values

@@ -6,7 +6,6 @@ import (
 	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/engswee/flashpipe/internal/repo"
-	"github.com/engswee/flashpipe/internal/str"
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -37,18 +36,14 @@ tenant to a Git repository.`,
 			default:
 				return fmt.Errorf("invalid value for --draft-handling = %v", draftHandling)
 			}
-			// Validate Include/Exclude IDs
-			includedIds := config.GetString(cmd, "ids-include")
-			excludedIds := config.GetString(cmd, "ids-exclude")
-			if includedIds != "" && excludedIds != "" {
-				return fmt.Errorf("--ids-include and --ids-exclude are mutually exclusive - use only one of them")
-			}
 			// If artifacts directory is provided, validate that is it a subdirectory of Git repo
-			gitRepoDir := config.GetMandatoryString(cmd, "dir-git-repo")
-			artifactsDir := config.GetString(cmd, "dir-artifacts")
-			gitRepoDirClean := filepath.Clean(gitRepoDir) + string(os.PathSeparator)
-			if artifactsDir != "" && !strings.HasPrefix(artifactsDir, gitRepoDirClean) {
-				return fmt.Errorf("--dir-artifacts [%v] should be a subdirectory of --dir-git-repo [%v]", artifactsDir, gitRepoDirClean)
+			gitRepoDir := config.GetString(cmd, "dir-git-repo")
+			if gitRepoDir != "" {
+				artifactsDir := config.GetString(cmd, "dir-artifacts")
+				gitRepoDirClean := filepath.Clean(gitRepoDir) + string(os.PathSeparator)
+				if artifactsDir != "" && !strings.HasPrefix(artifactsDir, gitRepoDirClean) {
+					return fmt.Errorf("--dir-artifacts [%v] should be a subdirectory of --dir-git-repo [%v]", artifactsDir, gitRepoDirClean)
+				}
 			}
 			// TODO - Validate secrets in env var, lower priority as it is no longer resolved in GitHub action workflow
 			return nil
@@ -65,8 +60,9 @@ tenant to a Git repository.`,
 	syncCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files")
 	syncCmd.Flags().String("dir-naming-type", "ID", "Name artifact directory by ID or Name. Allowed values: ID, NAME")
 	syncCmd.Flags().String("draft-handling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR")
-	syncCmd.Flags().String("ids-include", "", "List of included artifact IDs")
-	syncCmd.Flags().String("ids-exclude", "", "List of excluded artifact IDs")
+	syncCmd.Flags().StringSlice("ids-include", nil, "List of included artifact IDs")
+	syncCmd.Flags().StringSlice("ids-exclude", nil, "List of excluded artifact IDs")
+	syncCmd.Flags().String("target", "local", "Target of sync. Allowed values: local, remote")
 	syncCmd.Flags().String("git-commit-msg", "Sync repo from tenant", "Message used in commit")
 	syncCmd.Flags().String("git-commit-user", "github-actions[bot]", "User used in commit")
 	syncCmd.Flags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit")
@@ -74,20 +70,24 @@ tenant to a Git repository.`,
 	syncCmd.Flags().Bool("git-skip-commit", false, "Skip committing changes to Git repository")
 	syncCmd.Flags().Bool("sync-package-details", false, "Sync details of Integration Package")
 
+	_ = syncCmd.MarkFlagRequired("package-id")
+	_ = syncCmd.MarkFlagRequired("dir-git-repo")
+	syncCmd.MarkFlagsMutuallyExclusive("ids-include", "ids-exclude")
+
 	return syncCmd
 }
 
 func runSync(cmd *cobra.Command) {
 	log.Info().Msg("Executing sync command")
 
-	packageId := config.GetMandatoryString(cmd, "package-id")
-	gitRepoDir := config.GetMandatoryString(cmd, "dir-git-repo")
+	packageId := config.GetString(cmd, "package-id")
+	gitRepoDir := config.GetString(cmd, "dir-git-repo")
 	artifactsDir := config.GetStringWithDefault(cmd, "dir-artifacts", gitRepoDir)
 	workDir := config.GetString(cmd, "dir-work")
 	dirNamingType := config.GetString(cmd, "dir-naming-type")
 	draftHandling := config.GetString(cmd, "draft-handling")
-	delimitedIdsInclude := config.GetString(cmd, "ids-include")
-	delimitedIdsExclude := config.GetString(cmd, "ids-exclude")
+	includedIds := config.GetStringSlice(cmd, "ids-include")
+	excludedIds := config.GetStringSlice(cmd, "ids-exclude")
 	commitMsg := config.GetString(cmd, "git-commit-msg")
 	commitUser := config.GetString(cmd, "git-commit-user")
 	commitEmail := config.GetString(cmd, "git-commit-email")
@@ -106,9 +106,6 @@ func runSync(cmd *cobra.Command) {
 		logger.ExitIfError(err)
 	}
 
-	// Extract IDs from delimited values
-	includedIds := str.ExtractDelimitedValues(delimitedIdsInclude, ",")
-	excludedIds := str.ExtractDelimitedValues(delimitedIdsExclude, ",")
 	err := synchroniser.SyncArtifacts(packageId, workDir, artifactsDir, includedIds, excludedIds, draftHandling, dirNamingType, scriptCollectionMap)
 	logger.ExitIfError(err)
 

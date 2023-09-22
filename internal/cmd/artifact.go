@@ -41,12 +41,18 @@ SAP Integration Suite tenant.`,
 	artifactCmd.Flags().String("package-id", "", "ID of Integration Package")
 	artifactCmd.Flags().String("package-name", "", "Name of Integration Package")
 	artifactCmd.Flags().String("dir-artifact", "", "Directory containing contents of designtime artifact")
-	artifactCmd.Flags().String("file-param", "", "Use to a different parameters.prop file instead of the default in src/main/resources/ ")
-	artifactCmd.Flags().String("file-manifest", "", "Use to a different MANIFEST.MF file instead of the default in META-INF/")
+	artifactCmd.Flags().String("file-param", "", "Use a different parameters.prop file instead of the default in src/main/resources/ ")
+	artifactCmd.Flags().String("file-manifest", "", "Use a different MANIFEST.MF file instead of the default in META-INF/")
 	artifactCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files")
 	artifactCmd.Flags().String("script-collection-map", "", "Comma-separated source-target ID pairs for converting script collection references during create/update")
 	artifactCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping")
 	// TODO - another flag for replacing value mapping in QAS?
+
+	_ = artifactCmd.MarkFlagRequired("artifact-id")
+	_ = artifactCmd.MarkFlagRequired("artifact-name")
+	_ = artifactCmd.MarkFlagRequired("package-id")
+	_ = artifactCmd.MarkFlagRequired("package-name")
+	_ = artifactCmd.MarkFlagRequired("dir-artifact")
 
 	return artifactCmd
 }
@@ -55,11 +61,11 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	artifactType := config.GetString(cmd, "artifact-type")
 	log.Info().Msgf("Executing update artifact %v command", artifactType)
 
-	artifactId := config.GetMandatoryString(cmd, "artifact-id")
-	artifactName := config.GetMandatoryString(cmd, "artifact-name")
-	packageId := config.GetMandatoryString(cmd, "package-id")
-	packageName := config.GetMandatoryString(cmd, "package-name")
-	artifactDir := config.GetMandatoryString(cmd, "dir-artifact")
+	artifactId := config.GetString(cmd, "artifact-id")
+	artifactName := config.GetString(cmd, "artifact-name")
+	packageId := config.GetString(cmd, "package-id")
+	packageName := config.GetString(cmd, "package-name")
+	artifactDir := config.GetString(cmd, "dir-artifact")
 	parametersFile := config.GetString(cmd, "file-param")
 	manifestFile := config.GetString(cmd, "file-manifest")
 	workDir := config.GetString(cmd, "dir-work")

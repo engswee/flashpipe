@@ -24,16 +24,16 @@ func GetServiceDetails(cmd *cobra.Command) *ServiceDetails {
 	oauthHost := config.GetString(cmd, "oauth-host")
 	if oauthHost == "" {
 		return &ServiceDetails{
-			Host:     config.GetMandatoryString(cmd, "tmn-host"),
-			Userid:   config.GetMandatoryString(cmd, "tmn-userid"),
-			Password: config.GetMandatoryString(cmd, "tmn-password"),
+			Host:     config.GetString(cmd, "tmn-host"),
+			Userid:   config.GetString(cmd, "tmn-userid"),
+			Password: config.GetString(cmd, "tmn-password"),
 		}
 	} else {
 		return &ServiceDetails{
-			Host:              config.GetMandatoryString(cmd, "tmn-host"),
+			Host:              config.GetString(cmd, "tmn-host"),
 			OauthHost:         oauthHost,
-			OauthClientId:     config.GetMandatoryString(cmd, "oauth-clientid"),
-			OauthClientSecret: config.GetMandatoryString(cmd, "oauth-clientsecret"),
+			OauthClientId:     config.GetString(cmd, "oauth-clientid"),
+			OauthClientSecret: config.GetString(cmd, "oauth-clientsecret"),
 			OauthPath:         config.GetString(cmd, "oauth-path"),
 		}
 	}

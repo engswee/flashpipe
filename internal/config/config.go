@@ -1,17 +1,8 @@
 package config
 
 import (
-	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
-
-func GetMandatoryString(cmd *cobra.Command, flagName string) string {
-	val := GetString(cmd, flagName)
-	if val == "" {
-		log.Fatal().Msgf("Mandatory parameter %v is not populated", flagName)
-	}
-	return val
-}
 
 func GetString(cmd *cobra.Command, flagName string) string {
 	val, _ := cmd.Flags().GetString(flagName)
@@ -23,6 +14,11 @@ func GetStringWithDefault(cmd *cobra.Command, flagName string, defaultValue stri
 	if val == "" {
 		return defaultValue
 	}
+	return val
+}
+
+func GetStringSlice(cmd *cobra.Command, flagName string) []string {
+	val, _ := cmd.Flags().GetStringSlice(flagName)
 	return val
 }
 
