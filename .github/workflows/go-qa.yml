@@ -6,6 +6,7 @@
 name: Build and Deploy (QA)
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - release
@@ -18,6 +19,7 @@ on:
       - '.gitattributes'
       - 'LICENSE'
       - 'NOTICE'
+      - '.github/**'
 
 jobs:
 
