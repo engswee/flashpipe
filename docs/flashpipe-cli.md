@@ -53,7 +53,7 @@ Usage:
 
 Flags:
       --artifact-id string             ID of artifact
-      --artifact-name string           Name of artifact
+      --artifact-name string           Name of artifact. Defaults to artifact-id value when not provided
       --artifact-type string           Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping (default "Integration")
       --dir-artifact string            Directory containing contents of designtime artifact
       --dir-work string                Working directory for in-transit files (default "/tmp")
@@ -61,7 +61,7 @@ Flags:
       --file-param string              Use to a different parameters.prop file instead of the default in src/main/resources/ 
   -h, --help                           help for artifact
       --package-id string              ID of Integration Package
-      --package-name string            Name of Integration Package
+      --package-name string            Name of Integration Package. Defaults to package-id value when not provided
       --script-collection-map string   Comma-separated source-target ID pairs for converting script collection references during create/update
 
 Global Flags:
@@ -84,9 +84,9 @@ The following is the list of flags for the `update artifact` command and their c
 | CLI flag name         | Environment variable name       | Mandatory |
 |-----------------------|---------------------------------|-----------|
 | artifact-id           | FLASHPIPE_ARTIFACT_ID           | Yes       |
-| artifact-name         | FLASHPIPE_ARTIFACT_NAME         | Yes       |
+| artifact-name         | FLASHPIPE_ARTIFACT_NAME         | No        |
 | package-id            | FLASHPIPE_PACKAGE_ID            | Yes       |
-| package-name          | FLASHPIPE_PACKAGE_NAME          | Yes       |
+| package-name          | FLASHPIPE_PACKAGE_NAME          | No        |
 | dir-artifact          | FLASHPIPE_DIR_ARTIFACT          | Yes       |
 | artifact-type         | FLASHPIPE_ARTIFACT_TYPE         | No        |
 | file-param            | FLASHPIPE_FILE_PARAM            | No        |
