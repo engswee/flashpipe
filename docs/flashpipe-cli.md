@@ -43,7 +43,7 @@ This command is used to create/update a Cloud Integration designtime artifact on
 
 #### Usage
 ```bash
-/usr/bin/flashpipe update artifact -h
+flashpipe update artifact -h
 
 Create or update artifacts on the
 SAP Integration Suite tenant.
@@ -57,8 +57,8 @@ Flags:
       --artifact-type string           Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping (default "Integration")
       --dir-artifact string            Directory containing contents of designtime artifact
       --dir-work string                Working directory for in-transit files (default "/tmp")
-      --file-manifest string           Use to a different MANIFEST.MF file instead of the default in META-INF/
-      --file-param string              Use to a different parameters.prop file instead of the default in src/main/resources/ 
+      --file-manifest string           Use a different MANIFEST.MF file instead of the default in META-INF/
+      --file-param string              Use a different parameters.prop file instead of the default in src/main/resources/ 
   -h, --help                           help for artifact
       --package-id string              ID of Integration Package
       --package-name string            Name of Integration Package. Defaults to package-id value when not provided
@@ -97,12 +97,12 @@ The following is the list of flags for the `update artifact` command and their c
 
 #### Example (Basic Auth with CLI flags)
 ```bash
-/usr/bin/flashpipe update artifact --tmn-host ***.hana.ondemand.com --tmn-userid <userid> --tmn-password <password> --artifact-id GroovyXMLTransformation --artifact-name "Groovy XML Transformation" --package-id FlashPipeDemo --package-name "FlashPipe Demo" --dir-artifact "FlashPipe Demo/Groovy XML Transformation"
+flashpipe update artifact --tmn-host ***.hana.ondemand.com --tmn-userid <userid> --tmn-password <password> --artifact-id GroovyXMLTransformation --artifact-name "Groovy XML Transformation" --package-id FlashPipeDemo --package-name "FlashPipe Demo" --dir-artifact "FlashPipe Demo/Groovy XML Transformation"
 ```
 
 #### Example (OAuth with environment variables)
 ```bash
-/usr/bin/flashpipe update artifact
+flashpipe update artifact
 
 Environment variables set before call:
     FLASHPIPE_TMN_HOST: ***.hana.ondemand.com
@@ -125,7 +125,7 @@ This command is used to create/update a Cloud Integration `integration package` 
 
 #### Usage
 ```bash
-/usr/bin/flashpipe update package -h
+flashpipe update package -h
 
 Create or update integration package on the
 SAP Integration Suite tenant.
@@ -161,12 +161,12 @@ The following is the list of flags for the `update package` command and their co
 
 #### Example (Basic Auth with CLI flags)
 ```bash
-/usr/bin/flashpipe update package --tmn-host ***.hana.ondemand.com --tmn-userid <userid> --tmn-password <password> --package-file "<path_to_file>/FlashPipeDemo.json"
+flashpipe update package --tmn-host ***.hana.ondemand.com --tmn-userid <userid> --tmn-password <password> --package-file "<path_to_file>/FlashPipeDemo.json"
 ```
 
 #### Example (OAuth with environment variables)
 ```bash
-/usr/bin/flashpipe update package
+flashpipe update package
 
 Environment variables set before call:
     FLASHPIPE_TMN_HOST: ***.hana.ondemand.com
@@ -182,7 +182,7 @@ This command is used to deploy Cloud Integration designtime artifact(s) to the r
 
 #### Usage
 ```bash
-/usr/bin/flashpipe deploy -h
+flashpipe deploy -h
 
 Deploy artifact from designtime to
 runtime of SAP Integration Suite tenant.
@@ -223,12 +223,12 @@ The following is the list of flags for the `deploy` command and their correspond
 
 #### Example (Basic Auth with CLI flags)
 ```bash
-/usr/bin/flashpipe deploy --tmn-host ***.hana.ondemand.com --tmn-userid <userid> --tmn-password <password> --artifact-ids GroovyXMLTransformation
+flashpipe deploy --tmn-host ***.hana.ondemand.com --tmn-userid <userid> --tmn-password <password> --artifact-ids GroovyXMLTransformation
 ```
 
 #### Example (OAuth with environment variables)
 ```bash
-/usr/bin/flashpipe deploy
+flashpipe deploy
 
 Environment variables set before call:
     FLASHPIPE_TMN_HOST: ***.hana.ondemand.com
@@ -244,7 +244,7 @@ This command is used to sync Cloud Integration designtime artifacts and integrat
 
 #### Usage
 ```bash
-/usr/bin/flashpipe sync -h
+flashpipe sync -h
 
 Synchronise designtime artifacts from SAP Integration Suite
 tenant to a Git repository.
@@ -303,12 +303,12 @@ The following is the list of flags for the `sync` command and their correspondin
 
 #### Example (Basic Auth with CLI flags)
 ```bash
-/usr/bin/flashpipe sync --tmn-host ***.hana.ondemand.com --tmn-userid <userid> --tmn-password <password> --package-id FlashPipeDemo --dir-git-repo "FlashPipe Demo"
+flashpipe sync --tmn-host ***.hana.ondemand.com --tmn-userid <userid> --tmn-password <password> --package-id FlashPipeDemo --dir-git-repo "FlashPipe Demo"
 ```
 
 #### Example (OAuth with environment variables)
 ```bash
-/usr/bin/flashpipe sync
+flashpipe sync
 
 Environment variables set before call:
     FLASHPIPE_TMN_HOST: ***.hana.ondemand.com
@@ -327,7 +327,7 @@ This command is used to capture a snapshot of the Cloud Integration tenant's art
 
 #### Usage
 ```bash
-/usr/bin/flashpipe snapshot -h
+flashpipe snapshot -h
 
 Snapshot all editable integration packages from SAP Integration Suite
 tenant to a Git repository.
@@ -374,12 +374,12 @@ The following is the list of flags for the `snapshot` command and their correspo
 
 #### Example (Basic Auth with CLI flags)
 ```bash
-/usr/bin/flashpipe snapshot --tmn-host ***.hana.ondemand.com --tmn-userid <userid> --tmn-password <password> --dir-git-repo "TrialTenant"
+flashpipe snapshot --tmn-host ***.hana.ondemand.com --tmn-userid <userid> --tmn-password <password> --dir-git-repo "TrialTenant"
 ```
 
 #### Example (OAuth with environment variables)
 ```bash
-/usr/bin/flashpipe snapshot
+flashpipe snapshot
 
 Environment variables set before call:
     FLASHPIPE_TMN_HOST: ***.hana.ondemand.com

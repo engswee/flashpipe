@@ -38,7 +38,7 @@ jobs:
     container: flashpipe
     steps:
       # Upload/Update design time artifact
-      - bash: /usr/bin/flashpipe update artifact
+      - bash: flashpipe update artifact
         env:
           FLASHPIPE_TMN_HOST: $(dev-host-tmn)
           FLASHPIPE_TMN_USERID: $(dev-user) # When using Basic authentication
@@ -59,7 +59,7 @@ jobs:
           FLASHPIPE_ARTIFACT_TYPE: <artifact_type> # Optional
           FLASHPIPE_PACKAGE_FILE: <package_file> # Optional
       # Deploy to runtime
-      - bash: /usr/bin/flashpipe deploy
+      - bash: flashpipe deploy
         env:
           FLASHPIPE_TMN_HOST: $(dev-host-tmn)
           FLASHPIPE_TMN_USERID: $(dev-user) # When using Basic authentication
@@ -103,7 +103,7 @@ jobs:
     container: flashpipe
     steps:
       # Upload/Update design time artifact
-      - bash: /usr/bin/flashpipe update artifact
+      - bash: flashpipe update artifact
         displayName: 'Update/Upload Groovy XML Transformation to design time'
         env:
           FLASHPIPE_TMN_HOST: $(dev-host-tmn)
@@ -116,7 +116,7 @@ jobs:
           FLASHPIPE_PACKAGE_NAME: "FlashPipe Demo"
           FLASHPIPE_DIR_ARTIFACT: "$(Build.SourcesDirectory)/FlashPipe Demo/Groovy XML Transformation"
       # Deploy to runtime
-      - bash: /usr/bin/flashpipe deploy
+      - bash: flashpipe deploy
         displayName: 'Deploy Groovy XML Transformation to runtime'
         env:
           FLASHPIPE_TMN_HOST: $(dev-host-tmn)

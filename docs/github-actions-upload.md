@@ -17,15 +17,18 @@ Add the contents to a new or existing Git repository.
 ### 3. Add GitHub Actions workflow YAML
 Add a [GitHub Actions workflow YAML file](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions) (`<workflow-name>.yml`) in the `.github/workflows` directory of the Git repository.
 
+FlashPipe comes with companion GitHub Action [engswee/flashpipe-action](https://github.com/engswee/flashpipe-action) that simplifies usage in a workflow. The following actions are used in the workflow:
+- [engswee/flashpipe-action/update/artifact@v1](https://github.com/engswee/flashpipe-action#update-artifact)
+- [engswee/flashpipe-action/deploy@v1](https://github.com/engswee/flashpipe-action#deploy)
+
 #### Template YAML with steps to create/update and deploy one integration artifact
+[//]: # (Gist is used because inline YAML does not render ${{ variables }} correctly)
 <script src="https://gist.github.com/engswee/b040f9c520c42ed8eb3307ec29c1e77a.js"></script>
 
 Where:
 - `<branch_name>` - branch name of Git repository that will automatically trigger pipeline
 - `<flashpipe_version>` - version of _FlashPipe_
 - `secrets.<name>` - Sensitive information are stored as encrypted secrets in GitHub and accessed using the `secrets` context. Further explanation in step 4
-
-**Note**: Environment variables are mapped to the script's execution environment using the `env:` keyword. For variables that are dynamic expressions based on other variables, these needs to be stored into the `$GITHUB_ENV` variable prior to the script execution. An example shown above is `$GIT_SRC_DIR` which requires base path from `$GITHUB_WORKSPACE`.
 
 #### Example (using OAuth authentication for Cloud Foundry)
 <script src="https://gist.github.com/engswee/4f163729cdbda8eb7a56010a9ae37ac6.js"></script>
