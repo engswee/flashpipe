@@ -1,14 +1,17 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/engswee/flashpipe/internal/config"
+	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/engswee/flashpipe/internal/repo"
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"net/textproto"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,9 +21,9 @@ func NewSyncCommand() *cobra.Command {
 
 	syncCmd := &cobra.Command{
 		Use:   "sync",
-		Short: "Sync designtime artifacts from tenant to Git",
-		Long: `Synchronise designtime artifacts from SAP Integration Suite
-tenant to a Git repository.`,
+		Short: "Sync designtime artifacts between tenant and Git",
+		Long: `Synchronise designtime artifacts between SAP Integration Suite
+tenant and a Git repository.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// Validate Directory Naming Type
 			dirNamingType := config.GetString(cmd, "dir-naming-type")
@@ -94,23 +97,73 @@ func runSync(cmd *cobra.Command) {
 	scriptCollectionMap := config.GetStringSlice(cmd, "script-collection-map")
 	skipCommit := config.GetBool(cmd, "git-skip-commit")
 	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
+	target := config.GetString(cmd, "target")
 
 	serviceDetails := odata.GetServiceDetails(cmd)
-
 	// Initialise HTTP executer
 	exe := odata.InitHTTPExecuter(serviceDetails)
-	synchroniser := sync.New(exe)
 
-	if syncPackageLevelDetails {
-		err := synchroniser.SyncPackageDetails(packageId, workDir, artifactsDir)
+	// Sync from tenant to Git
+	if target == "local" {
+		synchroniser := sync.New(exe)
+
+		if syncPackageLevelDetails {
+			err := synchroniser.SyncPackageDetails(packageId, workDir, artifactsDir)
+			logger.ExitIfError(err)
+		}
+
+		err := synchroniser.SyncArtifacts(packageId, workDir, artifactsDir, includedIds, excludedIds, draftHandling, dirNamingType, scriptCollectionMap)
 		logger.ExitIfError(err)
+
+		if !skipCommit {
+			err := repo.CommitToRepo(gitRepoDir, commitMsg, commitUser, commitEmail)
+			logger.ExitIfError(err)
+		}
 	}
 
-	err := synchroniser.SyncArtifacts(packageId, workDir, artifactsDir, includedIds, excludedIds, draftHandling, dirNamingType, scriptCollectionMap)
-	logger.ExitIfError(err)
+	// Sync from Git to tenant
+	if target == "remote" {
+		// Get directory list
+		baseSourceDir := filepath.Clean(artifactsDir)
+		entries, err := os.ReadDir(baseSourceDir)
+		if err != nil {
+			logger.ExitIfError(err)
+		}
 
-	if !skipCommit {
-		err = repo.CommitToRepo(gitRepoDir, commitMsg, commitUser, commitEmail)
-		logger.ExitIfError(err)
+		artifactDirFound := false
+		for _, entry := range entries {
+
+			manifest := fmt.Sprintf("%v/%v/META-INF/MANIFEST.MF", baseSourceDir, entry.Name())
+			if entry.IsDir() && file.Exists(manifest) {
+				artifactDirFound = true
+				artifactDir := fmt.Sprintf("%v/%v", baseSourceDir, entry.Name())
+				log.Info().Msgf("Processing directory %v", artifactDir)
+				paramFile := fmt.Sprintf("%v/src/main/resouces/parameters/prop", artifactDir)
+
+				manifestFile, err := os.Open(manifest)
+				logger.ExitIfError(err)
+				defer manifestFile.Close()
+
+				tp := textproto.NewReader(bufio.NewReader(manifestFile))
+				hdr, err := tp.ReadMIMEHeader()
+				logger.ExitIfError(err)
+
+				artifactId := hdr.Get("Bundle-SymbolicName")
+				// remove spaces then remove ;singleton:=true
+				artifactId = strings.ReplaceAll(artifactId, " ", "")
+				artifactId = strings.ReplaceAll(artifactId, ";singleton:=true", "")
+				artifactName := hdr.Get("Bundle-Name")
+				artifactType := hdr.Get("SAP-BundleType")
+				if artifactType == "IntegrationFlow" {
+					artifactType = "Integration"
+				}
+
+				err = processArtifact(artifactId, artifactName, artifactType, packageId, packageId, artifactDir, workDir, paramFile, nil, exe)
+				logger.ExitIfError(err)
+			}
+		}
+		if !artifactDirFound {
+			log.Warn().Msgf("No directory with artifact contents found in %v", baseSourceDir)
+		}
 	}
 }

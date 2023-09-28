@@ -99,28 +99,45 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	serviceDetails := odata.GetServiceDetails(cmd)
 	exe := odata.InitHTTPExecuter(serviceDetails)
 
+	err := processArtifact(artifactId, artifactName, artifactType, packageId, packageName, artifactDir, workDir, parametersFile, scriptMap, exe)
+	logger.ExitIfError(err)
+
+}
+
+func createPackage(packageId string, packageName string, exe httpclnt.HTTPExecuter) {
+
+}
+
+func processArtifact(artifactId string, artifactName string, artifactType string, packageId string, packageName string, artifactDir string, workDir string, parametersFile string, scriptMap []string, exe *httpclnt.HTTPExecuter) error {
 	// Initialise designtime artifact
 	dt := odata.NewDesigntimeArtifact(artifactType, exe)
 	ip := odata.NewIntegrationPackage(exe)
 
 	// Check if artifact already exist on tenant
 	exists, err := artifactExists(artifactId, artifactType, packageId, dt, ip)
-	logger.ExitIfError(err)
+	if err != nil {
+		return err
+	}
+
 	if !exists {
 		// Create artifact
 		log.Info().Msgf("Artifact %v will be created", artifactId)
 		// Create integration package first if required
-		ip = odata.NewIntegrationPackage(exe)
 		_, _, packageExists, err := ip.Get(packageId)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
+
 		if !packageExists {
 			jsonData := new(odata.PackageSingleData)
 			jsonData.Root.Id = packageId
 			jsonData.Root.Name = packageName
 			jsonData.Root.ShortText = packageId
 			jsonData.Root.Version = "1.0.0"
-			err := ip.Create(jsonData)
-			logger.ExitIfError(err)
+			err = ip.Create(jsonData)
+			if err != nil {
+				return err
+			}
 			log.Info().Msgf("Integration package %v created", packageId)
 		}
 
@@ -129,14 +146,20 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		// Update the script collection in IFlow BPMN2 XML before upload
 		if artifactType == "Integration" {
 			err = file.UpdateBPMN(artifactDir, scriptMap)
-			logger.ExitIfError(err)
+			if err != nil {
+				return err
+			}
 		}
 
 		err = prepareUploadDir(workDir, artifactDir, dt)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 
 		err = createArtifact(artifactId, artifactName, packageId, workDir+"/upload", dt)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 
 		log.Info().Msg("🏆 Designtime artifact created successfully")
 
@@ -146,28 +169,42 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		// 1 - Download artifact content from tenant
 		zipFile := fmt.Sprintf("%v/%v.zip", workDir, artifactId)
 		err = dt.Download(zipFile, artifactId)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 		// 2 - Diff contents from tenant against Git
 		changesFound, err := compareArtifactContents(workDir, zipFile, artifactDir, scriptMap, dt)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 
 		if changesFound == true {
 			log.Info().Msg("Changes found in designtime artifact. Designtime artifact will be updated in CPI tenant")
 			err = prepareUploadDir(workDir, artifactDir, dt)
-			logger.ExitIfError(err)
+			if err != nil {
+				return err
+			}
 			err = updateArtifact(artifactId, artifactName, packageId, workDir+"/upload", dt)
-			logger.ExitIfError(err)
+			if err != nil {
+				return err
+			}
 
 			// If runtime has the same version no, then undeploy it, otherwise it gets skipped during deployment
 			designtimeVersion, _, err := dt.Get(artifactId, "active")
-			logger.ExitIfError(err)
+			if err != nil {
+				return err
+			}
 			r := odata.NewRuntime(exe)
 			runtimeVersion, _, err := r.Get(artifactId)
-			logger.ExitIfError(err)
+			if err != nil {
+				return err
+			}
 			if runtimeVersion == designtimeVersion {
 				log.Info().Msg("Undeploying existing runtime artifact with same version number due to changes in design")
 				err = r.UnDeploy(artifactId)
-				logger.ExitIfError(err)
+				if err != nil {
+					return err
+				}
 			}
 
 			log.Info().Msg("🏆 Designtime artifact updated successfully")
@@ -179,9 +216,12 @@ func runUpdateArtifact(cmd *cobra.Command) {
 		if artifactType == "Integration" && file.Exists(parametersFile) {
 			log.Info().Msg("Updating configured parameter(s) of Integration designtime artifact where necessary")
 			err = updateConfiguration(artifactId, parametersFile, exe)
-			logger.ExitIfError(err)
+			if err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 func prepareUploadDir(workDir string, artifactDir string, dt odata.DesigntimeArtifact) (err error) {

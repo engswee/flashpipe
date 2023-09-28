@@ -170,7 +170,7 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, artifacts
 			log.Info().Msg("Comparing content from tenant against Git")
 
 			// Diff artifact contents
-			dirDiffer, err := dt.CompareContent(downloadedArtifactPath, gitArtifactPath, scriptCollectionMap, "remote")
+			dirDiffer, err := dt.CompareContent(downloadedArtifactPath, gitArtifactPath, scriptCollectionMap, "local")
 			if err != nil {
 				return err
 			}

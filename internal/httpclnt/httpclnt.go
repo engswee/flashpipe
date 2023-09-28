@@ -30,7 +30,7 @@ func New(oauthHost string, oauthPath string, clientId string, clientSecret strin
 		log.Debug().Msg("Initialising HTTP client with OAuth 2.0")
 
 		tokenURL := fmt.Sprintf("%v://%v:%d%v", scheme, oauthHost, port, oauthPath)
-		log.Debug().Msgf("Getting OAuth 2.0 client with token URL %v", tokenURL)
+		log.Debug().Msgf("Setting up OAuth 2.0 client with token URL %v", tokenURL)
 
 		// Reference https://pkg.go.dev/golang.org/x/oauth2/clientcredentials#pkg-overview
 		conf := &clientcredentials.Config{

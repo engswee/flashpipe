@@ -41,7 +41,7 @@ func (int *Integration) Download(targetFile string, id string) error {
 func (int *Integration) CopyContent(srcDir string, tgtDir string) error {
 	return copyContent(srcDir, tgtDir)
 }
-func (int *Integration) CompareContent(srcDir string, tgtDir string, scriptMap []string, source string) (bool, error) {
+func (int *Integration) CompareContent(srcDir string, tgtDir string, scriptMap []string, target string) (bool, error) {
 	// Update the script collection in IFlow BPMN2 XML of source side before diff comparison
 	err := file.UpdateBPMN(srcDir, scriptMap)
 	if err != nil {
@@ -54,7 +54,7 @@ func (int *Integration) CompareContent(srcDir string, tgtDir string, scriptMap [
 	// Handling for parameters.prop differences
 	// - Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
 	// - Therefore diff of parameters.prop may come up with false differences
-	if source == "remote" {
+	if target == "local" {
 		// When syncing (from tenant to Git), include diff of parameter.prop separately
 		paramDiffer := diffParam(srcDir, tgtDir)
 		return dirDiffer || paramDiffer, nil
