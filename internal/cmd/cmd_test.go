@@ -40,7 +40,6 @@ func TestCommands(t *testing.T) {
 	var args []string
 	args = append(args, "update", "package")
 	args = append(args, "--package-file", "../../test/testdata/FlashPipeIntegrationTest.json")
-	rootCmd.SetArgs(args)
 
 	_, _, err := ExecuteCommandC(rootCmd, args...)
 	if err != nil {
@@ -63,7 +62,6 @@ func TestCommands(t *testing.T) {
 	args = append(args, "--package-name", "FlashPipe Integration Test")
 	args = append(args, "--dir-artifact", "../../test/testdata/artifacts/create/Integration_Test_IFlow")
 	args = append(args, "--dir-work", "../../output/update/work")
-	rootCmd.SetArgs(args)
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
 	if err != nil {
@@ -101,10 +99,9 @@ func TestCommands(t *testing.T) {
 	args = append(args, "--package-id", "FlashPipeIntegrationTest")
 	args = append(args, "--dir-git-repo", "../../")
 	args = append(args, "--dir-artifacts", "../../output/sync/artifact")
-	args = append(args, "--dir-work", "../../output/sync/work")
+	args = append(args, "--dir-work", "../../output/sync/local/work")
 	args = append(args, "--sync-package-details")
 	args = append(args, "--git-skip-commit")
-	rootCmd.SetArgs(args)
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
 	if err != nil {
@@ -118,7 +115,6 @@ func TestCommands(t *testing.T) {
 	args = nil
 	args = append(args, "update", "package")
 	args = append(args, "--package-file", "../../test/testdata/FlashPipeIntegrationTest_Update.json")
-	rootCmd.SetArgs(args)
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
 	if err != nil {
@@ -140,7 +136,6 @@ func TestCommands(t *testing.T) {
 	args = append(args, "--package-name", "FlashPipe Integration Test")
 	args = append(args, "--dir-artifact", "../../test/testdata/artifacts/update/Integration_Test_IFlow")
 	args = append(args, "--dir-work", "../../output/update/work")
-	rootCmd.SetArgs(args)
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
 	if err != nil {
@@ -179,10 +174,9 @@ func TestCommands(t *testing.T) {
 	args = append(args, "--package-id", "FlashPipeIntegrationTest")
 	args = append(args, "--dir-git-repo", "../../")
 	args = append(args, "--dir-artifacts", "../../output/sync/artifact")
-	args = append(args, "--dir-work", "../../output/sync/work")
+	args = append(args, "--dir-work", "../../output/sync/local/work")
 	args = append(args, "--sync-package-details")
 	args = append(args, "--git-skip-commit")
-	rootCmd.SetArgs(args)
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
 	if err != nil {
@@ -198,7 +192,6 @@ func TestCommands(t *testing.T) {
 	args = append(args, "--dir-work", "../../output/snapshot/work")
 	args = append(args, "--sync-package-details")
 	args = append(args, "--git-skip-commit")
-	rootCmd.SetArgs(args)
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
 	if err != nil {
@@ -206,6 +199,29 @@ func TestCommands(t *testing.T) {
 	}
 	assert.True(t, file.Exists("../../output/snapshot/repo/FlashPipeIntegrationTest/Integration_Test_IFlow/META-INF/MANIFEST.MF"), "MANIFEST.MF does not exist")
 	assert.True(t, file.Exists("../../output/snapshot/repo/FlashPipeIntegrationTest/Integration_Test_IFlow/src/main/resources/parameters.prop"), "parameters.prop does not exist")
+
+	// 10 - Sync updates to remote
+	args = nil
+	args = append(args, "sync")
+	args = append(args, "--package-id", "FlashPipeIntegrationTest")
+	args = append(args, "--dir-git-repo", "../../test/testdata/artifacts/create")
+	args = append(args, "--dir-artifacts", "")
+	args = append(args, "--target", "remote")
+	args = append(args, "--dir-work", "../../output/sync/remote/work")
+
+	_, _, err = ExecuteCommandC(rootCmd, args...)
+	if err != nil {
+		t.Fatalf("sync failed with error %v", err)
+	}
+	artifacts, err := ip.GetAllArtifacts("FlashPipeIntegrationTest")
+	if err != nil {
+		t.Fatalf("GetAllArtifacts failed with error - %v", err)
+	}
+
+	assert.Equal(t, "1.0.0", odata.FindArtifactById("Integration_Test_IFlow", artifacts).Version, "Integration_Test_IFlow was not updated to version 1.0.0")
+	assert.Equal(t, "1.0.0", odata.FindArtifactById("Integration_Test_Message_Mapping", artifacts).Version, "Integration_Test_Message_Mapping was not updated to version 1.0.0")
+	assert.Equal(t, "1.0.0", odata.FindArtifactById("Integration_Test_Script_Collection", artifacts).Version, "Integration_Test_Script_Collection was not updated to version 1.0.0")
+	assert.Equal(t, "1.0.0", odata.FindArtifactById("Integration_Test_Value_Mapping", artifacts).Version, "Integration_Test_Value_Mapping was not updated to version 1.0.0")
 
 	// ------------ Clean up ------------
 	println("---------- Tearing down test - start ----------")

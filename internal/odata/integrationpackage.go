@@ -51,6 +51,7 @@ type ArtifactDetails struct {
 	Id           string
 	Name         string
 	IsDraft      bool
+	Version      string
 	ArtifactType string
 }
 
@@ -138,6 +139,7 @@ func (ip *IntegrationPackage) GetArtifactsData(id string, artifactType string) (
 			Id:           result.Id,
 			Name:         result.Name,
 			IsDraft:      draft,
+			Version:      result.Version,
 			ArtifactType: artifactType,
 		})
 	}
