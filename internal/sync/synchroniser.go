@@ -7,6 +7,8 @@ import (
 	"github.com/engswee/flashpipe/internal/httpclnt"
 	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/engswee/flashpipe/internal/str"
+	"github.com/go-errors/errors"
+	"github.com/magiconair/properties"
 	"github.com/rs/zerolog/log"
 	"os"
 	"slices"
@@ -24,7 +26,7 @@ func New(exe *httpclnt.HTTPExecuter) *Synchroniser {
 	return s
 }
 
-func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, artifactsDir string) error {
+func (s *Synchroniser) PackageToLocal(packageId string, workDir string, artifactsDir string) error {
 	packageFromTenant, readOnly, packageExists, err := s.ip.Get(packageId)
 	if err != nil {
 		return err
@@ -40,7 +42,7 @@ func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, arti
 	// Create temp directory in working dir
 	err = os.MkdirAll(workDir+"/from_tenant", os.ModePerm)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 0)
 	}
 
 	log.Info().Msg("Storing package details from tenant for comparison")
@@ -48,16 +50,16 @@ func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, arti
 	tenantFile := fmt.Sprintf("%v/from_tenant/%v.json", workDir, packageId)
 	f, err := os.Create(tenantFile)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 0)
 	}
 	defer f.Close()
 	content, err := json.MarshalIndent(packageFromTenant, "", "  ")
 	if err != nil {
-		return err
+		return errors.Wrap(err, 0)
 	}
 	_, err = f.Write(content)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 0)
 	}
 
 	// Get existing package details file if it exists and compare values
@@ -86,13 +88,13 @@ func (s *Synchroniser) SyncPackageDetails(packageId string, workDir string, arti
 	// Clean up working directory
 	err = os.RemoveAll(workDir + "/from_tenant")
 	if err != nil {
-		return err
+		return errors.Wrap(err, 0)
 	}
 
 	return nil
 }
 
-func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, artifactsDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, scriptCollectionMap []string) error {
+func (s *Synchroniser) ArtifactsToLocal(packageId string, workDir string, artifactsDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, scriptCollectionMap []string) error {
 	// Verify the package is downloadable (not read only)
 	_, readOnly, packageExists, err := s.ip.Get(packageId)
 	if err != nil {
@@ -116,7 +118,7 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, artifacts
 	// Create temp directories in working dir
 	err = os.MkdirAll(workDir+"/download", os.ModePerm)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 0)
 	}
 
 	filtered, err := filterArtifacts(artifacts, includedIds, excludedIds)
@@ -205,7 +207,7 @@ func (s *Synchroniser) SyncArtifacts(packageId string, workDir string, artifacts
 	// Clean up working directory
 	err = os.RemoveAll(workDir + "/download")
 	if err != nil {
-		return err
+		return errors.Wrap(err, 0)
 	}
 
 	log.Info().Msg("---------------------------------------------------------------------------------")
@@ -280,4 +282,209 @@ func packageContentDiffer(source *odata.PackageSingleData, target *odata.Package
 		return true
 	}
 	return false
+}
+
+func (s *Synchroniser) ToRemote(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, parametersFile string, scriptMap []string, exe *httpclnt.HTTPExecuter) error {
+	dt := odata.NewDesigntimeArtifact(artifactType, exe)
+	ip := odata.NewIntegrationPackage(exe)
+
+	exists, err := artifactExists(artifactId, artifactType, packageId, dt, ip)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		log.Info().Msgf("Artifact %v will be created", artifactId)
+		if artifactType == "Integration" {
+			err = file.UpdateBPMN(artifactDir, scriptMap)
+			if err != nil {
+				return err
+			}
+		}
+
+		err = prepareUploadDir(workDir, artifactDir, dt)
+		if err != nil {
+			return err
+		}
+
+		err = createArtifact(artifactId, artifactName, packageId, workDir+"/upload", dt)
+		if err != nil {
+			return err
+		}
+
+		log.Info().Msg("🏆 Designtime artifact created successfully")
+	} else {
+		log.Info().Msg("Checking if designtime artifact needs to be updated")
+
+		zipFile := fmt.Sprintf("%v/%v.zip", workDir, artifactId)
+		err = dt.Download(zipFile, artifactId)
+		if err != nil {
+			return err
+		}
+
+		changesFound, err := compareArtifactContents(workDir, zipFile, artifactDir, scriptMap, dt)
+		if err != nil {
+			return err
+		}
+
+		if changesFound == true {
+			log.Info().Msg("Changes found in designtime artifact. Designtime artifact will be updated in CPI tenant")
+			err = prepareUploadDir(workDir, artifactDir, dt)
+			if err != nil {
+				return err
+			}
+			err = updateArtifact(artifactId, artifactName, packageId, workDir+"/upload", dt)
+			if err != nil {
+				return err
+			}
+
+			designtimeVersion, _, err := dt.Get(artifactId, "active")
+			if err != nil {
+				return err
+			}
+			r := odata.NewRuntime(exe)
+			runtimeVersion, _, err := r.Get(artifactId)
+			if err != nil {
+				return err
+			}
+			if runtimeVersion == designtimeVersion {
+				log.Info().Msg("Undeploying existing runtime artifact with same version number due to changes in design")
+				err = r.UnDeploy(artifactId)
+				if err != nil {
+					return err
+				}
+			}
+
+			log.Info().Msg("🏆 Designtime artifact updated successfully")
+		} else {
+			log.Info().Msg("🏆 No changes detected. Designtime artifact does not need to be updated")
+		}
+
+		if artifactType == "Integration" && file.Exists(parametersFile) {
+			log.Info().Msg("Updating configured parameter(s) of Integration designtime artifact where necessary")
+			err = updateConfiguration(artifactId, parametersFile, exe)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func artifactExists(artifactId string, artifactType string, packageId string, dt odata.DesigntimeArtifact, ip *odata.IntegrationPackage) (bool, error) {
+	_, exists, err := dt.Get(artifactId, "active")
+	if err != nil {
+		return false, err
+	}
+	if exists {
+		log.Info().Msgf("Active version of artifact %v exists", artifactId)
+		//  Check if version is in draft mode
+		var details []*odata.ArtifactDetails
+		details, err = ip.GetArtifactsData(packageId, artifactType)
+		if err != nil {
+			return false, err
+		}
+		artifact := odata.FindArtifactById(artifactId, details)
+		if artifact == nil {
+			return false, fmt.Errorf("Artifact %v not found in package %v", artifactId, packageId)
+		}
+		if artifact.IsDraft {
+			return false, fmt.Errorf("Artifact %v is in Draft state. Save Version of artifact in Web UI first!", artifactId)
+		}
+		return true, nil
+	} else {
+		log.Info().Msgf("Active version of artifact %v does not exist", artifactId)
+		return false, nil
+	}
+}
+
+func prepareUploadDir(workDir string, artifactDir string, dt odata.DesigntimeArtifact) error {
+	// Clean up previous uploads
+	uploadDir := workDir + "/upload"
+	err := os.RemoveAll(uploadDir)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+	return dt.CopyContent(artifactDir, uploadDir)
+}
+
+func createArtifact(artifactId string, artifactName string, packageId string, artifactDir string, dt odata.DesigntimeArtifact) error {
+	err := dt.Create(artifactId, artifactName, packageId, artifactDir)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func updateArtifact(artifactId string, artifactName string, packageId string, artifactDir string, dt odata.DesigntimeArtifact) error {
+	err := dt.Update(artifactId, artifactName, packageId, artifactDir)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func compareArtifactContents(workDir string, zipFile string, artifactDir string, scriptMap []string, dt odata.DesigntimeArtifact) (bool, error) {
+	tgtDir := fmt.Sprintf("%v/download", workDir)
+	err := os.RemoveAll(tgtDir)
+	if err != nil {
+		return false, errors.Wrap(err, 0)
+	}
+
+	log.Info().Msgf("Unzipping downloaded designtime artifact %v to %v/download", zipFile, workDir)
+	err = file.UnzipSource(zipFile, tgtDir)
+	if err != nil {
+		return false, err
+	}
+
+	return dt.CompareContent(artifactDir, tgtDir, scriptMap, "local")
+}
+
+func updateConfiguration(artifactId string, parametersFile string, exe *httpclnt.HTTPExecuter) error {
+	// Get configured parameters from tenant
+	c := odata.NewConfiguration(exe)
+	tenantParameters, err := c.Get(artifactId, "active")
+	if err != nil {
+		return err
+	}
+
+	// Get parameters from parameters.prop file
+	log.Info().Msgf("Getting parameters from %v file", parametersFile)
+	fileParameters := properties.MustLoadFile(parametersFile, properties.UTF8)
+
+	log.Info().Msg("Comparing parameters and updating where necessary")
+	atLeastOneUpdated := false
+	for _, result := range tenantParameters.Root.Results {
+		if result.DataType != "custom:schedule" { // TODO - handle translation to Cron
+			// Skip updating for schedulers which require translation to Cron values
+			fileValue := fileParameters.GetString(result.ParameterKey, "")
+			if fileValue != "" && fileValue != result.ParameterValue {
+				log.Info().Msgf("Parameter %v to be updated from %v to %v", result.ParameterKey, result.ParameterValue, fileValue)
+				err = c.Update(artifactId, "active", result.ParameterKey, fileValue)
+				if err != nil {
+					return err
+				}
+				atLeastOneUpdated = true
+			}
+		}
+	}
+	if atLeastOneUpdated {
+		r := odata.NewRuntime(exe)
+		version, _, err := r.Get(artifactId)
+		if err != nil {
+			return err
+		}
+		if version == "NOT_DEPLOYED" {
+			log.Info().Msg("🏆 No existing runtime artifact deployed")
+		} else {
+			log.Info().Msg("🏆 Undeploying existing runtime artifact due to changes in configured parameters")
+			err = r.UnDeploy(artifactId)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		log.Info().Msg("🏆 No updates required for configured parameters")
+	}
+	return nil
 }

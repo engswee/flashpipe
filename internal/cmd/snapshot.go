@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/logger"
@@ -84,7 +83,7 @@ func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitRepoDir string, 
 	ids, err := ip.GetPackagesList()
 	logger.ExitIfError(err)
 	if len(ids) == 0 {
-		return errors.New("No packages found in the tenant")
+		return fmt.Errorf("No packages found in the tenant")
 	}
 
 	log.Info().Msgf("Processing %d packages", len(ids))
@@ -95,10 +94,10 @@ func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitRepoDir string, 
 		packageWorkingDir := fmt.Sprintf("%v/%v", workDir, id)
 		packageArtifactsDir := fmt.Sprintf("%v/%v", gitRepoDir, id)
 		if syncPackageLevelDetails {
-			err = synchroniser.SyncPackageDetails(id, packageWorkingDir, packageArtifactsDir)
+			err = synchroniser.PackageToLocal(id, packageWorkingDir, packageArtifactsDir)
 			logger.ExitIfError(err)
 		}
-		err = synchroniser.SyncArtifacts(id, packageWorkingDir, packageArtifactsDir, nil, nil, draftHandling, "ID", nil)
+		err = synchroniser.ArtifactsToLocal(id, packageWorkingDir, packageArtifactsDir, nil, nil, draftHandling, "ID", nil)
 		logger.ExitIfError(err)
 	}
 

@@ -102,17 +102,17 @@ func runSync(cmd *cobra.Command) {
 	serviceDetails := odata.GetServiceDetails(cmd)
 	// Initialise HTTP executer
 	exe := odata.InitHTTPExecuter(serviceDetails)
+	synchroniser := sync.New(exe)
 
 	// Sync from tenant to Git
 	if target == "local" {
-		synchroniser := sync.New(exe)
 
 		if syncPackageLevelDetails {
-			err := synchroniser.SyncPackageDetails(packageId, workDir, artifactsDir)
+			err := synchroniser.PackageToLocal(packageId, workDir, artifactsDir)
 			logger.ExitIfError(err)
 		}
 
-		err := synchroniser.SyncArtifacts(packageId, workDir, artifactsDir, includedIds, excludedIds, draftHandling, dirNamingType, scriptCollectionMap)
+		err := synchroniser.ArtifactsToLocal(packageId, workDir, artifactsDir, includedIds, excludedIds, draftHandling, dirNamingType, scriptCollectionMap)
 		logger.ExitIfError(err)
 
 		if !skipCommit {
@@ -130,13 +130,17 @@ func runSync(cmd *cobra.Command) {
 			logger.ExitIfError(err)
 		}
 
+		// TODO - display stack trace for error
+
+		// TODO Filtering, draft-handling
+
 		artifactDirFound := false
 		for _, entry := range entries {
-
 			manifest := fmt.Sprintf("%v/%v/META-INF/MANIFEST.MF", baseSourceDir, entry.Name())
 			if entry.IsDir() && file.Exists(manifest) {
 				artifactDirFound = true
 				artifactDir := fmt.Sprintf("%v/%v", baseSourceDir, entry.Name())
+				log.Info().Msg("---------------------------------------------------------------------------------")
 				log.Info().Msgf("Processing directory %v", artifactDir)
 				paramFile := fmt.Sprintf("%v/src/main/resouces/parameters/prop", artifactDir)
 
@@ -152,13 +156,15 @@ func runSync(cmd *cobra.Command) {
 				// remove spaces then remove ;singleton:=true
 				artifactId = strings.ReplaceAll(artifactId, " ", "")
 				artifactId = strings.ReplaceAll(artifactId, ";singleton:=true", "")
+
 				artifactName := hdr.Get("Bundle-Name")
 				artifactType := hdr.Get("SAP-BundleType")
 				if artifactType == "IntegrationFlow" {
 					artifactType = "Integration"
 				}
 
-				err = processArtifact(artifactId, artifactName, artifactType, packageId, packageId, artifactDir, workDir, paramFile, nil, exe)
+				log.Info().Msgf("📢 Begin processing for artifact %v", artifactId)
+				err = synchroniser.ToRemote(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, paramFile, nil, exe)
 				logger.ExitIfError(err)
 			}
 		}

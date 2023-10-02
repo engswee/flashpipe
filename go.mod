@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/beevik/etree v1.2.0
+	github.com/go-errors/errors v1.5.1
 	github.com/go-git/go-git/v5 v5.8.1
 	github.com/rs/zerolog v1.30.0
 	github.com/spf13/cobra v1.7.0
