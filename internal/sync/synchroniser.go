@@ -1,6 +1,7 @@
 package sync
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/internal/file"
@@ -10,8 +11,11 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/magiconair/properties"
 	"github.com/rs/zerolog/log"
+	"net/textproto"
 	"os"
+	"path/filepath"
 	"slices"
+	"strings"
 )
 
 type Synchroniser struct {
@@ -26,21 +30,9 @@ func New(exe *httpclnt.HTTPExecuter) *Synchroniser {
 	return s
 }
 
-func (s *Synchroniser) PackageToLocal(packageId string, workDir string, artifactsDir string) error {
-	packageFromTenant, readOnly, packageExists, err := s.ip.Get(packageId)
-	if err != nil {
-		return err
-	}
-	if !packageExists {
-		return fmt.Errorf("Package %v does not exist", packageId)
-	}
-	if readOnly {
-		log.Warn().Msgf("Skipping package %v as it is Configure-only", packageId)
-		return nil
-	}
-
+func (s *Synchroniser) PackageToLocal(packageDataFromTenant *odata.PackageSingleData, packageId string, workDir string, artifactsDir string) error {
 	// Create temp directory in working dir
-	err = os.MkdirAll(workDir+"/from_tenant", os.ModePerm)
+	err := os.MkdirAll(workDir+"/from_tenant", os.ModePerm)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -53,7 +45,7 @@ func (s *Synchroniser) PackageToLocal(packageId string, workDir string, artifact
 		return errors.Wrap(err, 0)
 	}
 	defer f.Close()
-	content, err := json.MarshalIndent(packageFromTenant, "", "  ")
+	content, err := json.MarshalIndent(packageDataFromTenant, "", "  ")
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -65,11 +57,11 @@ func (s *Synchroniser) PackageToLocal(packageId string, workDir string, artifact
 	// Get existing package details file if it exists and compare values
 	gitSourceFile := fmt.Sprintf("%v/%v.json", artifactsDir, packageId)
 	if file.Exists(gitSourceFile) {
-		packageFromGit, err := odata.GetPackageDetails(tenantFile)
+		packageDataFromGit, err := odata.GetPackageDetails(tenantFile)
 		if err != nil {
 			return err
 		}
-		if packageContentDiffer(packageFromTenant, packageFromGit) {
+		if packageContentDiffer(packageDataFromTenant, packageDataFromGit) {
 			log.Info().Msgf("🏆 Changes to package %v detected and will be updated to Git", packageId)
 			err = file.CopyFile(tenantFile, gitSourceFile)
 			if err != nil {
@@ -94,20 +86,22 @@ func (s *Synchroniser) PackageToLocal(packageId string, workDir string, artifact
 	return nil
 }
 
-func (s *Synchroniser) ArtifactsToLocal(packageId string, workDir string, artifactsDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, scriptCollectionMap []string) error {
+func (s *Synchroniser) VerifyDownloadablePackage(packageId string) (*odata.PackageSingleData, bool, error) {
 	// Verify the package is downloadable (not read only)
-	_, readOnly, packageExists, err := s.ip.Get(packageId)
+	packageDataFromTenant, readOnly, packageExists, err := s.ip.Get(packageId)
 	if err != nil {
-		return err
+		return nil, false, err
 	}
 	if !packageExists {
-		return fmt.Errorf("Package %v does not exist", packageId)
+		return nil, false, fmt.Errorf("Package %v does not exist", packageId)
 	}
 	if readOnly {
 		log.Warn().Msgf("Skipping package %v as it is Configure-only and cannot be downloaded", packageId)
-		return nil
 	}
+	return packageDataFromTenant, readOnly, nil
+}
 
+func (s *Synchroniser) ArtifactsToLocal(packageId string, workDir string, artifactsDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, scriptCollectionMap []string) error {
 	// Get all design time artifacts of package
 	log.Info().Msgf("Getting artifacts in integration package %v", packageId)
 	artifacts, err := s.ip.GetAllArtifacts(packageId)
@@ -284,7 +278,71 @@ func packageContentDiffer(source *odata.PackageSingleData, target *odata.Package
 	return false
 }
 
-func (s *Synchroniser) ToRemote(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, parametersFile string, scriptMap []string, exe *httpclnt.HTTPExecuter) error {
+func (s *Synchroniser) ArtifactsToRemote(artifactsDir string, packageId string, workDir string, exe *httpclnt.HTTPExecuter) error {
+	// Get directory list
+	baseSourceDir := filepath.Clean(artifactsDir)
+	entries, err := os.ReadDir(baseSourceDir)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	// TODO Filtering, draft-handling
+
+	artifactDirFound := false
+	for _, entry := range entries {
+		manifestPath := fmt.Sprintf("%v/%v/META-INF/MANIFEST.MF", baseSourceDir, entry.Name())
+		if entry.IsDir() && file.Exists(manifestPath) {
+			artifactDirFound = true
+			artifactDir := fmt.Sprintf("%v/%v", baseSourceDir, entry.Name())
+			log.Info().Msg("---------------------------------------------------------------------------------")
+			log.Info().Msgf("Processing directory %v", artifactDir)
+			paramFile := fmt.Sprintf("%v/src/main/resouces/parameters/prop", artifactDir)
+
+			headers, err := getManifestHeaders(manifestPath)
+			if err != nil {
+				return err
+			}
+
+			artifactId := headers.Get("Bundle-SymbolicName")
+			// remove spaces then remove ;singleton:=true
+			artifactId = strings.ReplaceAll(artifactId, " ", "")
+			artifactId = strings.ReplaceAll(artifactId, ";singleton:=true", "")
+
+			artifactName := headers.Get("Bundle-Name")
+			artifactType := headers.Get("SAP-BundleType")
+			if artifactType == "IntegrationFlow" {
+				artifactType = "Integration"
+			}
+
+			log.Info().Msgf("📢 Begin processing for artifact %v", artifactId)
+			err = s.SingleArtifactToRemote(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, paramFile, nil, exe)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	if !artifactDirFound {
+		log.Warn().Msgf("No directory with artifact contents found in %v", baseSourceDir)
+	}
+	return nil
+}
+
+func getManifestHeaders(manifestPath string) (textproto.MIMEHeader, error) {
+	manifestFile, err := os.Open(manifestPath)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+	defer manifestFile.Close()
+
+	tp := textproto.NewReader(bufio.NewReader(manifestFile))
+	headers, err := tp.ReadMIMEHeader()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+	return headers, nil
+}
+
+func (s *Synchroniser) SingleArtifactToRemote(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, parametersFile string, scriptMap []string, exe *httpclnt.HTTPExecuter) error {
 	dt := odata.NewDesigntimeArtifact(artifactType, exe)
 	ip := odata.NewIntegrationPackage(exe)
 

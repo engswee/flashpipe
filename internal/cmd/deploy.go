@@ -74,7 +74,6 @@ func deployArtifacts(artifactIds []string, artifactType string, delayLength int,
 
 	// Loop and deploy each artifact
 	for i, id := range artifactIds {
-		// TODO - Trim IDs
 		log.Info().Msgf("Processing artifact %d - %v", i+1, id)
 		err := deploySingle(dt, rt, id, compareVersions)
 		// TODO - PRIO1 write error wrapper - https://go.dev/blog/errors-are-values
