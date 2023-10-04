@@ -125,7 +125,7 @@ func runSync(cmd *cobra.Command) {
 
 	// Sync from Git to tenant
 	if target == "remote" {
-		err := synchroniser.ArtifactsToRemote(artifactsDir, packageId, workDir, exe)
+		err := synchroniser.ArtifactsToRemote(packageId, workDir, artifactsDir, includedIds, excludedIds)
 		logger.ExitIfError(err)
 	}
 }

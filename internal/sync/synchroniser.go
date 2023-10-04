@@ -220,7 +220,7 @@ func filterArtifacts(artifacts []*odata.ArtifactDetails, includedIds []string, e
 			if artifact != nil {
 				output = append(output, artifact)
 			} else {
-				return nil, fmt.Errorf("Artifact %v in INCLUDE_IDS does not exist", id)
+				return nil, fmt.Errorf("Artifact %v in --ids-include does not exist", id)
 			}
 		}
 		return output, nil
@@ -228,7 +228,7 @@ func filterArtifacts(artifacts []*odata.ArtifactDetails, includedIds []string, e
 		for _, id := range excludedIds {
 			artifact := odata.FindArtifactById(id, artifacts)
 			if artifact == nil {
-				return nil, fmt.Errorf("Artifact %v in EXCLUDE_IDS does not exist", id)
+				return nil, fmt.Errorf("Artifact %v in --ids-exclude does not exist", id)
 			}
 		}
 		for _, artifact := range artifacts {
@@ -278,15 +278,13 @@ func packageContentDiffer(source *odata.PackageSingleData, target *odata.Package
 	return false
 }
 
-func (s *Synchroniser) ArtifactsToRemote(artifactsDir string, packageId string, workDir string, exe *httpclnt.HTTPExecuter) error {
+func (s *Synchroniser) ArtifactsToRemote(packageId string, workDir string, artifactsDir string, includedIds []string, excludedIds []string) error {
 	// Get directory list
 	baseSourceDir := filepath.Clean(artifactsDir)
 	entries, err := os.ReadDir(baseSourceDir)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-
-	// TODO Filtering, draft-handling
 
 	artifactDirFound := false
 	for _, entry := range entries {
@@ -308,6 +306,20 @@ func (s *Synchroniser) ArtifactsToRemote(artifactsDir string, packageId string, 
 			artifactId = strings.ReplaceAll(artifactId, " ", "")
 			artifactId = strings.ReplaceAll(artifactId, ";singleton:=true", "")
 
+			// Filter in/out artifacts
+			if len(includedIds) > 0 {
+				if !slices.Contains(includedIds, artifactId) {
+					log.Warn().Msgf("Skipping artifact %v as it is not in --ids-include", artifactId)
+					continue
+				}
+			}
+			if len(excludedIds) > 0 {
+				if slices.Contains(excludedIds, artifactId) {
+					log.Warn().Msgf("Skipping artifact %v as it is in --ids-exclude", artifactId)
+					continue
+				}
+			}
+
 			artifactName := headers.Get("Bundle-Name")
 			artifactType := headers.Get("SAP-BundleType")
 			if artifactType == "IntegrationFlow" {
@@ -315,7 +327,7 @@ func (s *Synchroniser) ArtifactsToRemote(artifactsDir string, packageId string, 
 			}
 
 			log.Info().Msgf("📢 Begin processing for artifact %v", artifactId)
-			err = s.SingleArtifactToRemote(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, paramFile, nil, exe)
+			err = s.SingleArtifactToRemote(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, paramFile, nil)
 			if err != nil {
 				return err
 			}
@@ -342,11 +354,10 @@ func getManifestHeaders(manifestPath string) (textproto.MIMEHeader, error) {
 	return headers, nil
 }
 
-func (s *Synchroniser) SingleArtifactToRemote(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, parametersFile string, scriptMap []string, exe *httpclnt.HTTPExecuter) error {
-	dt := odata.NewDesigntimeArtifact(artifactType, exe)
-	ip := odata.NewIntegrationPackage(exe)
+func (s *Synchroniser) SingleArtifactToRemote(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, parametersFile string, scriptMap []string) error {
+	dt := odata.NewDesigntimeArtifact(artifactType, s.exe)
 
-	exists, err := artifactExists(artifactId, artifactType, packageId, dt, ip)
+	exists, err := artifactExists(artifactId, artifactType, packageId, dt, s.ip)
 	if err != nil {
 		return err
 	}
@@ -400,7 +411,7 @@ func (s *Synchroniser) SingleArtifactToRemote(artifactId, artifactName, artifact
 			if err != nil {
 				return err
 			}
-			r := odata.NewRuntime(exe)
+			r := odata.NewRuntime(s.exe)
 			runtimeVersion, _, err := r.Get(artifactId)
 			if err != nil {
 				return err
@@ -420,7 +431,7 @@ func (s *Synchroniser) SingleArtifactToRemote(artifactId, artifactName, artifact
 
 		if artifactType == "Integration" && file.Exists(parametersFile) {
 			log.Info().Msg("Updating configured parameter(s) of Integration designtime artifact where necessary")
-			err = updateConfiguration(artifactId, parametersFile, exe)
+			err = updateConfiguration(artifactId, parametersFile, s.exe)
 			if err != nil {
 				return err
 			}
@@ -495,7 +506,7 @@ func compareArtifactContents(workDir string, zipFile string, artifactDir string,
 		return false, err
 	}
 
-	return dt.CompareContent(artifactDir, tgtDir, scriptMap, "local")
+	return dt.CompareContent(artifactDir, tgtDir, scriptMap, "remote")
 }
 
 func updateConfiguration(artifactId string, parametersFile string, exe *httpclnt.HTTPExecuter) error {
