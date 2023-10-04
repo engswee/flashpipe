@@ -125,7 +125,14 @@ func runSync(cmd *cobra.Command) {
 
 	// Sync from Git to tenant
 	if target == "remote" {
-		err := synchroniser.ArtifactsToRemote(packageId, workDir, artifactsDir, includedIds, excludedIds)
+		// Check for existence of package in tenant
+		_, packageExists, err := synchroniser.VerifyDownloadablePackage(packageId)
+		if !packageExists {
+			logger.ExitIfError(fmt.Errorf("Package %v does not exist. Please run 'update package' command first", packageId))
+		}
+		logger.ExitIfError(err)
+
+		err = synchroniser.ArtifactsToRemote(packageId, workDir, artifactsDir, includedIds, excludedIds)
 		logger.ExitIfError(err)
 	}
 }
