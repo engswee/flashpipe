@@ -86,19 +86,19 @@ func (s *Synchroniser) PackageToLocal(packageDataFromTenant *odata.PackageSingle
 	return nil
 }
 
-func (s *Synchroniser) VerifyDownloadablePackage(packageId string) (*odata.PackageSingleData, bool, error) {
+func (s *Synchroniser) VerifyDownloadablePackage(packageId string) (packageDataFromTenant *odata.PackageSingleData, readOnly bool, packageExists bool, err error) {
 	// Verify the package is downloadable (not read only)
-	packageDataFromTenant, readOnly, packageExists, err := s.ip.Get(packageId)
+	packageDataFromTenant, readOnly, packageExists, err = s.ip.Get(packageId)
 	if err != nil {
-		return nil, false, err
+		return nil, false, false, err
 	}
 	if !packageExists {
-		return nil, false, fmt.Errorf("Package %v does not exist", packageId)
+		return nil, false, false, fmt.Errorf("Package %v does not exist", packageId)
 	}
 	if readOnly {
 		log.Warn().Msgf("Skipping package %v as it is Configure-only and cannot be downloaded", packageId)
 	}
-	return packageDataFromTenant, readOnly, nil
+	return
 }
 
 func (s *Synchroniser) ArtifactsToLocal(packageId string, workDir string, artifactsDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, scriptCollectionMap []string) error {

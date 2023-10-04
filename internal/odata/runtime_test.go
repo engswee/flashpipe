@@ -94,7 +94,7 @@ func (suite *RuntimeSuite) TestRuntime_Get() {
 		suite.T().Fatalf("Get failed with error - %v", err)
 	}
 	if status == "STARTING" {
-		time.Sleep(10 * time.Second)
+		time.Sleep(15 * time.Second)
 		version, status, err = rt.Get("Integration_Test_IFlow")
 		if err != nil {
 			suite.T().Fatalf("Get failed with error - %v", err)

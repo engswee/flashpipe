@@ -50,7 +50,7 @@ func TestFilterIncludeInvalidID(t *testing.T) {
 	}
 	_, err := filterArtifacts(artifacts, []string{"DummyIFlow2"}, nil)
 
-	assert.Equal(t, "Artifact DummyIFlow2 in INCLUDE_IDS does not exist", err.Error(), "Incorrect error message")
+	assert.Equal(t, "Artifact DummyIFlow2 in --ids-include does not exist", err.Error(), "Incorrect error message")
 }
 
 func TestFilterExcludeInvalidID(t *testing.T) {
@@ -61,5 +61,5 @@ func TestFilterExcludeInvalidID(t *testing.T) {
 	}
 	_, err := filterArtifacts(artifacts, nil, []string{"DummyIFlow2"})
 
-	assert.Equal(t, "Artifact DummyIFlow2 in EXCLUDE_IDS does not exist", err.Error(), "Incorrect error message")
+	assert.Equal(t, "Artifact DummyIFlow2 in --ids-exclude does not exist", err.Error(), "Incorrect error message")
 }

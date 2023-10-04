@@ -93,7 +93,7 @@ func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitRepoDir string, 
 		log.Info().Msgf("Processing package %d/%d - ID: %v", i+1, len(ids), id)
 		packageWorkingDir := fmt.Sprintf("%v/%v", workDir, id)
 		packageArtifactsDir := fmt.Sprintf("%v/%v", gitRepoDir, id)
-		packageDataFromTenant, readOnly, err := synchroniser.VerifyDownloadablePackage(id)
+		packageDataFromTenant, readOnly, _, err := synchroniser.VerifyDownloadablePackage(id)
 		if err != nil {
 			logger.ExitIfError(err)
 		}
