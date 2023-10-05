@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/engswee/flashpipe/internal/config"
-	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/engswee/flashpipe/internal/repo"
 	"github.com/engswee/flashpipe/internal/sync"
@@ -29,8 +28,11 @@ tenant to a Git repository.`,
 			}
 			return nil
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runSnapshot(cmd)
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			if err = runSnapshot(cmd); err != nil {
+				cmd.SilenceUsage = true
+			}
+			return
 		},
 	}
 
@@ -49,7 +51,7 @@ tenant to a Git repository.`,
 	return snapshotCmd
 }
 
-func runSnapshot(cmd *cobra.Command) {
+func runSnapshot(cmd *cobra.Command) error {
 	log.Info().Msg("Executing snapshot command")
 
 	gitRepoDir := config.GetString(cmd, "dir-git-repo")
@@ -63,12 +65,17 @@ func runSnapshot(cmd *cobra.Command) {
 
 	serviceDetails := odata.GetServiceDetails(cmd)
 	err := getTenantSnapshot(serviceDetails, gitRepoDir, workDir, draftHandling, syncPackageLevelDetails)
-	logger.ExitIfError(err)
+	if err != nil {
+		return err
+	}
 
 	if !skipCommit {
 		err = repo.CommitToRepo(gitRepoDir, commitMsg, commitUser, commitEmail)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitRepoDir string, workDir string, draftHandling string, syncPackageLevelDetails bool) error {
@@ -81,7 +88,9 @@ func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitRepoDir string, 
 	// Get packages from the tenant
 	ip := odata.NewIntegrationPackage(exe)
 	ids, err := ip.GetPackagesList()
-	logger.ExitIfError(err)
+	if err != nil {
+		return err
+	}
 	if len(ids) == 0 {
 		return fmt.Errorf("No packages found in the tenant")
 	}
@@ -95,15 +104,21 @@ func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitRepoDir string, 
 		packageArtifactsDir := fmt.Sprintf("%v/%v", gitRepoDir, id)
 		packageDataFromTenant, readOnly, _, err := synchroniser.VerifyDownloadablePackage(id)
 		if err != nil {
-			logger.ExitIfError(err)
+			if err != nil {
+				return err
+			}
 		}
 		if !readOnly {
 			if syncPackageLevelDetails {
 				err = synchroniser.PackageToLocal(packageDataFromTenant, id, packageWorkingDir, packageArtifactsDir)
-				logger.ExitIfError(err)
+				if err != nil {
+					return err
+				}
 			}
 			err = synchroniser.ArtifactsToLocal(id, packageWorkingDir, packageArtifactsDir, nil, nil, draftHandling, "ID", nil)
-			logger.ExitIfError(err)
+			if err != nil {
+				return err
+			}
 
 		}
 	}

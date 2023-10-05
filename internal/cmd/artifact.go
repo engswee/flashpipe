@@ -5,7 +5,6 @@ import (
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
-	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
@@ -29,8 +28,11 @@ SAP Integration Suite tenant.`,
 			}
 			return nil
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runUpdateArtifact(cmd)
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			if err = runUpdateArtifact(cmd); err != nil {
+				cmd.SilenceUsage = true
+			}
+			return
 		},
 	}
 
@@ -54,7 +56,7 @@ SAP Integration Suite tenant.`,
 	return artifactCmd
 }
 
-func runUpdateArtifact(cmd *cobra.Command) {
+func runUpdateArtifact(cmd *cobra.Command) error {
 	artifactType := config.GetString(cmd, "artifact-type")
 	log.Info().Msgf("Executing update artifact %v command", artifactType)
 
@@ -82,7 +84,9 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	} else if parametersFile != defaultParamFile {
 		log.Info().Msgf("Using %v as parameters.prop file", parametersFile)
 		err := file.CopyFile(parametersFile, defaultParamFile)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 	}
 
 	defaultManifestFile := fmt.Sprintf("%v/META-INF/MANIFEST.MF", artifactDir)
@@ -91,7 +95,9 @@ func runUpdateArtifact(cmd *cobra.Command) {
 	} else if manifestFile != defaultManifestFile {
 		log.Info().Msgf("Using %v as MANIFEST.MF file", manifestFile)
 		err := file.CopyFile(manifestFile, defaultManifestFile)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Initialise HTTP executer
@@ -100,13 +106,17 @@ func runUpdateArtifact(cmd *cobra.Command) {
 
 	// Create integration package first if required
 	err := createPackage(packageId, packageName, exe)
-	logger.ExitIfError(err)
+	if err != nil {
+		return err
+	}
 
 	synchroniser := sync.New(exe)
 
 	err = synchroniser.SingleArtifactToRemote(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, parametersFile, scriptMap)
-	logger.ExitIfError(err)
-
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func createPackage(packageId string, packageName string, exe *httpclnt.HTTPExecuter) error {

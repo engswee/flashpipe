@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"github.com/engswee/flashpipe/internal/config"
-	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -16,8 +15,11 @@ func NewPackageCommand() *cobra.Command {
 		Short:   "Create/update integration package",
 		Long: `Create or update integration package on the
 SAP Integration Suite tenant.`,
-		Run: func(cmd *cobra.Command, args []string) {
-			runUpdatePackage(cmd)
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			if err = runUpdatePackage(cmd); err != nil {
+				cmd.SilenceUsage = true
+			}
+			return
 		},
 	}
 
@@ -28,7 +30,7 @@ SAP Integration Suite tenant.`,
 	return packageCmd
 }
 
-func runUpdatePackage(cmd *cobra.Command) {
+func runUpdatePackage(cmd *cobra.Command) error {
 	log.Info().Msg("Executing update package command")
 
 	packageFile := config.GetString(cmd, "package-file")
@@ -36,7 +38,9 @@ func runUpdatePackage(cmd *cobra.Command) {
 	// Get package details from JSON file
 	log.Info().Msgf("Getting package details from %v file", packageFile)
 	packageDetails, err := odata.GetPackageDetails(packageFile)
-	logger.ExitIfError(err)
+	if err != nil {
+		return err
+	}
 
 	// Initialise HTTP executer
 	serviceDetails := odata.GetServiceDetails(cmd)
@@ -48,12 +52,17 @@ func runUpdatePackage(cmd *cobra.Command) {
 	if !exists {
 		log.Info().Msgf("Package %v does not exist", packageId)
 		err = ip.Create(packageDetails)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 		log.Info().Msgf("Package %v created", packageId)
 	} else {
 		// Update integration package
 		err = ip.Update(packageDetails)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 		log.Info().Msgf("Package %v updated", packageId)
 	}
+	return nil
 }

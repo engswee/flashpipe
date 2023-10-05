@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/logger"
+	"github.com/go-errors/errors"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -67,8 +69,18 @@ func Execute() {
 	rootCmd.AddCommand(NewSnapshotCommand())
 
 	err := rootCmd.Execute()
+	// TODO - Log to analytics
+
 	if err != nil {
-		os.Exit(1)
+		// Display stack trace based on type of error
+		var msg string
+		switch err.(type) {
+		case *errors.Error:
+			msg = err.(*errors.Error).ErrorStack()
+		default:
+			msg = err.Error()
+		}
+		log.Fatal().Msg(msg)
 	}
 }
 

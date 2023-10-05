@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/engswee/flashpipe/internal/config"
-	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/engswee/flashpipe/internal/str"
 	"github.com/rs/zerolog/log"
@@ -28,8 +27,11 @@ runtime of SAP Integration Suite tenant.`,
 			}
 			return nil
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runDeploy(cmd)
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			if err = runDeploy(cmd); err != nil {
+				cmd.SilenceUsage = true
+			}
+			return
 		},
 	}
 
@@ -45,7 +47,7 @@ runtime of SAP Integration Suite tenant.`,
 	return deployCmd
 }
 
-func runDeploy(cmd *cobra.Command) {
+func runDeploy(cmd *cobra.Command) error {
 	serviceDetails := odata.GetServiceDetails(cmd)
 
 	artifactType := config.GetString(cmd, "artifact-type")
@@ -56,10 +58,14 @@ func runDeploy(cmd *cobra.Command) {
 	maxCheckLimit := config.GetInt(cmd, "max-check-limit")
 	compareVersions := config.GetBool(cmd, "compare-versions")
 
-	deployArtifacts(artifactIds, artifactType, delayLength, maxCheckLimit, compareVersions, serviceDetails)
+	err := deployArtifacts(artifactIds, artifactType, delayLength, maxCheckLimit, compareVersions, serviceDetails)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func deployArtifacts(artifactIds []string, artifactType string, delayLength int, maxCheckLimit int, compareVersions bool, serviceDetails *odata.ServiceDetails) {
+func deployArtifacts(artifactIds []string, artifactType string, delayLength int, maxCheckLimit int, compareVersions bool, serviceDetails *odata.ServiceDetails) error {
 
 	// Initialise HTTP executer
 	exe := odata.InitHTTPExecuter(serviceDetails)
@@ -77,19 +83,24 @@ func deployArtifacts(artifactIds []string, artifactType string, delayLength int,
 		log.Info().Msgf("Processing artifact %d - %v", i+1, id)
 		err := deploySingle(dt, rt, id, compareVersions)
 		// TODO - PRIO1 write error wrapper - https://go.dev/blog/errors-are-values
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Check deployment status of artifacts
 	for i, id := range artifactIds {
 		err := checkDeploymentStatus(rt, delayLength, maxCheckLimit, id)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 		// TODO - PRIO1 write error wrapper - https://go.dev/blog/errors-are-values
 
 		log.Info().Msgf("Artifact %d - %v deployed successfully", i+1, id)
 	}
 
 	log.Info().Msg("🏆 Artifact(s) deployment completed successfully")
+	return nil
 }
 
 func deploySingle(artifact odata.DesigntimeArtifact, runtime *odata.Runtime, id string, compareVersions bool) error {

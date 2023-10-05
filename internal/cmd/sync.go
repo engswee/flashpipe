@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/engswee/flashpipe/internal/config"
-	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/engswee/flashpipe/internal/repo"
 	"github.com/engswee/flashpipe/internal/sync"
@@ -48,8 +47,11 @@ tenant and a Git repository.`,
 			// TODO - Validate secrets in env var, lower priority as it is no longer resolved in GitHub action workflow
 			return nil
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runSync(cmd)
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			if err = runSync(cmd); err != nil {
+				cmd.SilenceUsage = true
+			}
+			return
 		},
 	}
 
@@ -77,7 +79,7 @@ tenant and a Git repository.`,
 	return syncCmd
 }
 
-func runSync(cmd *cobra.Command) {
+func runSync(cmd *cobra.Command) error {
 	log.Info().Msg("Executing sync command")
 
 	packageId := config.GetString(cmd, "package-id")
@@ -105,34 +107,49 @@ func runSync(cmd *cobra.Command) {
 	if target == "local" {
 		packageDataFromTenant, readOnly, _, err := synchroniser.VerifyDownloadablePackage(packageId)
 		if err != nil {
-			logger.ExitIfError(err)
+			if err != nil {
+				return err
+			}
 		}
 		if !readOnly {
 			if syncPackageLevelDetails {
 				err := synchroniser.PackageToLocal(packageDataFromTenant, packageId, workDir, artifactsDir)
-				logger.ExitIfError(err)
+				if err != nil {
+					return err
+				}
 			}
 
 			err = synchroniser.ArtifactsToLocal(packageId, workDir, artifactsDir, includedIds, excludedIds, draftHandling, dirNamingType, scriptCollectionMap)
-			logger.ExitIfError(err)
+			if err != nil {
+				return err
+			}
 
 			if !skipCommit {
 				err := repo.CommitToRepo(gitRepoDir, commitMsg, commitUser, commitEmail)
-				logger.ExitIfError(err)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
 
 	// Sync from Git to tenant
 	if target == "remote" {
+		// TODO - sync package details from Git
+
 		// Check for existence of package in tenant
 		_, _, packageExists, err := synchroniser.VerifyDownloadablePackage(packageId)
 		if !packageExists {
-			logger.ExitIfError(fmt.Errorf("Package %v does not exist. Please run 'update package' command first", packageId))
+			return fmt.Errorf("Package %v does not exist. Please run 'update package' command first", packageId)
 		}
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 
 		err = synchroniser.ArtifactsToRemote(packageId, workDir, artifactsDir, includedIds, excludedIds)
-		logger.ExitIfError(err)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
