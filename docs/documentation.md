@@ -44,6 +44,7 @@ Following are different usage examples of _FlashPipe_ on different CI/CD platfor
 - [Upload/Deploy designtime artifacts using Azure Pipelines](azure-pipelines-upload.md)
 - [Upload/Deploy designtime artifacts using GitHub Actions](github-actions-upload.md)
 - [Sync designtime artifacts from Tenant to GitHub using GitHub Actions](github-actions-sync.md)
+- [Sync designtime artifacts from GitHub to Tenant using GitHub Actions](github-actions-sync-to-remote.md)
 - [Snapshot Tenant Content to GitHub using GitHub Actions](github-actions-snapshot.md)
 
 ## Archive

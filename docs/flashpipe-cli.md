@@ -239,15 +239,15 @@ Environment variables set before call:
 ```
 
 ### 4. sync
-This command is used to sync Cloud Integration designtime artifacts and integration package details (optional) from a tenant to a Git repository. It will compare any differences (new, deleted, changed) in files from tenant and commit/push to the Git repository.
+This command is used to sync Cloud Integration designtime artifacts and integration package details (optional) between a tenant and a Git repository. It will compare any differences (new, deleted, changed) in files between tenant and the Git repository before synchronising them.
 
 
 #### Usage
 ```bash
 flashpipe sync -h
 
-Synchronise designtime artifacts from SAP Integration Suite
-tenant to a Git repository.
+Synchronise designtime artifacts between SAP Integration Suite
+tenant and a Git repository.
 
 Usage:
   flashpipe sync [flags]
@@ -268,6 +268,7 @@ Flags:
       --package-id string              ID of Integration Package
       --script-collection-map string   Comma-separated source-target ID pairs for converting script collection references during sync 
       --sync-package-details           Sync details of Integration Package
+      --target                         Target of sync. Allowed values: local, remote (default "local")
 
 Global Flags:
       --config string               config file (default is $HOME/flashpipe.yaml)
@@ -282,24 +283,25 @@ Global Flags:
 ```
 
 #### CLI flags and environment variables list
-The following is the list of flags for the `sync` command and their corresponding environment variable name.
+The following is the list of flags for the `sync` command and their corresponding environment variable name. The fourth column indicates whether the flag is valid for the specific value of --target.
 
-| CLI flag name         | Environment variable name       | Mandatory |
-|-----------------------|---------------------------------|-----------|
-| package-id            | FLASHPIPE_PACKAGE_ID            | Yes       |
-| dir-git-repo          | FLASHPIPE_DIR_GIT_REPO          | Yes       |
-| dir-artifacts         | FLASHPIPE_DIR_ARTIFACTS         | No        |
-| dir-naming-type       | FLASHPIPE_DIR_NAMING_TYPE       | No        |
-| draft-handling        | FLASHPIPE_DRAFT_HANDLING        | No        |
-| ids-include           | FLASHPIPE_IDS_INCLUDE           | No        |
-| ids-exclude           | FLASHPIPE_IDS_EXCLUDE           | No        |
-| git-commit-msg        | FLASHPIPE_GIT_COMMIT_MSG        | No        |
-| git-commit-user       | FLASHPIPE_GIT_COMMIT_USER       | No        |
-| git-commit-email      | FLASHPIPE_GIT_COMMIT_EMAIL      | No        |
-| git-skip-commit       | FLASHPIPE_GIT_SKIP_COMMIT       | No        |
-| script-collection-map | FLASHPIPE_SCRIPT_COLLECTION_MAP | No        |
-| sync-package-details  | FLASHPIPE_SYNC_PACKAGE_DETAILS  | No        |
-| dir-work              | FLASHPIPE_DIR_WORK              | No        |
+| CLI flag name         | Environment variable name       | Mandatory | Applicable for value of --target |
+|-----------------------|---------------------------------|-----------|----------------------------------|
+| package-id            | FLASHPIPE_PACKAGE_ID            | Yes       | local, remote                    |
+| dir-git-repo          | FLASHPIPE_DIR_GIT_REPO          | Yes       | local, remote                    |
+| dir-artifacts         | FLASHPIPE_DIR_ARTIFACTS         | No        | local, remote                    |
+| target                | FLASHPIPE_TARGET                | No        | local, remote                    |
+| dir-naming-type       | FLASHPIPE_DIR_NAMING_TYPE       | No        | local                            |
+| draft-handling        | FLASHPIPE_DRAFT_HANDLING        | No        | local                            |
+| ids-include           | FLASHPIPE_IDS_INCLUDE           | No        | local, remote                    |
+| ids-exclude           | FLASHPIPE_IDS_EXCLUDE           | No        | local, remote                    |
+| git-commit-msg        | FLASHPIPE_GIT_COMMIT_MSG        | No        | local                            |
+| git-commit-user       | FLASHPIPE_GIT_COMMIT_USER       | No        | local                            |
+| git-commit-email      | FLASHPIPE_GIT_COMMIT_EMAIL      | No        | local                            |
+| git-skip-commit       | FLASHPIPE_GIT_SKIP_COMMIT       | No        | local                            |
+| script-collection-map | FLASHPIPE_SCRIPT_COLLECTION_MAP | No        | local                            |
+| sync-package-details  | FLASHPIPE_SYNC_PACKAGE_DETAILS  | No        | local                            |
+| dir-work              | FLASHPIPE_DIR_WORK              | No        | local, remote                    |
 
 #### Example (Basic Auth with CLI flags)
 ```bash

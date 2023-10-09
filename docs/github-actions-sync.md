@@ -1,4 +1,4 @@
-# Sync to GitHub with FlashPipe on GitHub Actions
+# Sync from Tenant to GitHub with FlashPipe on GitHub Actions
 The page describes the steps to set up _FlashPipe_ on [GitHub Actions](https://github.com/features/actions) to sync artifacts from a Cloud Integration tenant to a GitHub repository.
 
 ### 1. Create GitHub repository

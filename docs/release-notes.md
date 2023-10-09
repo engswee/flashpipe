@@ -1,5 +1,15 @@
 # Release Notes
 
+## 3.1.0 (Released 9 October 2023)
+
+---
+
+- 🔥 New feature 🔥 - _FlashPipe_ now supports syncing from Git repository to tenant
+  - `sync` command
+    - New flag `--target` (env var `FLASHPIPE_TARGET`) enables sync of multiple artifacts from Git repository to tenant
+- Changes for `update artifact` command
+  - Flags `--artifact-name` & `--package-name` are now optional to simplify configuration. When not provided, they will default to the value of their corresponding IDs.
+
 ## 3.0.0 (Released 4 September 2023)
 
 ---
