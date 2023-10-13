@@ -62,14 +62,11 @@ func runUpdateArtifact(cmd *cobra.Command) error {
 
 	artifactId := config.GetString(cmd, "artifact-id")
 	artifactName := config.GetString(cmd, "artifact-name")
-	// Default name to ID if it is not provided
-	if artifactName == "" {
-		artifactName = artifactId
-	}
 	packageId := config.GetString(cmd, "package-id")
 	packageName := config.GetString(cmd, "package-name")
-	// Default name to ID if it is not provided
+	// Default package name to package ID if it is not provided
 	if packageName == "" {
+		log.Info().Msgf("Using package ID %v as package name", packageId)
 		packageName = packageId
 	}
 	artifactDir := config.GetString(cmd, "dir-artifact")
@@ -97,6 +94,22 @@ func runUpdateArtifact(cmd *cobra.Command) error {
 		err := file.CopyFile(manifestFile, defaultManifestFile)
 		if err != nil {
 			return err
+		}
+	}
+
+	// Default artifact name from Manifest file or artifact ID
+	if artifactName == "" {
+		headers, err := sync.GetManifestHeaders(manifestFile)
+		if err != nil {
+			return err
+		}
+		bundleName := headers.Get("Bundle-Name")
+		if bundleName != "" {
+			log.Info().Msgf("Using %v from Bundle-Name in MANIFEST.MF as artifact name", bundleName)
+			artifactName = bundleName
+		} else {
+			log.Info().Msgf("Using artifact ID %v as artifact name", artifactId)
+			artifactName = artifactId
 		}
 	}
 

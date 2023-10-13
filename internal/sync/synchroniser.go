@@ -296,7 +296,7 @@ func (s *Synchroniser) ArtifactsToRemote(packageId string, workDir string, artif
 			log.Info().Msgf("Processing directory %v", artifactDir)
 			paramFile := fmt.Sprintf("%v/src/main/resouces/parameters/prop", artifactDir)
 
-			headers, err := getManifestHeaders(manifestPath)
+			headers, err := GetManifestHeaders(manifestPath)
 			if err != nil {
 				return err
 			}
@@ -339,7 +339,7 @@ func (s *Synchroniser) ArtifactsToRemote(packageId string, workDir string, artif
 	return nil
 }
 
-func getManifestHeaders(manifestPath string) (textproto.MIMEHeader, error) {
+func GetManifestHeaders(manifestPath string) (textproto.MIMEHeader, error) {
 	manifestFile, err := os.Open(manifestPath)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
