@@ -49,9 +49,10 @@ jobs:
         FLASHPIPE_TMN_USERID: ${{ secrets.BASIC_USERID }}
 
     - name: Build Go application
-      run: go build -v -o output/ ./...
+      run: go build -v -ldflags="-X 'github.com/engswee/flashpipe/internal/analytics.Host=$ANALYTICS_HOST'" -o output/ ./...
       env:
         CGO_ENABLED: 0
+        ANALYTICS_HOST: ${{ secrets.ANALYTICS_HOST }}
 
     - name: Save output for Docker build
       uses: actions/cache/save@v3
