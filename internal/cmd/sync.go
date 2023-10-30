@@ -135,8 +135,6 @@ func runSync(cmd *cobra.Command) error {
 
 	// Sync from Git to tenant
 	if target == "remote" {
-		// TODO - sync package details from Git
-
 		// Check for existence of package in tenant
 		_, _, packageExists, err := synchroniser.VerifyDownloadablePackage(packageId)
 		if !packageExists {
