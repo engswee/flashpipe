@@ -6,7 +6,6 @@ import (
 	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/logger"
-	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -72,17 +71,11 @@ func Execute() {
 
 	err := rootCmd.Execute()
 	// TODO - Log to analytics - don't log if it's usage is printed out.... need to probably segregate based on error
-	analytics.Log(rootCmd)
+	analytics.Log(rootCmd, err)
 
 	if err != nil {
 		// Display stack trace based on type of error
-		var msg string
-		switch err.(type) {
-		case *errors.Error:
-			msg = err.(*errors.Error).ErrorStack()
-		default:
-			msg = err.Error()
-		}
+		msg := logger.GetErrorDetails(err)
 		log.Fatal().Msg(msg)
 	}
 }
@@ -100,7 +93,7 @@ func getParentCommand(cmd *cobra.Command) *cobra.Command {
 
 func initializeConfig(cmd *cobra.Command) error {
 	root := getRootCommand(cmd)
-	root.SetContext(context.WithValue(cmd.Context(), "command", cmd.Name()))
+	root.SetContext(context.WithValue(cmd.Context(), "command", cmd))
 	cfgFile := config.GetString(cmd, "config")
 	if cfgFile != "" {
 		// Use config file from the flag.

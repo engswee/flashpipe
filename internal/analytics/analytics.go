@@ -3,71 +3,156 @@ package analytics
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/internal/config"
+	"github.com/engswee/flashpipe/internal/httpclnt"
+	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"os"
+	"strings"
 )
 
-type analyticsData struct {
-	UniqueID         string `json:"UniqueID"`
-	HashID           string `json:"HashID"`
-	Command          string `json:"Command"`
-	ArtifactType     string `json:"ArtifactType,omitempty"`
-	ArtifactNameUsed bool   `json:"ArtifactNameUsed"`
-}
-
 var Host string
+var SiteId string
+var ShowLogs string
 
-func Log(cmd *cobra.Command) {
-	if Host != "" {
-		log.Info().Msgf("Logging to %v", Host)
-		logToAnalytics(cmd)
+func Log(cmd *cobra.Command, err error) {
+	if Host != "" && SiteId != "" {
+		if ShowLogs == "true" {
+			log.Debug().Msg("Logging to Matomo Analytics")
+		}
+
+		logToAnalytics(cmd, err, Host, "https", 443, SiteId, ShowLogs == "true")
 	}
 }
 
-func logToAnalytics(cmd *cobra.Command) {
+func logToAnalytics(cmd *cobra.Command, cmdErr error, analyticsHost string, analyticsHostScheme string, analyticsHostPort int, analyticsSiteId string, showLogs bool) {
 
+	params := constructQueryParameters(cmd, cmdErr, analyticsSiteId)
+
+	urlPath := fmt.Sprintf("/matomo.php?%s", MapToString(params))
+
+	exe := httpclnt.New("", "", "", "", "", "", analyticsHost, analyticsHostScheme, analyticsHostPort, showLogs)
+	_, err := exe.ExecGetRequest(urlPath, nil)
+	if err != nil && showLogs {
+		log.Error().Msgf("Analytics logging error: %s", err.Error())
+	}
+}
+
+func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId string) map[string]string {
 	tmnHost := config.GetString(cmd, "tmn-host")
 	tmnUserId := config.GetString(cmd, "tmn-userid")
 	oauthClientId := config.GetString(cmd, "oauth-clientid")
-	uniqueKey := fmt.Sprintf("%v:%v:%v", tmnHost, tmnUserId, oauthClientId)
+	uniqueKey := fmt.Sprintf("%v:%v", tmnUserId, oauthClientId)
 
 	ctx := cmd.Context()
-	executedCmd := ctx.Value("command").(string)
+	executedCmd := ctx.Value("command").(*cobra.Command)
 
-	v := &analyticsData{
-		UniqueID: uniqueKey,
-		HashID:   HashString(uniqueKey),
-		Command:  executedCmd,
+	// Matomo API reference - https://developer.matomo.org/api-reference/tracking-api
+	params := map[string]string{}
+	params["idsite"] = analyticsSiteId // Build flag distinguishes between QA and Prod site
+	params["rec"] = "1"
+	params["new_visit"] = "1"
+	params["action_name"] = executedCmd.Name()
+	params["apiv"] = "1"
+	params["uid"] = HashString(tmnHost)
+
+	// Custom dimensions
+	params["dimension1"] = HashString(uniqueKey)
+	params["dimension2"] = cmd.Version
+
+	// CI/CD platform
+	envVars := strings.Join(os.Environ(), ",")
+	if os.Getenv("SYSTEM_ISAZUREVM") == "1" {
+		params["dimension3"] = "Azure"
+	} else if os.Getenv("GITHUB_ACTIONS") == "true" {
+		params["dimension3"] = "GitHubActions"
+		if os.Getenv("FLASHPIPE_ACTION") == "true" {
+			params["dimension18"] = "true"
+		}
+	} else if os.Getenv("TRAVIS") == "true" {
+		params["dimension3"] = "TravisCI"
+	} else if strings.Contains(envVars, "BITBUCKET_") {
+		params["dimension3"] = "Bitbucket"
+	} else if strings.Contains(envVars, "JENKINS") {
+		params["dimension3"] = "Jenkins"
+	} else if os.Getenv("GITLAB_CI") == "true" {
+		params["dimension3"] = "Gitlab"
+	} else {
+		params["dimension3"] = "CLI/Unknown"
 	}
 
-	// Some environment variable - GitHub Action, Azure, Travis CI, Bitbucket, Gitlab, scrape for Jenkins
-	//os.Environ()
-	log.Info().Msgf("Environment variables: %v", os.Environ())
+	if cmdErr != nil {
+		params["dimension4"] = "Error"
+		params["dimension5"] = logger.GetErrorDetails(cmdErr)
+	} else {
+		params["dimension4"] = "Success"
+	}
 
 	// Flags used for each command,
-	switch executedCmd {
+	switch executedCmd.Name() {
 	case "artifact":
-		// if flag is not empty
-		artifactType := config.GetString(cmd, "artifact-type")
-		v.ArtifactType = artifactType
-		//if config.GetString(cmd, "artifact-id") != "" {
-		//
-		//}
+		artifactType := config.GetString(executedCmd, "artifact-type")
+		params["dimension6"] = artifactType
+		parametersFile := config.GetString(executedCmd, "file-param")
+		if parametersFile != "" {
+			params["dimension7"] = "true"
+		}
+		manifestFile := config.GetString(executedCmd, "file-manifest")
+		if manifestFile != "" {
+			params["dimension8"] = "true"
+		}
+		scriptMap := config.GetStringSlice(executedCmd, "script-collection-map")
+		if len(scriptMap) > 0 {
+			params["dimension9"] = "true"
+		}
+
+	case "deploy":
+		artifactType := config.GetString(executedCmd, "artifact-type")
+		params["dimension6"] = artifactType
+		delayLength := config.GetInt(executedCmd, "delay-length")
+		params["dimension10"] = fmt.Sprintf("%v", delayLength)
+		maxCheckLimit := config.GetInt(executedCmd, "max-check-limit")
+		params["dimension11"] = fmt.Sprintf("%v", maxCheckLimit)
+
+	case "sync":
+		target := config.GetString(executedCmd, "target")
+		params["dimension12"] = target
+
+		dirNamingType := config.GetString(executedCmd, "dir-naming-type")
+		params["dimension13"] = dirNamingType
+		draftHandling := config.GetString(executedCmd, "draft-handling")
+		params["dimension14"] = draftHandling
+
+		includedIds := config.GetStringSlice(executedCmd, "ids-include")
+		if len(includedIds) > 0 {
+			params["dimension15"] = "true"
+		}
+		excludedIds := config.GetStringSlice(executedCmd, "ids-exclude")
+		if len(excludedIds) > 0 {
+			params["dimension16"] = "true"
+		}
+		scriptCollectionMap := config.GetStringSlice(executedCmd, "script-collection-map")
+		if len(scriptCollectionMap) > 0 {
+			params["dimension9"] = "true"
+		}
+		syncPackageLevelDetails := config.GetBool(executedCmd, "sync-package-details")
+		params["dimension17"] = fmt.Sprintf("%v", syncPackageLevelDetails)
 
 	}
+	return params
+}
 
-	// create JSON output
+func MapToString(m map[string]string) string {
+	var parts []string
 
-	out, err := json.Marshal(v)
-	if err != nil {
-		// TODO - what happens, log a warning?
-		return
+	for key, value := range m {
+		pair := fmt.Sprintf("%s=%s", key, value)
+		parts = append(parts, pair)
 	}
-	log.Info().Msgf("Executed command: %s", out)
+
+	return strings.Join(parts, "&")
 }
 
 func HashString(input string) string {
