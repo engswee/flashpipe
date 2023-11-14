@@ -46,15 +46,12 @@ func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId 
 	oauthClientId := config.GetString(cmd, "oauth-clientid")
 	uniqueKey := fmt.Sprintf("%v:%v", tmnUserId, oauthClientId)
 
-	ctx := cmd.Context()
-	executedCmd := ctx.Value("command").(*cobra.Command)
-
 	// Matomo API reference - https://developer.matomo.org/api-reference/tracking-api
 	params := map[string]string{}
 	params["idsite"] = analyticsSiteId // Build flag distinguishes between QA and Prod site
 	params["rec"] = "1"
 	params["new_visit"] = "1"
-	params["action_name"] = executedCmd.Name()
+	params["action_name"] = cmd.Name()
 	params["apiv"] = "1"
 	params["uid"] = HashString(tmnHost)
 
@@ -91,53 +88,53 @@ func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId 
 	}
 
 	// Flags used for each command,
-	switch executedCmd.Name() {
+	switch cmd.Name() {
 	case "artifact":
-		artifactType := config.GetString(executedCmd, "artifact-type")
+		artifactType := config.GetString(cmd, "artifact-type")
 		params["dimension6"] = artifactType
-		parametersFile := config.GetString(executedCmd, "file-param")
+		parametersFile := config.GetString(cmd, "file-param")
 		if parametersFile != "" {
 			params["dimension7"] = "true"
 		}
-		manifestFile := config.GetString(executedCmd, "file-manifest")
+		manifestFile := config.GetString(cmd, "file-manifest")
 		if manifestFile != "" {
 			params["dimension8"] = "true"
 		}
-		scriptMap := config.GetStringSlice(executedCmd, "script-collection-map")
+		scriptMap := config.GetStringSlice(cmd, "script-collection-map")
 		if len(scriptMap) > 0 {
 			params["dimension9"] = "true"
 		}
 
 	case "deploy":
-		artifactType := config.GetString(executedCmd, "artifact-type")
+		artifactType := config.GetString(cmd, "artifact-type")
 		params["dimension6"] = artifactType
-		delayLength := config.GetInt(executedCmd, "delay-length")
+		delayLength := config.GetInt(cmd, "delay-length")
 		params["dimension10"] = fmt.Sprintf("%v", delayLength)
-		maxCheckLimit := config.GetInt(executedCmd, "max-check-limit")
+		maxCheckLimit := config.GetInt(cmd, "max-check-limit")
 		params["dimension11"] = fmt.Sprintf("%v", maxCheckLimit)
 
 	case "sync":
-		target := config.GetString(executedCmd, "target")
+		target := config.GetString(cmd, "target")
 		params["dimension12"] = target
 
-		dirNamingType := config.GetString(executedCmd, "dir-naming-type")
+		dirNamingType := config.GetString(cmd, "dir-naming-type")
 		params["dimension13"] = dirNamingType
-		draftHandling := config.GetString(executedCmd, "draft-handling")
+		draftHandling := config.GetString(cmd, "draft-handling")
 		params["dimension14"] = draftHandling
 
-		includedIds := config.GetStringSlice(executedCmd, "ids-include")
+		includedIds := config.GetStringSlice(cmd, "ids-include")
 		if len(includedIds) > 0 {
 			params["dimension15"] = "true"
 		}
-		excludedIds := config.GetStringSlice(executedCmd, "ids-exclude")
+		excludedIds := config.GetStringSlice(cmd, "ids-exclude")
 		if len(excludedIds) > 0 {
 			params["dimension16"] = "true"
 		}
-		scriptCollectionMap := config.GetStringSlice(executedCmd, "script-collection-map")
+		scriptCollectionMap := config.GetStringSlice(cmd, "script-collection-map")
 		if len(scriptCollectionMap) > 0 {
 			params["dimension9"] = "true"
 		}
-		syncPackageLevelDetails := config.GetBool(executedCmd, "sync-package-details")
+		syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 		params["dimension17"] = fmt.Sprintf("%v", syncPackageLevelDetails)
 
 	}

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/engswee/flashpipe/internal/repo"
@@ -32,6 +33,7 @@ tenant to a Git repository.`,
 			if err = runSnapshot(cmd); err != nil {
 				cmd.SilenceUsage = true
 			}
+			analytics.Log(cmd, err)
 			return
 		},
 	}

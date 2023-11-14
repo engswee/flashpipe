@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/rs/zerolog/log"
@@ -19,6 +20,7 @@ SAP Integration Suite tenant.`,
 			if err = runUpdatePackage(cmd); err != nil {
 				cmd.SilenceUsage = true
 			}
+			analytics.Log(cmd, err)
 			return
 		},
 	}

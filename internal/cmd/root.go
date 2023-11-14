@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
-	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/rs/zerolog/log"
@@ -70,8 +68,6 @@ func Execute() {
 	rootCmd.AddCommand(NewSnapshotCommand())
 
 	err := rootCmd.Execute()
-	// TODO - Log to analytics - don't log if it's usage is printed out.... need to probably segregate based on error
-	analytics.Log(rootCmd, err)
 
 	if err != nil {
 		// Display stack trace based on type of error
@@ -80,20 +76,7 @@ func Execute() {
 	}
 }
 
-func getRootCommand(cmd *cobra.Command) *cobra.Command {
-	return getParentCommand(cmd)
-}
-
-func getParentCommand(cmd *cobra.Command) *cobra.Command {
-	if cmd.Parent() == nil {
-		return cmd
-	}
-	return getParentCommand(cmd.Parent())
-}
-
 func initializeConfig(cmd *cobra.Command) error {
-	root := getRootCommand(cmd)
-	root.SetContext(context.WithValue(cmd.Context(), "command", cmd))
 	cfgFile := config.GetString(cmd, "config")
 	if cfgFile != "" {
 		// Use config file from the flag.

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
@@ -32,6 +33,7 @@ SAP Integration Suite tenant.`,
 			if err = runUpdateArtifact(cmd); err != nil {
 				cmd.SilenceUsage = true
 			}
+			analytics.Log(cmd, err)
 			return
 		},
 	}

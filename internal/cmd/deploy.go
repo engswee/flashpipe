@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/engswee/flashpipe/internal/str"
@@ -31,6 +32,7 @@ runtime of SAP Integration Suite tenant.`,
 			if err = runDeploy(cmd); err != nil {
 				cmd.SilenceUsage = true
 			}
+			analytics.Log(cmd, err)
 			return
 		},
 	}
