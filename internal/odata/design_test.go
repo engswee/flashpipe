@@ -149,7 +149,7 @@ func TestDesigntime_Compare(t *testing.T) {
 		"ScriptCollection": "Integration_Test_Script_Collection",
 		"ValueMapping":     "Integration_Test_Value_Mapping",
 	}
-	exe := httpclnt.New("", "", "", "", "dummy", "dummy", "localhost", "http", 8081)
+	exe := httpclnt.New("", "", "", "", "dummy", "dummy", "localhost", "http", 8081, true)
 
 	for key, value := range artifacts {
 		dt := NewDesigntimeArtifact(key, exe)

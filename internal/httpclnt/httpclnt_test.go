@@ -44,7 +44,7 @@ func TestMockOauth(t *testing.T) {
 
 	// Initialise HTTP executer
 	host, port := GetHostPort(svr.URL)
-	exe := New(host, "/oauth/token", clientId, clientSecret, "", "", host, "http", port)
+	exe := New(host, "/oauth/token", clientId, clientSecret, "", "", host, "http", port, true)
 
 	headers := map[string]string{
 		"Accept": "application/json",
@@ -85,7 +85,7 @@ func TestMockBasicAuth(t *testing.T) {
 
 	// Initialise HTTP executer
 	host, port := GetHostPort(svr.URL)
-	exe := New("", "", "", "", userId, password, host, "http", port)
+	exe := New("", "", "", "", userId, password, host, "http", port, true)
 
 	headers := map[string]string{
 		"Accept": "application/json",
@@ -126,7 +126,7 @@ func TestMockBasicAuthIDNotFound(t *testing.T) {
 
 	// Initialise HTTP executer
 	host, port := GetHostPort(svr.URL)
-	exe := New("", "", "", "", userId, password, host, "http", port)
+	exe := New("", "", "", "", userId, password, host, "http", port, true)
 
 	headers := map[string]string{
 		"Accept": "application/json",
@@ -154,7 +154,7 @@ func TestOauth(t *testing.T) {
 	oauthPath := os.Getenv("FLASHPIPE_OAUTH_PATH")
 	clientId := os.Getenv("FLASHPIPE_OAUTH_CLIENTID")
 	clientSecret := os.Getenv("FLASHPIPE_OAUTH_CLIENTSECRET")
-	exe := New(oauthHost, oauthPath, clientId, clientSecret, "", "", host, "https", 443)
+	exe := New(oauthHost, oauthPath, clientId, clientSecret, "", "", host, "https", 443, true)
 
 	headers := map[string]string{
 		"Accept": "application/json",
@@ -172,7 +172,7 @@ func TestBasicAuth(t *testing.T) {
 	host := os.Getenv("FLASHPIPE_TMN_HOST")
 	userId := os.Getenv("FLASHPIPE_TMN_USERID")
 	password := os.Getenv("FLASHPIPE_TMN_PASSWORD")
-	exe := New("", "", "", "", userId, password, host, "https", 443)
+	exe := New("", "", "", "", userId, password, host, "https", 443, true)
 
 	headers := map[string]string{
 		"Accept": "application/json",

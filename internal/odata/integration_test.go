@@ -41,7 +41,7 @@ func TestIntegration_DeployMockBasic(t *testing.T) {
 	defer svr.Close()
 
 	host, port := httpclnt.GetHostPort(svr.URL)
-	exe := httpclnt.New("", "", "", "", "dummy", "dummy", host, "http", port)
+	exe := httpclnt.New("", "", "", "", "dummy", "dummy", host, "http", port, true)
 	dt := NewIntegration(exe)
 
 	err := dt.Deploy(artifactId)
@@ -78,7 +78,7 @@ func TestIntegration_DeployMockOauth(t *testing.T) {
 	defer svr.Close()
 
 	host, port := httpclnt.GetHostPort(svr.URL)
-	exe := httpclnt.New(host, "/oauth/token", "dummy", "dummy", "", "", host, "http", port)
+	exe := httpclnt.New(host, "/oauth/token", "dummy", "dummy", "", "", host, "http", port, true)
 	dt := NewIntegration(exe)
 
 	err := dt.Deploy(artifactId)
