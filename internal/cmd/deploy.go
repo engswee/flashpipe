@@ -29,10 +29,11 @@ runtime of SAP Integration Suite tenant.`,
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			startTime := time.Now()
 			if err = runDeploy(cmd); err != nil {
 				cmd.SilenceUsage = true
 			}
-			analytics.Log(cmd, err)
+			analytics.Log(cmd, err, startTime)
 			return
 		},
 	}

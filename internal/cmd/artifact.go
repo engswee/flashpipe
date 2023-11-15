@@ -10,6 +10,7 @@ import (
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"time"
 )
 
 func NewArtifactCommand() *cobra.Command {
@@ -30,10 +31,11 @@ SAP Integration Suite tenant.`,
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			startTime := time.Now()
 			if err = runUpdateArtifact(cmd); err != nil {
 				cmd.SilenceUsage = true
 			}
-			analytics.Log(cmd, err)
+			analytics.Log(cmd, err, startTime)
 			return
 		},
 	}

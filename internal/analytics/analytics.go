@@ -11,25 +11,26 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
+	"time"
 )
 
 var Host string
 var SiteId string
 var ShowLogs string
 
-func Log(cmd *cobra.Command, err error) {
+func Log(cmd *cobra.Command, err error, startTime time.Time) {
 	if Host != "" && SiteId != "" {
 		if ShowLogs == "true" {
 			log.Debug().Msg("Logging to Matomo Analytics")
 		}
 
-		logToAnalytics(cmd, err, Host, "https", 443, SiteId, ShowLogs == "true")
+		collectDataAndSend(cmd, err, startTime, Host, "https", 443, SiteId, ShowLogs == "true")
 	}
 }
 
-func logToAnalytics(cmd *cobra.Command, cmdErr error, analyticsHost string, analyticsHostScheme string, analyticsHostPort int, analyticsSiteId string, showLogs bool) {
+func collectDataAndSend(cmd *cobra.Command, cmdErr error, startTime time.Time, analyticsHost string, analyticsHostScheme string, analyticsHostPort int, analyticsSiteId string, showLogs bool) {
 
-	params := constructQueryParameters(cmd, cmdErr, analyticsSiteId)
+	params := constructQueryParameters(cmd, cmdErr, analyticsSiteId, startTime)
 
 	urlPath := fmt.Sprintf("/matomo.php?%s", MapToString(params))
 
@@ -40,7 +41,7 @@ func logToAnalytics(cmd *cobra.Command, cmdErr error, analyticsHost string, anal
 	}
 }
 
-func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId string) map[string]string {
+func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId string, startTime time.Time) map[string]string {
 	tmnHost := config.GetString(cmd, "tmn-host")
 	tmnUserId := config.GetString(cmd, "tmn-userid")
 	oauthClientId := config.GetString(cmd, "oauth-clientid")
@@ -56,15 +57,18 @@ func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId 
 	params["uid"] = HashString(tmnHost)
 
 	// Custom dimensions
+	// 1 - User or Client ID
 	params["dimension1"] = HashString(uniqueKey)
+	// 2 - Version
 	params["dimension2"] = cmd.Version
 
-	// CI/CD platform
+	// 3 - CI/CD platform
 	envVars := strings.Join(os.Environ(), ",")
 	if os.Getenv("SYSTEM_ISAZUREVM") == "1" {
 		params["dimension3"] = "Azure"
 	} else if os.Getenv("GITHUB_ACTIONS") == "true" {
 		params["dimension3"] = "GitHubActions"
+		// 18 - FlashPipe Action Used
 		if os.Getenv("FLASHPIPE_ACTION") == "true" {
 			params["dimension18"] = "true"
 		}
@@ -79,7 +83,7 @@ func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId 
 	} else {
 		params["dimension3"] = "CLI/Unknown"
 	}
-
+	// 4 - Processing Status & 5 - Error Message
 	if cmdErr != nil {
 		params["dimension4"] = "Error"
 		params["dimension5"] = logger.GetErrorDetails(cmdErr)
@@ -87,57 +91,74 @@ func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId 
 		params["dimension4"] = "Success"
 	}
 
-	// Flags used for each command,
+	// Command specific flags
 	switch cmd.Name() {
 	case "artifact":
+		// 6 - Artifact Type
 		artifactType := config.GetString(cmd, "artifact-type")
 		params["dimension6"] = artifactType
+		// 7 - Custom Parameters Used
 		parametersFile := config.GetString(cmd, "file-param")
 		if parametersFile != "" {
 			params["dimension7"] = "true"
 		}
+		// 8 - Custom Manifest Used
 		manifestFile := config.GetString(cmd, "file-manifest")
 		if manifestFile != "" {
 			params["dimension8"] = "true"
 		}
+		// 9 - Script Collection Used
 		scriptMap := config.GetStringSlice(cmd, "script-collection-map")
 		if len(scriptMap) > 0 {
 			params["dimension9"] = "true"
 		}
 
 	case "deploy":
+		// 6 - Artifact Type
 		artifactType := config.GetString(cmd, "artifact-type")
 		params["dimension6"] = artifactType
+		// 10 - Delay Length
 		delayLength := config.GetInt(cmd, "delay-length")
 		params["dimension10"] = fmt.Sprintf("%v", delayLength)
+		// 11 - Max Check Limit
 		maxCheckLimit := config.GetInt(cmd, "max-check-limit")
 		params["dimension11"] = fmt.Sprintf("%v", maxCheckLimit)
 
 	case "sync":
+		// 12 - Sync Direction
 		target := config.GetString(cmd, "target")
 		params["dimension12"] = target
-
+		// 13 - Directory Naming Type
 		dirNamingType := config.GetString(cmd, "dir-naming-type")
 		params["dimension13"] = dirNamingType
+		// 14 - Draft Handling
 		draftHandling := config.GetString(cmd, "draft-handling")
 		params["dimension14"] = draftHandling
-
+		// 15 - IDs Include Used
 		includedIds := config.GetStringSlice(cmd, "ids-include")
 		if len(includedIds) > 0 {
 			params["dimension15"] = "true"
 		}
+		// 16 - IDs Exclude Used
 		excludedIds := config.GetStringSlice(cmd, "ids-exclude")
 		if len(excludedIds) > 0 {
 			params["dimension16"] = "true"
 		}
+		// 9 - Script Collection Used
 		scriptCollectionMap := config.GetStringSlice(cmd, "script-collection-map")
 		if len(scriptCollectionMap) > 0 {
 			params["dimension9"] = "true"
 		}
+		// 17 - Sync Package
 		syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 		params["dimension17"] = fmt.Sprintf("%v", syncPackageLevelDetails)
 
 	}
+	// 19 - Processing Time
+	endTime := time.Now()
+	processingTime := endTime.Sub(startTime).Seconds()
+	params["dimension19"] = fmt.Sprintf("%.2f", processingTime)
+
 	return params
 }
 

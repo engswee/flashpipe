@@ -6,6 +6,7 @@ import (
 	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"time"
 )
 
 func NewPackageCommand() *cobra.Command {
@@ -17,10 +18,11 @@ func NewPackageCommand() *cobra.Command {
 		Long: `Create or update integration package on the
 SAP Integration Suite tenant.`,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			startTime := time.Now()
 			if err = runUpdatePackage(cmd); err != nil {
 				cmd.SilenceUsage = true
 			}
-			analytics.Log(cmd, err)
+			analytics.Log(cmd, err, startTime)
 			return
 		},
 	}

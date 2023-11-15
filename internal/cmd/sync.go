@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 func NewSyncCommand() *cobra.Command {
@@ -49,10 +50,11 @@ tenant and a Git repository.`,
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			startTime := time.Now()
 			if err = runSync(cmd); err != nil {
 				cmd.SilenceUsage = true
 			}
-			analytics.Log(cmd, err)
+			analytics.Log(cmd, err, startTime)
 			return
 		},
 	}
