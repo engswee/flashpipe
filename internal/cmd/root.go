@@ -28,6 +28,7 @@ automating time-consuming manual tasks like:
 - synchronising integration artifacts to Git
 - creating/updating integration artifacts to SAP Integration Suite
 - deploying integration artifacts on SAP Integration Suite`,
+		SilenceErrors: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
 			return initializeConfig(cmd)

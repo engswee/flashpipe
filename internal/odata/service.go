@@ -86,8 +86,15 @@ func readOnlyCallWithBodyAndAcceptType(urlPath string, content []byte, callType 
 	if acceptType != "" {
 		headers["Accept"] = acceptType
 	}
+	var body io.Reader
+	if len(content) > 0 {
+		log.Debug().Msgf("Request body = %s", content)
+		body = bytes.NewReader(content)
+	} else {
+		body = http.NoBody
+	}
 
-	resp, err := exe.ExecRequestWithCookies(http.MethodGet, urlPath, bytes.NewReader(content), headers, nil)
+	resp, err := exe.ExecRequestWithCookies(http.MethodGet, urlPath, body, headers, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<APIResource xmlns="http://www.sap.com/apimgmt">
+    <name>Suppliers({ID})_Products</name>
+    <title>Suppliers({ID})_Products</title>
+    <canShowGet>true</canShowGet>
+    <canShowPost>true</canShowPost>
+    <canShowPut>false</canShowPut>
+    <canShowDelete>false</canShowDelete>
+    <canShowHead>false</canShowHead>
+    <canShowOption>false</canShowOption>
+    <canShowPatch>false</canShowPatch>
+    <isGetChecked>true</isGetChecked>
+    <isPostChecked>true</isPostChecked>
+    <isPutChecked>false</isPutChecked>
+    <isDeleteChecked>false</isDeleteChecked>
+    <isHeadChecked>false</isHeadChecked>
+    <isOptionChecked>false</isOptionChecked>
+    <isPatchChecked>false</isPatchChecked>
+    <resource_path>/Suppliers({ID})/Products</resource_path>
+    <proxyEndPointName>default</proxyEndPointName>
+    <documentations/>
+</APIResource>

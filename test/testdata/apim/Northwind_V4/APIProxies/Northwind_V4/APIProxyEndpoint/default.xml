@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ProxyEndPoint default="true" xmlns="http://www.sap.com/apimgmt">
+    <name>default</name>
+    <base_path>/V4/northwind</base_path>
+    <properties/>
+    <routeRules>
+        <routeRule>
+            <name>default</name>
+            <targetEndPointName>default</targetEndPointName>
+            <sequence>1</sequence>
+            <faultRules/>
+        </routeRule>
+    </routeRules>
+    <faultRules/>
+    <preFlow>
+        <name>PreFlow</name>
+    </preFlow>
+    <postFlow>
+        <name>PostFlow</name>
+    </postFlow>
+    <conditionalFlows>
+        <conditionalFlow>
+            <name>ProductDetails({ProductID})_Product</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/ProductDetails({ProductID})/Product" OR proxy.pathsuffix MatchesPath "/ProductDetails({ProductID})/Product/**" OR proxy.pathsuffix MatchesPath "/ProductDetails({ProductID})/Product(**")AND(request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>13</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Suppliers({ID})</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Suppliers({ID})" OR proxy.pathsuffix MatchesPath "/Suppliers({ID})/**" OR proxy.pathsuffix MatchesPath "/Suppliers({ID})(**")AND(request.verb = "PATCH" OR request.verb = "DELETE" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>22</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>PersonDetails({PersonID})_Person</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/PersonDetails({PersonID})/Person" OR proxy.pathsuffix MatchesPath "/PersonDetails({PersonID})/Person/**" OR proxy.pathsuffix MatchesPath "/PersonDetails({PersonID})/Person(**")AND(request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>7</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Products</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Products" OR proxy.pathsuffix MatchesPath "/Products/**" OR proxy.pathsuffix MatchesPath "/Products(**")AND(request.verb = "POST" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>20</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>ProductDetails({ProductID})</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/ProductDetails({ProductID})" OR proxy.pathsuffix MatchesPath "/ProductDetails({ProductID})/**" OR proxy.pathsuffix MatchesPath "/ProductDetails({ProductID})(**")AND(request.verb = "PATCH" OR request.verb = "DELETE" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>14</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Products({ID})</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Products({ID})" OR proxy.pathsuffix MatchesPath "/Products({ID})/**" OR proxy.pathsuffix MatchesPath "/Products({ID})(**")AND(request.verb = "PATCH" OR request.verb = "DELETE" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>19</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Suppliers</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Suppliers" OR proxy.pathsuffix MatchesPath "/Suppliers/**" OR proxy.pathsuffix MatchesPath "/Suppliers(**")AND(request.verb = "POST" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>23</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Persons({ID})_PersonDetail</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Persons({ID})/PersonDetail" OR proxy.pathsuffix MatchesPath "/Persons({ID})/PersonDetail/**" OR proxy.pathsuffix MatchesPath "/Persons({ID})/PersonDetail(**")AND(request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>10</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Advertisements</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Advertisements" OR proxy.pathsuffix MatchesPath "/Advertisements/**" OR proxy.pathsuffix MatchesPath "/Advertisements(**")AND(request.verb = "POST" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>3</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Advertisements({ID})</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Advertisements({ID})" OR proxy.pathsuffix MatchesPath "/Advertisements({ID})/**" OR proxy.pathsuffix MatchesPath "/Advertisements({ID})(**")AND(request.verb = "PATCH" OR request.verb = "DELETE" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>2</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Persons</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Persons" OR proxy.pathsuffix MatchesPath "/Persons/**" OR proxy.pathsuffix MatchesPath "/Persons(**")AND(request.verb = "POST" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>12</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Products({ID})_ProductDetail</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Products({ID})/ProductDetail" OR proxy.pathsuffix MatchesPath "/Products({ID})/ProductDetail/**" OR proxy.pathsuffix MatchesPath "/Products({ID})/ProductDetail(**")AND(request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>17</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>DefaultFaultFlow</name>
+            <request>
+                <isRequest>true</isRequest>
+                <steps>
+                    <step>
+                        <policy_name>defaultRaiseFaultPolicy</policy_name>
+                        <condition></condition>
+                        <sequence>1</sequence>
+                    </step>
+                </steps>
+            </request>
+            <conditions>proxy.pathsuffix MatchesPath "/Advertisements({ID})/FeaturedProduct" OR proxy.pathsuffix MatchesPath "/Advertisements({ID})/FeaturedProduct/**" OR proxy.pathsuffix MatchesPath "/Advertisements({ID})/FeaturedProduct(**" OR proxy.pathsuffix MatchesPath "/Advertisements({ID})" OR proxy.pathsuffix MatchesPath "/Advertisements({ID})/**" OR proxy.pathsuffix MatchesPath "/Advertisements({ID})(**" OR proxy.pathsuffix MatchesPath "/Advertisements" OR proxy.pathsuffix MatchesPath "/Advertisements/**" OR proxy.pathsuffix MatchesPath "/Advertisements(**" OR proxy.pathsuffix MatchesPath "/PersonDetails({PersonID})/Person" OR proxy.pathsuffix MatchesPath "/PersonDetails({PersonID})/Person/**" OR proxy.pathsuffix MatchesPath "/PersonDetails({PersonID})/Person(**" OR proxy.pathsuffix MatchesPath "/PersonDetails({PersonID})" OR proxy.pathsuffix MatchesPath "/PersonDetails({PersonID})/**" OR proxy.pathsuffix MatchesPath "/PersonDetails({PersonID})(**" OR proxy.pathsuffix MatchesPath "/PersonDetails" OR proxy.pathsuffix MatchesPath "/PersonDetails/**" OR proxy.pathsuffix MatchesPath "/PersonDetails(**" OR proxy.pathsuffix MatchesPath "/Persons({ID})/PersonDetail" OR proxy.pathsuffix MatchesPath "/Persons({ID})/PersonDetail/**" OR proxy.pathsuffix MatchesPath "/Persons({ID})/PersonDetail(**" OR proxy.pathsuffix MatchesPath "/Persons({ID})" OR proxy.pathsuffix MatchesPath "/Persons({ID})/**" OR proxy.pathsuffix MatchesPath "/Persons({ID})(**" OR proxy.pathsuffix MatchesPath "/Persons" OR proxy.pathsuffix MatchesPath "/Persons/**" OR proxy.pathsuffix MatchesPath "/Persons(**" OR proxy.pathsuffix MatchesPath "/Suppliers({ID})/Products" OR proxy.pathsuffix MatchesPath "/Suppliers({ID})/Products/**" OR proxy.pathsuffix MatchesPath "/Suppliers({ID})/Products(**" OR proxy.pathsuffix MatchesPath "/Suppliers({ID})" OR proxy.pathsuffix MatchesPath "/Suppliers({ID})/**" OR proxy.pathsuffix MatchesPath "/Suppliers({ID})(**" OR proxy.pathsuffix MatchesPath "/Suppliers" OR proxy.pathsuffix MatchesPath "/Suppliers/**" OR proxy.pathsuffix MatchesPath "/Suppliers(**" OR proxy.pathsuffix MatchesPath "/Categories({ID})/Products" OR proxy.pathsuffix MatchesPath "/Categories({ID})/Products/**" OR proxy.pathsuffix MatchesPath "/Categories({ID})/Products(**" OR proxy.pathsuffix MatchesPath "/Categories({ID})" OR proxy.pathsuffix MatchesPath "/Categories({ID})/**" OR proxy.pathsuffix MatchesPath "/Categories({ID})(**" OR proxy.pathsuffix MatchesPath "/Categories" OR proxy.pathsuffix MatchesPath "/Categories/**" OR proxy.pathsuffix MatchesPath "/Categories(**" OR proxy.pathsuffix MatchesPath "/ProductDetails({ProductID})/Product" OR proxy.pathsuffix MatchesPath "/ProductDetails({ProductID})/Product/**" OR proxy.pathsuffix MatchesPath "/ProductDetails({ProductID})/Product(**" OR proxy.pathsuffix MatchesPath "/ProductDetails({ProductID})" OR proxy.pathsuffix MatchesPath "/ProductDetails({ProductID})/**" OR proxy.pathsuffix MatchesPath "/ProductDetails({ProductID})(**" OR proxy.pathsuffix MatchesPath "/ProductDetails" OR proxy.pathsuffix MatchesPath "/ProductDetails/**" OR proxy.pathsuffix MatchesPath "/ProductDetails(**" OR proxy.pathsuffix MatchesPath "/Products({ID})/ProductDetail" OR proxy.pathsuffix MatchesPath "/Products({ID})/ProductDetail/**" OR proxy.pathsuffix MatchesPath "/Products({ID})/ProductDetail(**" OR proxy.pathsuffix MatchesPath "/Products({ID})/Supplier" OR proxy.pathsuffix MatchesPath "/Products({ID})/Supplier/**" OR proxy.pathsuffix MatchesPath "/Products({ID})/Supplier(**" OR proxy.pathsuffix MatchesPath "/Products({ID})/Categories" OR proxy.pathsuffix MatchesPath "/Products({ID})/Categories/**" OR proxy.pathsuffix MatchesPath "/Products({ID})/Categories(**" OR proxy.pathsuffix MatchesPath "/Products({ID})" OR proxy.pathsuffix MatchesPath "/Products({ID})/**" OR proxy.pathsuffix MatchesPath "/Products({ID})(**" OR proxy.pathsuffix MatchesPath "/Products" OR proxy.pathsuffix MatchesPath "/Products/**" OR proxy.pathsuffix MatchesPath "/Products(**"</conditions>
+            <readOnly>false</readOnly>
+            <sequence>24</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>PersonDetails</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/PersonDetails" OR proxy.pathsuffix MatchesPath "/PersonDetails/**" OR proxy.pathsuffix MatchesPath "/PersonDetails(**")AND(request.verb = "POST" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>9</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Advertisements({ID})_FeaturedProduct</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Advertisements({ID})/FeaturedProduct" OR proxy.pathsuffix MatchesPath "/Advertisements({ID})/FeaturedProduct/**" OR proxy.pathsuffix MatchesPath "/Advertisements({ID})/FeaturedProduct(**")AND(request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>1</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Suppliers({ID})_Products</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Suppliers({ID})/Products" OR proxy.pathsuffix MatchesPath "/Suppliers({ID})/Products/**" OR proxy.pathsuffix MatchesPath "/Suppliers({ID})/Products(**")AND(request.verb = "POST" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>21</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Persons({ID})</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Persons({ID})" OR proxy.pathsuffix MatchesPath "/Persons({ID})/**" OR proxy.pathsuffix MatchesPath "/Persons({ID})(**")AND(request.verb = "PATCH" OR request.verb = "DELETE" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>11</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Products({ID})_Supplier</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Products({ID})/Supplier" OR proxy.pathsuffix MatchesPath "/Products({ID})/Supplier/**" OR proxy.pathsuffix MatchesPath "/Products({ID})/Supplier(**")AND(request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>16</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Categories({ID})</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Categories({ID})" OR proxy.pathsuffix MatchesPath "/Categories({ID})/**" OR proxy.pathsuffix MatchesPath "/Categories({ID})(**")AND(request.verb = "PATCH" OR request.verb = "DELETE" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>5</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>PersonDetails({PersonID})</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/PersonDetails({PersonID})" OR proxy.pathsuffix MatchesPath "/PersonDetails({PersonID})/**" OR proxy.pathsuffix MatchesPath "/PersonDetails({PersonID})(**")AND(request.verb = "PATCH" OR request.verb = "DELETE" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>8</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Categories</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Categories" OR proxy.pathsuffix MatchesPath "/Categories/**" OR proxy.pathsuffix MatchesPath "/Categories(**")AND(request.verb = "POST" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>6</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Products({ID})_Categories</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Products({ID})/Categories" OR proxy.pathsuffix MatchesPath "/Products({ID})/Categories/**" OR proxy.pathsuffix MatchesPath "/Products({ID})/Categories(**")AND(request.verb = "POST" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>18</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>Categories({ID})_Products</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/Categories({ID})/Products" OR proxy.pathsuffix MatchesPath "/Categories({ID})/Products/**" OR proxy.pathsuffix MatchesPath "/Categories({ID})/Products(**")AND(request.verb = "POST" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>4</sequence>
+        </conditionalFlow>
+        <conditionalFlow>
+            <name>ProductDetails</name>
+            <conditions>(proxy.pathsuffix MatchesPath "/ProductDetails" OR proxy.pathsuffix MatchesPath "/ProductDetails/**" OR proxy.pathsuffix MatchesPath "/ProductDetails(**")AND(request.verb = "POST" OR request.verb = "GET")</conditions>
+            <readOnly>true</readOnly>
+            <sequence>15</sequence>
+        </conditionalFlow>
+    </conditionalFlows>
+</ProxyEndPoint>

@@ -111,13 +111,11 @@ func runSync(cmd *cobra.Command) error {
 	if target == "local" {
 		packageDataFromTenant, readOnly, _, err := synchroniser.VerifyDownloadablePackage(packageId)
 		if err != nil {
-			if err != nil {
-				return err
-			}
+			return err
 		}
 		if !readOnly {
 			if syncPackageLevelDetails {
-				err := synchroniser.PackageToLocal(packageDataFromTenant, packageId, workDir, artifactsDir)
+				err = synchroniser.PackageToLocal(packageDataFromTenant, packageId, workDir, artifactsDir)
 				if err != nil {
 					return err
 				}
@@ -129,7 +127,7 @@ func runSync(cmd *cobra.Command) error {
 			}
 
 			if !skipCommit {
-				err := repo.CommitToRepo(gitRepoDir, commitMsg, commitUser, commitEmail)
+				err = repo.CommitToRepo(gitRepoDir, commitMsg, commitUser, commitEmail)
 				if err != nil {
 					return err
 				}

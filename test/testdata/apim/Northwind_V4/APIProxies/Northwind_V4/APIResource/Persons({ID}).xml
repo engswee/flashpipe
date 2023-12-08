@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<APIResource xmlns="http://www.sap.com/apimgmt">
+    <name>Persons({ID})</name>
+    <title>Persons({ID})</title>
+    <canShowGet>true</canShowGet>
+    <canShowPost>false</canShowPost>
+    <canShowPut>false</canShowPut>
+    <canShowDelete>true</canShowDelete>
+    <canShowHead>false</canShowHead>
+    <canShowOption>false</canShowOption>
+    <canShowPatch>true</canShowPatch>
+    <isGetChecked>true</isGetChecked>
+    <isPostChecked>false</isPostChecked>
+    <isPutChecked>false</isPutChecked>
+    <isDeleteChecked>true</isDeleteChecked>
+    <isHeadChecked>false</isHeadChecked>
+    <isOptionChecked>false</isOptionChecked>
+    <isPatchChecked>true</isPatchChecked>
+    <resource_path>/Persons({ID})</resource_path>
+    <proxyEndPointName>default</proxyEndPointName>
+    <documentations/>
+</APIResource>

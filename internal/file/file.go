@@ -190,6 +190,12 @@ func ReplaceDir(src string, dst string) (err error) {
 
 // ZipDir Compress a directory into a zip file
 func ZipDir(src string, dst string, includeSrc bool) error {
+	// Create directory for target file if it doesn't exist yet
+	err := os.MkdirAll(filepath.Dir(dst), os.ModePerm)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
 	zipfile, err := os.Create(dst)
 	if err != nil {
 		return errors.Wrap(err, 0)
