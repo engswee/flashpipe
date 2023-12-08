@@ -47,6 +47,9 @@ jobs:
         FLASHPIPE_OAUTH_CLIENTSECRET: ${{ secrets.OAUTH_CLIENTSECRET }}
         FLASHPIPE_TMN_PASSWORD: ${{ secrets.BASIC_PASSWORD }}
         FLASHPIPE_TMN_USERID: ${{ secrets.BASIC_USERID }}
+        FLASHPIPE_APIPORTAL_HOST: eu20apiportal.cfapps.eu20.hana.ondemand.com
+        FLASHPIPE_APIPORTAL_OAUTH_CLIENTID: ${{ secrets.APIPORTAL_OAUTH_CLIENTID }}
+        FLASHPIPE_APIPORTAL_OAUTH_CLIENTSECRET: ${{ secrets.APIPORTAL_OAUTH_CLIENTSECRET }}
 
     - name: Build Go application
       run: go build -v -ldflags="-X 'github.com/engswee/flashpipe/internal/analytics.Host=$ANALYTICS_HOST' -X 'github.com/engswee/flashpipe/internal/analytics.SiteId=1' -X 'github.com/engswee/flashpipe/internal/analytics.ShowLogs=false'" -o output/ ./...
