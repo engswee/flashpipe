@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	"github.com/engswee/flashpipe/internal/analytics"
+	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
-	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/engswee/flashpipe/internal/repo"
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
@@ -102,9 +102,9 @@ func runSync(cmd *cobra.Command) error {
 	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 	target := config.GetString(cmd, "target")
 
-	serviceDetails := odata.GetServiceDetails(cmd)
+	serviceDetails := api.GetServiceDetails(cmd)
 	// Initialise HTTP executer
-	exe := odata.InitHTTPExecuter(serviceDetails)
+	exe := api.InitHTTPExecuter(serviceDetails)
 	synchroniser := sync.New(exe)
 
 	// Sync from tenant to Git

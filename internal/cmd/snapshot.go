@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	"github.com/engswee/flashpipe/internal/analytics"
+	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
-	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/engswee/flashpipe/internal/repo"
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
@@ -66,7 +66,7 @@ func runSnapshot(cmd *cobra.Command) error {
 	skipCommit := config.GetBool(cmd, "git-skip-commit")
 	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 
-	serviceDetails := odata.GetServiceDetails(cmd)
+	serviceDetails := api.GetServiceDetails(cmd)
 	err := getTenantSnapshot(serviceDetails, gitRepoDir, workDir, draftHandling, syncPackageLevelDetails)
 	if err != nil {
 		return err
@@ -81,15 +81,15 @@ func runSnapshot(cmd *cobra.Command) error {
 	return nil
 }
 
-func getTenantSnapshot(serviceDetails *odata.ServiceDetails, gitRepoDir string, workDir string, draftHandling string, syncPackageLevelDetails bool) error {
+func getTenantSnapshot(serviceDetails *api.ServiceDetails, gitRepoDir string, workDir string, draftHandling string, syncPackageLevelDetails bool) error {
 	log.Info().Msg("---------------------------------------------------------------------------------")
 	log.Info().Msg("📢 Begin taking a snapshot of the tenant")
 
 	// Initialise HTTP executer
-	exe := odata.InitHTTPExecuter(serviceDetails)
+	exe := api.InitHTTPExecuter(serviceDetails)
 
 	// Get packages from the tenant
-	ip := odata.NewIntegrationPackage(exe)
+	ip := api.NewIntegrationPackage(exe)
 	ids, err := ip.GetPackagesList()
 	if err != nil {
 		return err

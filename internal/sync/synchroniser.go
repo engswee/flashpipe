@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
-	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/engswee/flashpipe/internal/str"
 	"github.com/go-errors/errors"
 	"github.com/magiconair/properties"
@@ -20,17 +20,17 @@ import (
 
 type Synchroniser struct {
 	exe *httpclnt.HTTPExecuter
-	ip  *odata.IntegrationPackage
+	ip  *api.IntegrationPackage
 }
 
 func New(exe *httpclnt.HTTPExecuter) *Synchroniser {
 	s := new(Synchroniser)
 	s.exe = exe
-	s.ip = odata.NewIntegrationPackage(exe)
+	s.ip = api.NewIntegrationPackage(exe)
 	return s
 }
 
-func (s *Synchroniser) PackageToLocal(packageDataFromTenant *odata.PackageSingleData, packageId string, workDir string, artifactsDir string) error {
+func (s *Synchroniser) PackageToLocal(packageDataFromTenant *api.PackageSingleData, packageId string, workDir string, artifactsDir string) error {
 	// Create temp directory in working dir
 	err := os.MkdirAll(workDir+"/from_tenant", os.ModePerm)
 	if err != nil {
@@ -57,7 +57,7 @@ func (s *Synchroniser) PackageToLocal(packageDataFromTenant *odata.PackageSingle
 	// Get existing package details file if it exists and compare values
 	gitSourceFile := fmt.Sprintf("%v/%v.json", artifactsDir, packageId)
 	if file.Exists(gitSourceFile) {
-		packageDataFromGit, err := odata.GetPackageDetails(tenantFile)
+		packageDataFromGit, err := api.GetPackageDetails(tenantFile)
 		if err != nil {
 			return err
 		}
@@ -86,7 +86,7 @@ func (s *Synchroniser) PackageToLocal(packageDataFromTenant *odata.PackageSingle
 	return nil
 }
 
-func (s *Synchroniser) VerifyDownloadablePackage(packageId string) (packageDataFromTenant *odata.PackageSingleData, readOnly bool, packageExists bool, err error) {
+func (s *Synchroniser) VerifyDownloadablePackage(packageId string) (packageDataFromTenant *api.PackageSingleData, readOnly bool, packageExists bool, err error) {
 	// Verify the package is downloadable (not read only)
 	packageDataFromTenant, readOnly, packageExists, err = s.ip.Get(packageId)
 	if err != nil {
@@ -137,7 +137,7 @@ func (s *Synchroniser) ArtifactsToLocal(packageId string, workDir string, artifa
 			}
 		}
 		// Download artifact content
-		dt := odata.NewDesigntimeArtifact(artifact.ArtifactType, s.exe)
+		dt := api.NewDesigntimeArtifact(artifact.ArtifactType, s.exe)
 		targetDownloadFile := fmt.Sprintf("%v/download/%v.zip", workDir, artifact.Id)
 		err = dt.Download(targetDownloadFile, artifact.Id)
 		if err != nil {
@@ -209,14 +209,14 @@ func (s *Synchroniser) ArtifactsToLocal(packageId string, workDir string, artifa
 	return nil
 }
 
-func filterArtifacts(artifacts []*odata.ArtifactDetails, includedIds []string, excludedIds []string) ([]*odata.ArtifactDetails, error) {
-	var output []*odata.ArtifactDetails
+func filterArtifacts(artifacts []*api.ArtifactDetails, includedIds []string, excludedIds []string) ([]*api.ArtifactDetails, error) {
+	var output []*api.ArtifactDetails
 	// Trim whitespace from IDs
 	includedIds = str.TrimSlice(includedIds)
 	excludedIds = str.TrimSlice(excludedIds)
 	if len(includedIds) > 0 {
 		for _, id := range includedIds {
-			artifact := odata.FindArtifactById(id, artifacts)
+			artifact := api.FindArtifactById(id, artifacts)
 			if artifact != nil {
 				output = append(output, artifact)
 			} else {
@@ -226,7 +226,7 @@ func filterArtifacts(artifacts []*odata.ArtifactDetails, includedIds []string, e
 		return output, nil
 	} else if len(excludedIds) > 0 {
 		for _, id := range excludedIds {
-			artifact := odata.FindArtifactById(id, artifacts)
+			artifact := api.FindArtifactById(id, artifacts)
 			if artifact == nil {
 				return nil, fmt.Errorf("Artifact %v in --ids-exclude does not exist", id)
 			}
@@ -241,7 +241,7 @@ func filterArtifacts(artifacts []*odata.ArtifactDetails, includedIds []string, e
 	return artifacts, nil
 }
 
-func packageContentDiffer(source *odata.PackageSingleData, target *odata.PackageSingleData) bool {
+func packageContentDiffer(source *api.PackageSingleData, target *api.PackageSingleData) bool {
 	if source.Root.Name != target.Root.Name {
 		return true
 	}
@@ -355,7 +355,7 @@ func GetManifestHeaders(manifestPath string) (textproto.MIMEHeader, error) {
 }
 
 func (s *Synchroniser) SingleArtifactToRemote(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, parametersFile string, scriptMap []string) error {
-	dt := odata.NewDesigntimeArtifact(artifactType, s.exe)
+	dt := api.NewDesigntimeArtifact(artifactType, s.exe)
 
 	exists, err := artifactExists(artifactId, artifactType, packageId, dt, s.ip)
 	if err != nil {
@@ -411,7 +411,7 @@ func (s *Synchroniser) SingleArtifactToRemote(artifactId, artifactName, artifact
 			if err != nil {
 				return err
 			}
-			r := odata.NewRuntime(s.exe)
+			r := api.NewRuntime(s.exe)
 			runtimeVersion, _, err := r.Get(artifactId)
 			if err != nil {
 				return err
@@ -440,7 +440,7 @@ func (s *Synchroniser) SingleArtifactToRemote(artifactId, artifactName, artifact
 	return nil
 }
 
-func artifactExists(artifactId string, artifactType string, packageId string, dt odata.DesigntimeArtifact, ip *odata.IntegrationPackage) (bool, error) {
+func artifactExists(artifactId string, artifactType string, packageId string, dt api.DesigntimeArtifact, ip *api.IntegrationPackage) (bool, error) {
 	_, exists, err := dt.Get(artifactId, "active")
 	if err != nil {
 		return false, err
@@ -448,12 +448,12 @@ func artifactExists(artifactId string, artifactType string, packageId string, dt
 	if exists {
 		log.Info().Msgf("Active version of artifact %v exists", artifactId)
 		//  Check if version is in draft mode
-		var details []*odata.ArtifactDetails
+		var details []*api.ArtifactDetails
 		details, err = ip.GetArtifactsData(packageId, artifactType)
 		if err != nil {
 			return false, err
 		}
-		artifact := odata.FindArtifactById(artifactId, details)
+		artifact := api.FindArtifactById(artifactId, details)
 		if artifact == nil {
 			return false, fmt.Errorf("Artifact %v not found in package %v", artifactId, packageId)
 		}
@@ -467,7 +467,7 @@ func artifactExists(artifactId string, artifactType string, packageId string, dt
 	}
 }
 
-func prepareUploadDir(workDir string, artifactDir string, dt odata.DesigntimeArtifact) error {
+func prepareUploadDir(workDir string, artifactDir string, dt api.DesigntimeArtifact) error {
 	// Clean up previous uploads
 	uploadDir := workDir + "/upload"
 	err := os.RemoveAll(uploadDir)
@@ -477,7 +477,7 @@ func prepareUploadDir(workDir string, artifactDir string, dt odata.DesigntimeArt
 	return dt.CopyContent(artifactDir, uploadDir)
 }
 
-func createArtifact(artifactId string, artifactName string, packageId string, artifactDir string, dt odata.DesigntimeArtifact) error {
+func createArtifact(artifactId string, artifactName string, packageId string, artifactDir string, dt api.DesigntimeArtifact) error {
 	err := dt.Create(artifactId, artifactName, packageId, artifactDir)
 	if err != nil {
 		return err
@@ -485,7 +485,7 @@ func createArtifact(artifactId string, artifactName string, packageId string, ar
 	return nil
 }
 
-func updateArtifact(artifactId string, artifactName string, packageId string, artifactDir string, dt odata.DesigntimeArtifact) error {
+func updateArtifact(artifactId string, artifactName string, packageId string, artifactDir string, dt api.DesigntimeArtifact) error {
 	err := dt.Update(artifactId, artifactName, packageId, artifactDir)
 	if err != nil {
 		return err
@@ -493,7 +493,7 @@ func updateArtifact(artifactId string, artifactName string, packageId string, ar
 	return nil
 }
 
-func compareArtifactContents(workDir string, zipFile string, artifactDir string, scriptMap []string, dt odata.DesigntimeArtifact) (bool, error) {
+func compareArtifactContents(workDir string, zipFile string, artifactDir string, scriptMap []string, dt api.DesigntimeArtifact) (bool, error) {
 	tgtDir := fmt.Sprintf("%v/download", workDir)
 	err := os.RemoveAll(tgtDir)
 	if err != nil {
@@ -511,7 +511,7 @@ func compareArtifactContents(workDir string, zipFile string, artifactDir string,
 
 func updateConfiguration(artifactId string, parametersFile string, exe *httpclnt.HTTPExecuter) error {
 	// Get configured parameters from tenant
-	c := odata.NewConfiguration(exe)
+	c := api.NewConfiguration(exe)
 	tenantParameters, err := c.Get(artifactId, "active")
 	if err != nil {
 		return err
@@ -538,7 +538,7 @@ func updateConfiguration(artifactId string, parametersFile string, exe *httpclnt
 		}
 	}
 	if atLeastOneUpdated {
-		r := odata.NewRuntime(exe)
+		r := api.NewRuntime(exe)
 		version, _, err := r.Get(artifactId)
 		if err != nil {
 			return err

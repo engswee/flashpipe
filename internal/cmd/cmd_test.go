@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"bytes"
+	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/file"
-	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"os"
@@ -15,16 +15,16 @@ func TestCommands(t *testing.T) {
 
 	// ------------ Set up ------------
 	println("---------- Setting up test - start ----------")
-	exe := odata.InitHTTPExecuter(&odata.ServiceDetails{
+	exe := api.InitHTTPExecuter(&api.ServiceDetails{
 		Host:              os.Getenv("FLASHPIPE_TMN_HOST"),
 		OauthHost:         os.Getenv("FLASHPIPE_OAUTH_HOST"),
 		OauthPath:         os.Getenv("FLASHPIPE_OAUTH_PATH"),
 		OauthClientId:     os.Getenv("FLASHPIPE_OAUTH_CLIENTID"),
 		OauthClientSecret: os.Getenv("FLASHPIPE_OAUTH_CLIENTSECRET"),
 	})
-	ip := odata.NewIntegrationPackage(exe)
-	dt := odata.NewDesigntimeArtifact("Integration", exe)
-	rt := odata.NewRuntime(exe)
+	ip := api.NewIntegrationPackage(exe)
+	dt := api.NewDesigntimeArtifact("Integration", exe)
+	rt := api.NewRuntime(exe)
 	println("---------- Setting up test - end ----------")
 
 	updateCmd := NewUpdateCommand()
@@ -218,10 +218,10 @@ func TestCommands(t *testing.T) {
 		t.Fatalf("GetAllArtifacts failed with error - %v", err)
 	}
 
-	assert.Equal(t, "1.0.0", odata.FindArtifactById("Integration_Test_IFlow", artifacts).Version, "Integration_Test_IFlow was not updated to version 1.0.0")
-	assert.Equal(t, "1.0.0", odata.FindArtifactById("Integration_Test_Message_Mapping", artifacts).Version, "Integration_Test_Message_Mapping was not updated to version 1.0.0")
-	assert.Equal(t, "1.0.0", odata.FindArtifactById("Integration_Test_Script_Collection", artifacts).Version, "Integration_Test_Script_Collection was not updated to version 1.0.0")
-	assert.Equal(t, "1.0.0", odata.FindArtifactById("Integration_Test_Value_Mapping", artifacts).Version, "Integration_Test_Value_Mapping was not updated to version 1.0.0")
+	assert.Equal(t, "1.0.0", api.FindArtifactById("Integration_Test_IFlow", artifacts).Version, "Integration_Test_IFlow was not updated to version 1.0.0")
+	assert.Equal(t, "1.0.0", api.FindArtifactById("Integration_Test_Message_Mapping", artifacts).Version, "Integration_Test_Message_Mapping was not updated to version 1.0.0")
+	assert.Equal(t, "1.0.0", api.FindArtifactById("Integration_Test_Script_Collection", artifacts).Version, "Integration_Test_Script_Collection was not updated to version 1.0.0")
+	assert.Equal(t, "1.0.0", api.FindArtifactById("Integration_Test_Value_Mapping", artifacts).Version, "Integration_Test_Value_Mapping was not updated to version 1.0.0")
 
 	// ------------ Clean up ------------
 	println("---------- Tearing down test - start ----------")

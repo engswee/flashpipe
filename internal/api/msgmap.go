@@ -1,4 +1,4 @@
-package odata
+package api
 
 import (
 	"github.com/engswee/flashpipe/internal/httpclnt"

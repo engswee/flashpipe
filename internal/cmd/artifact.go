@@ -3,10 +3,10 @@ package cmd
 import (
 	"fmt"
 	"github.com/engswee/flashpipe/internal/analytics"
+	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
-	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -118,8 +118,8 @@ func runUpdateArtifact(cmd *cobra.Command) error {
 	}
 
 	// Initialise HTTP executer
-	serviceDetails := odata.GetServiceDetails(cmd)
-	exe := odata.InitHTTPExecuter(serviceDetails)
+	serviceDetails := api.GetServiceDetails(cmd)
+	exe := api.InitHTTPExecuter(serviceDetails)
 
 	// Create integration package first if required
 	err := createPackage(packageId, packageName, exe)
@@ -138,14 +138,14 @@ func runUpdateArtifact(cmd *cobra.Command) error {
 
 func createPackage(packageId string, packageName string, exe *httpclnt.HTTPExecuter) error {
 	// Check if integration package exists
-	ip := odata.NewIntegrationPackage(exe)
+	ip := api.NewIntegrationPackage(exe)
 	_, _, packageExists, err := ip.Get(packageId)
 	if err != nil {
 		return err
 	}
 
 	if !packageExists {
-		jsonData := new(odata.PackageSingleData)
+		jsonData := new(api.PackageSingleData)
 		jsonData.Root.Id = packageId
 		jsonData.Root.Name = packageName
 		jsonData.Root.ShortText = packageId

@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	"github.com/engswee/flashpipe/internal/analytics"
+	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
-	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/engswee/flashpipe/internal/str"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -51,7 +51,7 @@ runtime of SAP Integration Suite tenant.`,
 }
 
 func runDeploy(cmd *cobra.Command) error {
-	serviceDetails := odata.GetServiceDetails(cmd)
+	serviceDetails := api.GetServiceDetails(cmd)
 
 	artifactType := config.GetString(cmd, "artifact-type")
 	log.Info().Msgf("Executing deploy %v command", artifactType)
@@ -68,16 +68,16 @@ func runDeploy(cmd *cobra.Command) error {
 	return nil
 }
 
-func deployArtifacts(artifactIds []string, artifactType string, delayLength int, maxCheckLimit int, compareVersions bool, serviceDetails *odata.ServiceDetails) error {
+func deployArtifacts(artifactIds []string, artifactType string, delayLength int, maxCheckLimit int, compareVersions bool, serviceDetails *api.ServiceDetails) error {
 
 	// Initialise HTTP executer
-	exe := odata.InitHTTPExecuter(serviceDetails)
+	exe := api.InitHTTPExecuter(serviceDetails)
 
 	// Initialise designtime artifact
-	dt := odata.NewDesigntimeArtifact(artifactType, exe)
+	dt := api.NewDesigntimeArtifact(artifactType, exe)
 
 	// Initialised runtime artifact
-	rt := odata.NewRuntime(exe)
+	rt := api.NewRuntime(exe)
 
 	artifactIds = str.TrimSlice(artifactIds)
 
@@ -106,7 +106,7 @@ func deployArtifacts(artifactIds []string, artifactType string, delayLength int,
 	return nil
 }
 
-func deploySingle(artifact odata.DesigntimeArtifact, runtime *odata.Runtime, id string, compareVersions bool) error {
+func deploySingle(artifact api.DesigntimeArtifact, runtime *api.Runtime, id string, compareVersions bool) error {
 	designtimeVer, exists, err := artifact.Get(id, "active")
 	if err != nil {
 		return err
@@ -145,7 +145,7 @@ func deploySingle(artifact odata.DesigntimeArtifact, runtime *odata.Runtime, id 
 	return nil
 }
 
-func checkDeploymentStatus(runtime *odata.Runtime, delayLength int, maxCheckLimit int, id string) error {
+func checkDeploymentStatus(runtime *api.Runtime, delayLength int, maxCheckLimit int, id string) error {
 	log.Info().Msgf("Checking runtime status for artifact %v every %d seconds up to %d times", id, delayLength, maxCheckLimit)
 
 	for i := 0; i < maxCheckLimit; i++ {

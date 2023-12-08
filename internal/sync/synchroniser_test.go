@@ -1,13 +1,13 @@
 package sync
 
 import (
-	"github.com/engswee/flashpipe/internal/odata"
+	"github.com/engswee/flashpipe/internal/api"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestFilterInactive(t *testing.T) {
-	artifacts := []*odata.ArtifactDetails{
+	artifacts := []*api.ArtifactDetails{
 		{Id: "DummyIFlow"},
 		{Id: "DummyMapping"},
 		{Id: "DummyScript"},
@@ -18,7 +18,7 @@ func TestFilterInactive(t *testing.T) {
 }
 
 func TestFilterIncludeIDs(t *testing.T) {
-	artifacts := []*odata.ArtifactDetails{
+	artifacts := []*api.ArtifactDetails{
 		{Id: "DummyIFlow"},
 		{Id: "DummyMapping"},
 		{Id: "DummyScript"},
@@ -30,7 +30,7 @@ func TestFilterIncludeIDs(t *testing.T) {
 }
 
 func TestFilterExcludeIDs(t *testing.T) {
-	artifacts := []*odata.ArtifactDetails{
+	artifacts := []*api.ArtifactDetails{
 		{Id: "DummyIFlow"},
 		{Id: "DummyMapping"},
 		{Id: "DummyScript"},
@@ -43,7 +43,7 @@ func TestFilterExcludeIDs(t *testing.T) {
 }
 
 func TestFilterIncludeInvalidID(t *testing.T) {
-	artifacts := []*odata.ArtifactDetails{
+	artifacts := []*api.ArtifactDetails{
 		{Id: "DummyIFlow"},
 		{Id: "DummyMapping"},
 		{Id: "DummyScript"},
@@ -54,7 +54,7 @@ func TestFilterIncludeInvalidID(t *testing.T) {
 }
 
 func TestFilterExcludeInvalidID(t *testing.T) {
-	artifacts := []*odata.ArtifactDetails{
+	artifacts := []*api.ArtifactDetails{
 		{Id: "DummyIFlow"},
 		{Id: "DummyMapping"},
 		{Id: "DummyScript"},

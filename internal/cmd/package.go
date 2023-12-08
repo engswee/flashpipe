@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"github.com/engswee/flashpipe/internal/analytics"
+	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
-	"github.com/engswee/flashpipe/internal/odata"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"time"
@@ -41,15 +41,15 @@ func runUpdatePackage(cmd *cobra.Command) error {
 
 	// Get package details from JSON file
 	log.Info().Msgf("Getting package details from %v file", packageFile)
-	packageDetails, err := odata.GetPackageDetails(packageFile)
+	packageDetails, err := api.GetPackageDetails(packageFile)
 	if err != nil {
 		return err
 	}
 
 	// Initialise HTTP executer
-	serviceDetails := odata.GetServiceDetails(cmd)
-	exe := odata.InitHTTPExecuter(serviceDetails)
-	ip := odata.NewIntegrationPackage(exe)
+	serviceDetails := api.GetServiceDetails(cmd)
+	exe := api.InitHTTPExecuter(serviceDetails)
+	ip := api.NewIntegrationPackage(exe)
 
 	packageId := packageDetails.Root.Id
 	_, _, exists, err := ip.Get(packageId)

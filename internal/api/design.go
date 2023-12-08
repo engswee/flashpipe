@@ -1,4 +1,4 @@
-package odata
+package api
 
 import (
 	"encoding/json"
