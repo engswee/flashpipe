@@ -29,6 +29,22 @@ type APIEntity struct {
 	Name string `json:"name"`
 }
 
+type apiProxyResponseData struct {
+	Root struct {
+		Results []struct {
+			Name    string `json:"name"`
+			Version string `json:"version"`
+			Status  string `json:"state"`
+		} `json:"results"`
+	} `json:"d"`
+}
+
+type APIProxyMetadata struct {
+	Name    string
+	Version string
+	Status  string
+}
+
 func NewAPIProxy(exe *httpclnt.HTTPExecuter) *APIProxy {
 	a := new(APIProxy)
 	a.exe = exe
@@ -117,6 +133,30 @@ func (a *APIProxy) Get(id string) (bool, error) {
 		}
 	}
 	return true, nil
+}
+
+func (a *APIProxy) List() ([]*APIProxyMetadata, error) {
+	log.Info().Msgf("Getting list of APIProxies")
+	urlPath := fmt.Sprintf("/apiportal/api/1.0/Management.svc/APIProxies")
+
+	callType := fmt.Sprintf("List APIProxies")
+	resp, err := readOnlyCall(urlPath, callType, a.exe)
+	// Process response to extract proxy details
+	var jsonData *apiProxyResponseData
+	respBody, err := a.exe.ReadRespBody(resp)
+	err = json.Unmarshal(respBody, &jsonData)
+	if err != nil {
+		return nil, err
+	}
+	var details []*APIProxyMetadata
+	for _, result := range jsonData.Root.Results {
+		details = append(details, &APIProxyMetadata{
+			Name:    result.Name,
+			Version: result.Version,
+			Status:  result.Status,
+		})
+	}
+	return details, nil
 }
 
 func (a *APIProxy) Delete(id string) error {

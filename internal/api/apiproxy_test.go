@@ -74,6 +74,12 @@ func (suite *APIProxySuite) TestAPIProxy_Upload() {
 		suite.T().Fatalf("Get APIProxy failed with error %v", err)
 	}
 	assert.True(suite.T(), proxyExists, "APIProxy was not uploaded")
+
+	proxies, err := a.List()
+	if err != nil {
+		suite.T().Fatalf("List APIProxies failed with error - %v", err)
+	}
+	assert.Equal(suite.T(), 2, len(proxies), "Expected number of APIProxies = 2")
 }
 
 func (suite *APIProxySuite) TestAPIProxy_Download() {
