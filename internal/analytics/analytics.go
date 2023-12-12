@@ -60,7 +60,7 @@ func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId 
 	// 1 - User or Client ID
 	params["dimension1"] = HashString(uniqueKey)
 	// 2 - Version
-	params["dimension2"] = cmd.Version
+	params["dimension2"] = getRootCmdVersion(cmd)
 
 	// 3 - CI/CD platform
 	envVars := strings.Join(os.Environ(), ",")
@@ -187,4 +187,11 @@ func HashString(input string) string {
 	hashedString := hex.EncodeToString(hashedBytes)
 
 	return hashedString
+}
+
+func getRootCmdVersion(cmd *cobra.Command) string {
+	if cmd.HasParent() {
+		return getRootCmdVersion(cmd.Parent())
+	}
+	return cmd.Version
 }
