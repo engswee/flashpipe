@@ -321,6 +321,8 @@ func (s *Synchroniser) ArtifactsToRemote(packageId string, workDir string, artif
 			}
 
 			artifactName := headers.Get("Bundle-Name")
+			// remove spaces due to length of bundle name exceeding MANIFEST.MF width
+			artifactName = strings.ReplaceAll(artifactName, " ", "")
 			artifactType := headers.Get("SAP-BundleType")
 			if artifactType == "IntegrationFlow" {
 				artifactType = "Integration"
