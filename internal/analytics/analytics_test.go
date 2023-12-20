@@ -36,27 +36,27 @@ func TestConstructQueryParameters(t *testing.T) {
 	params := constructQueryParameters(cmd, nil, "2", startTime)
 
 	// Site Id
-	assert.Equal(t, "2", params["idsite"], "Expected parameter idsite = 2")
+	assert.Equal(t, "2", params.GetOrDefault("idsite", ""), "Expected parameter idsite = 2")
 	// Action name
-	assert.Equal(t, "artifact", params["action_name"], "Expected parameter action_name = artifact")
+	assert.Equal(t, "artifact", params.GetOrDefault("action_name", ""), "Expected parameter action_name = artifact")
 	// Version
-	assert.Equal(t, "3.2.0", params["dimension2"], "Expected parameter dimension2 = 3.2.0")
+	assert.Equal(t, "3.2.0", params.GetOrDefault("dimension2", ""), "Expected parameter dimension2 = 3.2.0")
 	// Host name (hashed)
-	assert.Equal(t, HashString("test_host"), params["uid"], "Expected parameter uid = Hash of test_host")
+	assert.Equal(t, HashString("test_host"), params.GetOrDefault("uid", ""), "Expected parameter uid = Hash of test_host")
 	// User ID or Client ID (hashed)
-	assert.Equal(t, HashString("test_userid:test_clientid"), params["dimension1"], "Expected parameter uid = Hash of test_userid:test_clientid")
+	assert.Equal(t, HashString("test_userid:test_clientid"), params.GetOrDefault("dimension1", ""), "Expected parameter uid = Hash of test_userid:test_clientid")
 	// CI/CD platform
-	assert.Equal(t, "GitHubActions", params["dimension3"], "Expected parameter dimension3 = GitHubActions")
+	assert.Equal(t, "GitHubActions", params.GetOrDefault("dimension3", ""), "Expected parameter dimension3 = GitHubActions")
 	// FlashPipe Action used
-	assert.Equal(t, "true", params["dimension18"], "Expected parameter dimension18 = true")
+	assert.Equal(t, "true", params.GetOrDefault("dimension18", ""), "Expected parameter dimension18 = true")
 	// Processing Status
-	assert.Equal(t, "Success", params["dimension4"], "Expected parameter dimension4 = Success")
+	assert.Equal(t, "Success", params.GetOrDefault("dimension4", ""), "Expected parameter dimension4 = Success")
 	// Artifact Type
-	assert.Equal(t, "Integration", params["dimension6"], "Expected parameter dimension6 = Integration")
+	assert.Equal(t, "Integration", params.GetOrDefault("dimension6", ""), "Expected parameter dimension6 = Integration")
 	// Custom Parameters Used
-	assert.Equal(t, "true", params["dimension7"], "Expected parameter dimension7 = true")
+	assert.Equal(t, "true", params.GetOrDefault("dimension7", ""), "Expected parameter dimension7 = true")
 	// Custom Manifest Used
-	assert.Equal(t, "true", params["dimension8"], "Expected parameter dimension8 = true")
+	assert.Equal(t, "true", params.GetOrDefault("dimension8", ""), "Expected parameter dimension8 = true")
 	// Script Collection Used
-	assert.Equal(t, "true", params["dimension9"], "Expected parameter dimension9 = true")
+	assert.Equal(t, "true", params.GetOrDefault("dimension9", ""), "Expected parameter dimension9 = true")
 }
