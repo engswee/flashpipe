@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
+	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
 	"io"
 	"mime/multipart"
@@ -60,7 +61,7 @@ func (a *APIProxy) Download(apiName string, targetRootDir string) error {
 	query.Root.Proxies.Entities = append(query.Root.Proxies.Entities, &APIEntity{Name: apiName})
 	requestBody, err := json.Marshal(query)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 0)
 	}
 
 	callType := fmt.Sprintf("Get APIProxy")
@@ -74,12 +75,12 @@ func (a *APIProxy) Download(apiName string, targetRootDir string) error {
 	// Create directory for target file if it doesn't exist yet
 	err = os.MkdirAll(filepath.Dir(targetFile), os.ModePerm)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 0)
 	}
 	content, err := a.exe.ReadRespBody(resp)
 	err = os.WriteFile(targetFile, content, os.ModePerm)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 0)
 	}
 
 	log.Info().Msgf("Unzipping contents to %v", targetDir)
@@ -89,7 +90,7 @@ func (a *APIProxy) Download(apiName string, targetRootDir string) error {
 	}
 	err = os.Remove(targetFile)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 0)
 	}
 
 	return nil
@@ -146,7 +147,7 @@ func (a *APIProxy) List() ([]*APIProxyMetadata, error) {
 	respBody, err := a.exe.ReadRespBody(resp)
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, 0)
 	}
 	var details []*APIProxyMetadata
 	for _, result := range jsonData.Root.Results {
@@ -169,7 +170,7 @@ func (a *APIProxy) Delete(id string) error {
 func createFormDataFileRequest(formDataParameters map[string]string, fileParameterName, inputFilePath string) (*bytes.Buffer, string, error) {
 	inputFile, err := os.Open(inputFilePath)
 	if err != nil {
-		return nil, "", err
+		return nil, "", errors.Wrap(err, 0)
 	}
 	defer inputFile.Close()
 
@@ -177,16 +178,19 @@ func createFormDataFileRequest(formDataParameters map[string]string, fileParamet
 	multipartWriter := multipart.NewWriter(body)
 	dstFileWriter, err := multipartWriter.CreateFormFile(fileParameterName, filepath.Base(inputFilePath))
 	if err != nil {
-		return nil, "", err
+		return nil, "", errors.Wrap(err, 0)
 	}
 	_, err = io.Copy(dstFileWriter, inputFile)
+	if err != nil {
+		return nil, "", errors.Wrap(err, 0)
+	}
 
 	for key, val := range formDataParameters {
 		_ = multipartWriter.WriteField(key, val)
 	}
 	err = multipartWriter.Close()
 	if err != nil {
-		return nil, "", err
+		return nil, "", errors.Wrap(err, 0)
 	}
 
 	return body, multipartWriter.FormDataContentType(), err
