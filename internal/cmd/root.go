@@ -61,7 +61,9 @@ func Execute() {
 
 	rootCmd := NewCmdRoot()
 	rootCmd.AddCommand(NewDeployCommand())
-	rootCmd.AddCommand(NewSyncCommand())
+	syncCmd := NewSyncCommand()
+	syncCmd.AddCommand(NewAPIMCommand())
+	rootCmd.AddCommand(syncCmd)
 	updateCmd := NewUpdateCommand()
 	updateCmd.AddCommand(NewArtifactCommand())
 	updateCmd.AddCommand(NewPackageCommand())
