@@ -75,24 +75,40 @@ func (s *APIMLocalSynchroniser) Exec(workDir string, artifactsDir string, includ
 	//}
 
 	// Process through the artifacts
-	for i, artifact := range artifacts {
-		log.Info().Msgf("Syncing APIProxy %v (%v/%v)", artifact.Name, i+1, len(artifacts))
+	for _, artifact := range artifacts {
+		log.Info().Msg("---------------------------------------------------------------------------------")
+		log.Info().Msgf("📢 Begin processing for APIProxy %v", artifact.Name)
+
 		// Download artifact content
 		err = proxy.Download(artifact.Name, targetRootDir)
 		if err != nil {
 			return err
 		}
 
-		// Unzip artifact contents - not required
-
+		// Compare content and update Git if required
 		gitArtifactPath := fmt.Sprintf("%v/%v", artifactsDir, artifact.Name)
+		downloadedArtifactPath := fmt.Sprintf("%v/%v", targetRootDir, artifact.Name)
 		if file.Exists(fmt.Sprintf("%v/manifest.json", gitArtifactPath)) {
 			// (1) If artifact already exists in Git, then compare and update
 			log.Info().Msg("Comparing content from tenant against Git")
+			dirDiffer := file.DiffDirectories(downloadedArtifactPath, gitArtifactPath)
 
+			if dirDiffer {
+				log.Info().Msg("🏆 Changes detected and will be updated to Git")
+				// Update the changes into the Git directory
+				err := file.ReplaceDir(downloadedArtifactPath, gitArtifactPath)
+				if err != nil {
+					return err
+				}
+			} else {
+				log.Info().Msg("🏆 No changes detected. Update to Git not required")
+			}
 		} else { // (2) If artifact does not exist in Git, then add it
-			log.Info().Msgf("🏆 Artifact %v does not exist, and will be added to Git", artifact.Name)
-
+			log.Info().Msgf("🏆 APIProxy %v does not exist, and will be added to Git", artifact.Name)
+			err = file.ReplaceDir(downloadedArtifactPath, gitArtifactPath)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
