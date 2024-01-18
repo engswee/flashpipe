@@ -46,6 +46,13 @@ tenant and a Git repository.`,
 					return fmt.Errorf("--dir-artifacts [%v] should be a subdirectory of --dir-git-repo [%v]", artifactsDir, gitRepoDirClean)
 				}
 			}
+			// Validate target
+			target := config.GetString(cmd, "target")
+			switch target {
+			case "local", "remote":
+			default:
+				return fmt.Errorf("invalid value for --target = %v", target)
+			}
 			// TODO - Validate secrets in env var, lower priority as it is no longer resolved in GitHub action workflow
 			return nil
 		},
@@ -108,7 +115,7 @@ func runSync(cmd *cobra.Command) error {
 	synchroniser := sync.New(exe)
 
 	// Sync from tenant to Git
-	if target == "local" {
+	if target == "local" { // TODO - switch to git or tenant
 		packageDataFromTenant, readOnly, _, err := synchroniser.VerifyDownloadablePackage(packageId)
 		if err != nil {
 			return err
