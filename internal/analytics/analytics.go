@@ -10,6 +10,7 @@ import (
 	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -34,7 +35,7 @@ func collectDataAndSend(cmd *cobra.Command, cmdErr error, startTime time.Time, a
 	params := constructQueryParameters(cmd, cmdErr, analyticsSiteId, startTime)
 
 	urlPath := fmt.Sprintf("/matomo.php?%s", MapToString(params))
-
+	// TODO - increase timeout ?
 	exe := httpclnt.New("", "", "", "", "", "", analyticsHost, analyticsHostScheme, analyticsHostPort, showLogs)
 	_, err := exe.ExecGetRequest(urlPath, nil)
 	if err != nil && showLogs {
@@ -125,7 +126,7 @@ func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId 
 		maxCheckLimit := config.GetInt(cmd, "max-check-limit")
 		params.Set("dimension11", fmt.Sprintf("%v", maxCheckLimit))
 
-	case "sync", "apim":
+	case "sync":
 		// 12 - Sync Direction
 		target := config.GetString(cmd, "target")
 		params.Set("dimension12", target)
@@ -154,6 +155,21 @@ func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId 
 		syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 		params.Set("dimension17", fmt.Sprintf("%v", syncPackageLevelDetails))
 
+	case "apim":
+		// 12 - Sync Direction
+		target := config.GetString(cmd, "target")
+		params.Set("dimension12", target)
+		// 15 - IDs Include Used
+		includedIds := config.GetStringSlice(cmd, "ids-include")
+		if len(includedIds) > 0 {
+			params.Set("dimension15", "true")
+		}
+		// 16 - IDs Exclude Used
+		excludedIds := config.GetStringSlice(cmd, "ids-exclude")
+		if len(excludedIds) > 0 {
+			params.Set("dimension16", "true")
+		}
+
 	}
 	// 19 - Processing Time
 	endTime := time.Now()
@@ -168,7 +184,8 @@ func MapToString(m *orderedmap.OrderedMap[string, string]) string {
 
 	for _, key := range m.Keys() {
 		value, _ := m.Get(key)
-		pair := fmt.Sprintf("%s=%s", key, value)
+		// Encode all query parameter values so that they are URL safe
+		pair := fmt.Sprintf("%s=%s", key, url.QueryEscape(value))
 		parts = append(parts, pair)
 	}
 
