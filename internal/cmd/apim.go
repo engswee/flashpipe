@@ -1,13 +1,19 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/repo"
+	"github.com/engswee/flashpipe/internal/str"
 	"github.com/engswee/flashpipe/internal/sync"
+	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -18,6 +24,25 @@ func NewAPIMCommand() *cobra.Command {
 		Short: "Sync API Management artifacts between tenant and Git",
 		Long: `Synchronise API Management artifacts between SAP Integration Suite
 tenant and a Git repository.`,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			// If artifacts directory is provided, validate that is it a subdirectory of Git repo
+			gitRepoDir := config.GetString(cmd, "dir-git-repo")
+			if gitRepoDir != "" {
+				artifactsDir := config.GetString(cmd, "dir-artifacts")
+				gitRepoDirClean := filepath.Clean(gitRepoDir) + string(os.PathSeparator)
+				if artifactsDir != "" && !strings.HasPrefix(artifactsDir, gitRepoDirClean) {
+					return fmt.Errorf("--dir-artifacts [%v] should be a subdirectory of --dir-git-repo [%v]", artifactsDir, gitRepoDirClean)
+				}
+			}
+			// Validate target
+			target := config.GetString(cmd, "target")
+			switch target {
+			case "local", "remote":
+			default:
+				return fmt.Errorf("invalid value for --target = %v", target)
+			}
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			startTime := time.Now()
 			if err = runSyncAPIM(cmd); err != nil {
@@ -28,11 +53,6 @@ tenant and a Git repository.`,
 		},
 	}
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	//apimCmd.Flags().String("target", "local", "Target of sync. Allowed values: local, remote")
-	//apimCmd.Flags().String("git-commit-msg", "Sync repo from tenant", "Message used in commit")
-	//apimCmd.Flags().String("git-commit-user", "github-actions[bot]", "User used in commit")
-	//apimCmd.Flags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit")
-	//apimCmd.Flags().Bool("git-skip-commit", false, "Skip committing changes to Git repository")
 
 	return apimCmd
 }
@@ -56,8 +76,8 @@ func runSyncAPIM(cmd *cobra.Command) error {
 	exe := api.InitHTTPExecuter(serviceDetails)
 
 	syncer := sync.NewSyncer(target, "APIM", exe)
-
-	err := syncer.Exec(workDir, artifactsDir, includedIds, excludedIds)
+	apimWorkDir := fmt.Sprintf("%v/apim", workDir)
+	err := syncer.Exec(apimWorkDir, artifactsDir, str.TrimSlice(includedIds), str.TrimSlice(excludedIds))
 	if err != nil {
 		return err
 	}
@@ -66,6 +86,11 @@ func runSyncAPIM(cmd *cobra.Command) error {
 		if err != nil {
 			return err
 		}
+	}
+	// Clean up working directory
+	err = os.RemoveAll(apimWorkDir)
+	if err != nil {
+		return errors.Wrap(err, 0)
 	}
 
 	return nil
