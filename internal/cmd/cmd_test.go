@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func TestCommands(t *testing.T) {
+func TestCPICommands(t *testing.T) {
 
 	// ------------ Set up ------------
 	println("---------- Setting up test - start ----------")
@@ -242,6 +242,77 @@ func TestCommands(t *testing.T) {
 		t.Logf("WARNING - Directory removal failed with error - %v", err)
 	}
 	err = os.RemoveAll("../../output/snapshot")
+	if err != nil {
+		t.Logf("WARNING - Directory removal failed with error - %v", err)
+	}
+	println("---------- Tearing down test - end ----------")
+}
+
+func TestAPIMCommands(t *testing.T) {
+
+	// ------------ Set up ------------
+	println("---------- Setting up test - start ----------")
+	exe := api.InitHTTPExecuter(&api.ServiceDetails{
+		Host:              os.Getenv("FLASHPIPE_APIPORTAL_HOST"),
+		OauthHost:         os.Getenv("FLASHPIPE_OAUTH_HOST"),
+		OauthPath:         os.Getenv("FLASHPIPE_OAUTH_PATH"),
+		OauthClientId:     os.Getenv("FLASHPIPE_APIPORTAL_OAUTH_CLIENTID"),
+		OauthClientSecret: os.Getenv("FLASHPIPE_APIPORTAL_OAUTH_CLIENTSECRET"),
+	})
+	a := api.NewAPIProxy(exe)
+	println("---------- Setting up test - end ----------")
+
+	rootCmd := NewCmdRoot()
+	syncCmd := NewSyncCommand()
+	syncCmd.AddCommand(NewAPIMCommand())
+	rootCmd.AddCommand(syncCmd)
+
+	var args []string
+	// 1 - Sync APIM to local
+	args = append(args, "sync", "apim")
+	args = append(args, "--tmn-host", os.Getenv("FLASHPIPE_APIPORTAL_HOST"))
+	args = append(args, "--oauth-clientid", os.Getenv("FLASHPIPE_APIPORTAL_OAUTH_CLIENTID"))
+	args = append(args, "--oauth-clientsecret", os.Getenv("FLASHPIPE_APIPORTAL_OAUTH_CLIENTSECRET"))
+	args = append(args, "--dir-git-repo", "../../")
+	args = append(args, "--dir-artifacts", "../../output/apim/artifact")
+	args = append(args, "--dir-work", "../../output/apim/local/work")
+	args = append(args, "--ids-include", "HelloWorldAPI")
+	args = append(args, "--git-skip-commit")
+
+	_, _, err := ExecuteCommandC(rootCmd, args...)
+	if err != nil {
+		t.Fatalf("sync apim local failed with error %v", err)
+	}
+	assert.True(t, file.Exists("../../output/apim/artifact/HelloWorldAPI/manifest.json"), "manifest.json does not exist")
+
+	// 2 - Sync APIM to remote
+	args = nil
+	args = append(args, "sync", "apim")
+	args = append(args, "--tmn-host", os.Getenv("FLASHPIPE_APIPORTAL_HOST"))
+	args = append(args, "--oauth-clientid", os.Getenv("FLASHPIPE_APIPORTAL_OAUTH_CLIENTID"))
+	args = append(args, "--oauth-clientsecret", os.Getenv("FLASHPIPE_APIPORTAL_OAUTH_CLIENTSECRET"))
+	args = append(args, "--dir-artifacts", "../../test/testdata/apim")
+	args = append(args, "--dir-work", "../../output/apim/remote/work")
+	args = append(args, "--ids-include", "Northwind_V4")
+	args = append(args, "--target", "remote")
+
+	_, _, err = ExecuteCommandC(rootCmd, args...)
+	if err != nil {
+		t.Fatalf("sync apim remote failed with error %v", err)
+	}
+	proxyExists, err := a.Get("Northwind_V4")
+	if err != nil {
+		t.Fatalf("Get APIProxy failed with error %v", err)
+	}
+	assert.True(t, proxyExists, "APIProxy was not uploaded")
+
+	// ------------ Clean up ------------
+	println("---------- Tearing down test - start ----------")
+	err = a.Delete("Northwind_V4")
+	if err != nil {
+		t.Logf("WARNING - Delete failed with error - %v", err)
+	}
+	err = os.RemoveAll("../../output/apim")
 	if err != nil {
 		t.Logf("WARNING - Directory removal failed with error - %v", err)
 	}
