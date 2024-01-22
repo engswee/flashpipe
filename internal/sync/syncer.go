@@ -20,13 +20,14 @@ func NewSyncer(target string, functionType string, exe *httpclnt.HTTPExecuter) S
 	switch functionType {
 	case "APIM":
 		switch target {
-		case "local":
-			return NewAPIMLocalSynchroniser(exe)
-		case "remote":
-			return NewAPIMRemoteSynchroniser(exe)
+		case "git":
+			return NewAPIMGitSynchroniser(exe)
+		case "tenant":
+			return NewAPIMTenantSynchroniser(exe)
 		default:
 			return nil
 		}
+		// TODO - refactor CPI syncer
 	//case "CPI":
 	//	return NewScriptCollection(exe)
 	default:
@@ -34,19 +35,19 @@ func NewSyncer(target string, functionType string, exe *httpclnt.HTTPExecuter) S
 	}
 }
 
-type APIMLocalSynchroniser struct {
+type APIMGitSynchroniser struct {
 	exe *httpclnt.HTTPExecuter
 }
 
-// NewAPIMLocalSynchroniser returns an initialised APIMLocalSynchroniser instance.
-func NewAPIMLocalSynchroniser(exe *httpclnt.HTTPExecuter) Syncer {
-	s := new(APIMLocalSynchroniser)
+// NewAPIMGitSynchroniser returns an initialised APIMGitSynchroniser instance.
+func NewAPIMGitSynchroniser(exe *httpclnt.HTTPExecuter) Syncer {
+	s := new(APIMGitSynchroniser)
 	s.exe = exe
 	return s
 }
 
-func (s *APIMLocalSynchroniser) Exec(workDir string, artifactsDir string, includedIds []string, excludedIds []string) error {
-	log.Info().Msg("Sync APIM content to local")
+func (s *APIMGitSynchroniser) Exec(workDir string, artifactsDir string, includedIds []string, excludedIds []string) error {
+	log.Info().Msg("Sync APIM content to Git")
 
 	proxy := api.NewAPIProxy(s.exe)
 	// Get all APIProxies
@@ -111,18 +112,18 @@ func (s *APIMLocalSynchroniser) Exec(workDir string, artifactsDir string, includ
 	return nil
 }
 
-type APIMRemoteSynchroniser struct {
+type APIMTenantSynchroniser struct {
 	exe *httpclnt.HTTPExecuter
 }
 
-// NewAPIMRemoteSynchroniser returns an initialised APIMRemoteSynchroniser instance.
-func NewAPIMRemoteSynchroniser(exe *httpclnt.HTTPExecuter) Syncer {
-	s := new(APIMRemoteSynchroniser)
+// NewAPIMTenantSynchroniser returns an initialised APIMTenantSynchroniser instance.
+func NewAPIMTenantSynchroniser(exe *httpclnt.HTTPExecuter) Syncer {
+	s := new(APIMTenantSynchroniser)
 	s.exe = exe
 	return s
 }
 
-func (s *APIMRemoteSynchroniser) Exec(workDir string, artifactsDir string, includedIds []string, excludedIds []string) error {
+func (s *APIMTenantSynchroniser) Exec(workDir string, artifactsDir string, includedIds []string, excludedIds []string) error {
 	// Get directory list
 	baseSourceDir := filepath.Clean(artifactsDir)
 	entries, err := os.ReadDir(baseSourceDir)

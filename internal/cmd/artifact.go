@@ -129,7 +129,7 @@ func runUpdateArtifact(cmd *cobra.Command) error {
 
 	synchroniser := sync.New(exe)
 
-	err = synchroniser.SingleArtifactToRemote(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, parametersFile, scriptMap)
+	err = synchroniser.SingleArtifactToTenant(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, parametersFile, scriptMap)
 	if err != nil {
 		return err
 	}

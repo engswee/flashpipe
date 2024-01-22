@@ -113,12 +113,12 @@ func getTenantSnapshot(serviceDetails *api.ServiceDetails, gitRepoDir string, wo
 		}
 		if !readOnly {
 			if syncPackageLevelDetails {
-				err = synchroniser.PackageToLocal(packageDataFromTenant, id, packageWorkingDir, packageArtifactsDir)
+				err = synchroniser.PackageToGit(packageDataFromTenant, id, packageWorkingDir, packageArtifactsDir)
 				if err != nil {
 					return err
 				}
 			}
-			err = synchroniser.ArtifactsToLocal(id, packageWorkingDir, packageArtifactsDir, nil, nil, draftHandling, "ID", nil)
+			err = synchroniser.ArtifactsToGit(id, packageWorkingDir, packageArtifactsDir, nil, nil, draftHandling, "ID", nil)
 			if err != nil {
 				return err
 			}

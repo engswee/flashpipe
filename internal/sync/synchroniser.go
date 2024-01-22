@@ -30,7 +30,7 @@ func New(exe *httpclnt.HTTPExecuter) *Synchroniser {
 	return s
 }
 
-func (s *Synchroniser) PackageToLocal(packageDataFromTenant *api.PackageSingleData, packageId string, workDir string, artifactsDir string) error {
+func (s *Synchroniser) PackageToGit(packageDataFromTenant *api.PackageSingleData, packageId string, workDir string, artifactsDir string) error {
 	// Create temp directory in working dir
 	err := os.MkdirAll(workDir+"/from_tenant", os.ModePerm)
 	if err != nil {
@@ -101,7 +101,7 @@ func (s *Synchroniser) VerifyDownloadablePackage(packageId string) (packageDataF
 	return
 }
 
-func (s *Synchroniser) ArtifactsToLocal(packageId string, workDir string, artifactsDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, scriptCollectionMap []string) error {
+func (s *Synchroniser) ArtifactsToGit(packageId string, workDir string, artifactsDir string, includedIds []string, excludedIds []string, draftHandling string, dirNamingType string, scriptCollectionMap []string) error {
 	// Get all design time artifacts of package
 	log.Info().Msgf("Getting artifacts in integration package %v", packageId)
 	artifacts, err := s.ip.GetAllArtifacts(packageId)
@@ -166,7 +166,7 @@ func (s *Synchroniser) ArtifactsToLocal(packageId string, workDir string, artifa
 			log.Info().Msg("Comparing content from tenant against Git")
 
 			// Diff artifact contents
-			dirDiffer, err := dt.CompareContent(downloadedArtifactPath, gitArtifactPath, scriptCollectionMap, "local")
+			dirDiffer, err := dt.CompareContent(downloadedArtifactPath, gitArtifactPath, scriptCollectionMap, "git")
 			if err != nil {
 				return err
 			}
@@ -278,7 +278,7 @@ func packageContentDiffer(source *api.PackageSingleData, target *api.PackageSing
 	return false
 }
 
-func (s *Synchroniser) ArtifactsToRemote(packageId string, workDir string, artifactsDir string, includedIds []string, excludedIds []string) error {
+func (s *Synchroniser) ArtifactsToTenant(packageId string, workDir string, artifactsDir string, includedIds []string, excludedIds []string) error {
 	// Get directory list
 	baseSourceDir := filepath.Clean(artifactsDir)
 	entries, err := os.ReadDir(baseSourceDir)
@@ -329,7 +329,7 @@ func (s *Synchroniser) ArtifactsToRemote(packageId string, workDir string, artif
 			}
 
 			log.Info().Msgf("📢 Begin processing for artifact %v", artifactId)
-			err = s.SingleArtifactToRemote(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, paramFile, nil)
+			err = s.SingleArtifactToTenant(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, paramFile, nil)
 			if err != nil {
 				return err
 			}
@@ -356,7 +356,7 @@ func GetManifestHeaders(manifestPath string) (textproto.MIMEHeader, error) {
 	return headers, nil
 }
 
-func (s *Synchroniser) SingleArtifactToRemote(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, parametersFile string, scriptMap []string) error {
+func (s *Synchroniser) SingleArtifactToTenant(artifactId, artifactName, artifactType, packageId, artifactDir, workDir, parametersFile string, scriptMap []string) error {
 	dt := api.NewDesigntimeArtifact(artifactType, s.exe)
 
 	exists, err := artifactExists(artifactId, artifactType, packageId, dt, s.ip)
@@ -508,7 +508,7 @@ func compareArtifactContents(workDir string, zipFile string, artifactDir string,
 		return false, err
 	}
 
-	return dt.CompareContent(artifactDir, tgtDir, scriptMap, "remote")
+	return dt.CompareContent(artifactDir, tgtDir, scriptMap, "tenant")
 }
 
 func updateConfiguration(artifactId string, parametersFile string, exe *httpclnt.HTTPExecuter) error {

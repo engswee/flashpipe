@@ -93,13 +93,13 @@ func TestCPICommands(t *testing.T) {
 	}
 	assert.True(t, strings.HasPrefix(status, "START"), "Integration flow was not deployed")
 
-	// 4 - Sync to local
+	// 4 - Sync to Git
 	args = nil
 	args = append(args, "sync")
 	args = append(args, "--package-id", "FlashPipeIntegrationTest")
 	args = append(args, "--dir-git-repo", "../../")
 	args = append(args, "--dir-artifacts", "../../output/sync/artifact")
-	args = append(args, "--dir-work", "../../output/sync/local/work")
+	args = append(args, "--dir-work", "../../output/sync/git/work")
 	args = append(args, "--sync-package-details")
 	args = append(args, "--git-skip-commit")
 
@@ -168,13 +168,13 @@ func TestCPICommands(t *testing.T) {
 	}
 	assert.Equal(t, "1.0.1", runtimeVersion, "Runtime version of integration flow was not updated to version 1.0.1")
 
-	// 8 - Sync updates to local
+	// 8 - Sync updates to Git
 	args = nil
 	args = append(args, "sync")
 	args = append(args, "--package-id", "FlashPipeIntegrationTest")
 	args = append(args, "--dir-git-repo", "../../")
 	args = append(args, "--dir-artifacts", "../../output/sync/artifact")
-	args = append(args, "--dir-work", "../../output/sync/local/work")
+	args = append(args, "--dir-work", "../../output/sync/git/work")
 	args = append(args, "--sync-package-details")
 	args = append(args, "--git-skip-commit")
 
@@ -185,7 +185,7 @@ func TestCPICommands(t *testing.T) {
 	assert.True(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/META-INF/MANIFEST.MF"), "MANIFEST.MF does not exist")
 	assert.True(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/src/main/resources/parameters.prop"), "parameters.prop does not exist")
 
-	// 9 - Snapshot to local
+	// 9 - Snapshot to Git
 	args = nil
 	args = append(args, "snapshot")
 	args = append(args, "--dir-git-repo", "../../output/snapshot/repo")
@@ -200,14 +200,14 @@ func TestCPICommands(t *testing.T) {
 	assert.True(t, file.Exists("../../output/snapshot/repo/FlashPipeIntegrationTest/Integration_Test_IFlow/META-INF/MANIFEST.MF"), "MANIFEST.MF does not exist")
 	assert.True(t, file.Exists("../../output/snapshot/repo/FlashPipeIntegrationTest/Integration_Test_IFlow/src/main/resources/parameters.prop"), "parameters.prop does not exist")
 
-	// 10 - Sync updates to remote
+	// 10 - Sync updates to tenant
 	args = nil
 	args = append(args, "sync")
 	args = append(args, "--package-id", "FlashPipeIntegrationTest")
 	args = append(args, "--dir-git-repo", "../../test/testdata/artifacts/create")
 	args = append(args, "--dir-artifacts", "")
-	args = append(args, "--target", "remote")
-	args = append(args, "--dir-work", "../../output/sync/remote/work")
+	args = append(args, "--target", "tenant")
+	args = append(args, "--dir-work", "../../output/sync/tenant/work")
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
 	if err != nil {
@@ -268,37 +268,37 @@ func TestAPIMCommands(t *testing.T) {
 	rootCmd.AddCommand(syncCmd)
 
 	var args []string
-	// 1 - Sync APIM to local
+	// 1 - Sync APIM to Git
 	args = append(args, "sync", "apim")
 	args = append(args, "--tmn-host", os.Getenv("FLASHPIPE_APIPORTAL_HOST"))
 	args = append(args, "--oauth-clientid", os.Getenv("FLASHPIPE_APIPORTAL_OAUTH_CLIENTID"))
 	args = append(args, "--oauth-clientsecret", os.Getenv("FLASHPIPE_APIPORTAL_OAUTH_CLIENTSECRET"))
 	args = append(args, "--dir-git-repo", "../../")
 	args = append(args, "--dir-artifacts", "../../output/apim/artifact")
-	args = append(args, "--dir-work", "../../output/apim/local/work")
+	args = append(args, "--dir-work", "../../output/apim/git/work")
 	args = append(args, "--ids-include", "HelloWorldAPI")
 	args = append(args, "--git-skip-commit")
 
 	_, _, err := ExecuteCommandC(rootCmd, args...)
 	if err != nil {
-		t.Fatalf("sync apim local failed with error %v", err)
+		t.Fatalf("sync apim git failed with error %v", err)
 	}
 	assert.True(t, file.Exists("../../output/apim/artifact/HelloWorldAPI/manifest.json"), "manifest.json does not exist")
 
-	// 2 - Sync APIM to remote
+	// 2 - Sync APIM to tenant
 	args = nil
 	args = append(args, "sync", "apim")
 	args = append(args, "--tmn-host", os.Getenv("FLASHPIPE_APIPORTAL_HOST"))
 	args = append(args, "--oauth-clientid", os.Getenv("FLASHPIPE_APIPORTAL_OAUTH_CLIENTID"))
 	args = append(args, "--oauth-clientsecret", os.Getenv("FLASHPIPE_APIPORTAL_OAUTH_CLIENTSECRET"))
 	args = append(args, "--dir-artifacts", "../../test/testdata/apim")
-	args = append(args, "--dir-work", "../../output/apim/remote/work")
+	args = append(args, "--dir-work", "../../output/apim/tenant/work")
 	args = append(args, "--ids-include", "Northwind_V4")
-	args = append(args, "--target", "remote")
+	args = append(args, "--target", "tenant")
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
 	if err != nil {
-		t.Fatalf("sync apim remote failed with error %v", err)
+		t.Fatalf("sync apim tenant failed with error %v", err)
 	}
 	proxyExists, err := a.Get("Northwind_V4")
 	if err != nil {

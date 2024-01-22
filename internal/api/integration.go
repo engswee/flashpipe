@@ -54,7 +54,7 @@ func (int *Integration) CompareContent(srcDir string, tgtDir string, scriptMap [
 	// Handling for parameters.prop differences
 	// - Any configured value will remain in IFlow even if the IFlow is replaced and the parameter is no longer used
 	// - Therefore diff of parameters.prop may come up with false differences
-	if target == "local" {
+	if target == "git" {
 		// When syncing (from tenant to Git), include diff of parameter.prop separately
 		paramDiffer := diffParam(srcDir, tgtDir)
 		return dirDiffer || paramDiffer, nil

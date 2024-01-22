@@ -38,6 +38,8 @@ tenant and a Git repository.`,
 			target := config.GetString(cmd, "target")
 			switch target {
 			case "local", "remote":
+				log.Warn().Msg("--target = local/remote is deprecated, use --target = git/tenant")
+			case "git", "tenant":
 			default:
 				return fmt.Errorf("invalid value for --target = %v", target)
 			}
@@ -70,7 +72,11 @@ func runSyncAPIM(cmd *cobra.Command) error {
 	commitEmail := config.GetString(cmd, "git-commit-email")
 	skipCommit := config.GetBool(cmd, "git-skip-commit")
 	target := config.GetString(cmd, "target")
-
+	if target == "local" {
+		target = "git"
+	} else if target == "remote" {
+		target = "tenant"
+	}
 	serviceDetails := api.GetServiceDetails(cmd)
 	// Initialise HTTP executer
 	exe := api.InitHTTPExecuter(serviceDetails)
@@ -81,7 +87,7 @@ func runSyncAPIM(cmd *cobra.Command) error {
 	if err != nil {
 		return err
 	}
-	if target == "local" && !skipCommit {
+	if target == "git" && !skipCommit {
 		err = repo.CommitToRepo(gitRepoDir, commitMsg, commitUser, commitEmail)
 		if err != nil {
 			return err

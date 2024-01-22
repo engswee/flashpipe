@@ -50,6 +50,8 @@ tenant and a Git repository.`,
 			target := config.GetString(cmd, "target")
 			switch target {
 			case "local", "remote":
+				log.Warn().Msg("--target = local/remote is deprecated, use --target = git/tenant")
+			case "git", "tenant":
 			default:
 				return fmt.Errorf("invalid value for --target = %v", target)
 			}
@@ -75,7 +77,7 @@ tenant and a Git repository.`,
 	syncCmd.Flags().String("draft-handling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR")
 	syncCmd.PersistentFlags().StringSlice("ids-include", nil, "List of included artifact IDs")
 	syncCmd.PersistentFlags().StringSlice("ids-exclude", nil, "List of excluded artifact IDs")
-	syncCmd.PersistentFlags().String("target", "local", "Target of sync. Allowed values: local, remote")
+	syncCmd.PersistentFlags().String("target", "git", "Target of sync. Allowed values: git, tenant, local(deprecated), remote(deprecated)")
 	syncCmd.PersistentFlags().String("git-commit-msg", "Sync repo from tenant", "Message used in commit")
 	syncCmd.PersistentFlags().String("git-commit-user", "github-actions[bot]", "User used in commit")
 	syncCmd.PersistentFlags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit")
@@ -108,6 +110,11 @@ func runSync(cmd *cobra.Command) error {
 	skipCommit := config.GetBool(cmd, "git-skip-commit")
 	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 	target := config.GetString(cmd, "target")
+	if target == "local" {
+		target = "git"
+	} else if target == "remote" {
+		target = "tenant"
+	}
 
 	serviceDetails := api.GetServiceDetails(cmd)
 	// Initialise HTTP executer
@@ -115,20 +122,20 @@ func runSync(cmd *cobra.Command) error {
 	synchroniser := sync.New(exe)
 
 	// Sync from tenant to Git
-	if target == "local" { // TODO - switch to git or tenant
+	if target == "git" {
 		packageDataFromTenant, readOnly, _, err := synchroniser.VerifyDownloadablePackage(packageId)
 		if err != nil {
 			return err
 		}
 		if !readOnly {
 			if syncPackageLevelDetails {
-				err = synchroniser.PackageToLocal(packageDataFromTenant, packageId, workDir, artifactsDir)
+				err = synchroniser.PackageToGit(packageDataFromTenant, packageId, workDir, artifactsDir)
 				if err != nil {
 					return err
 				}
 			}
 
-			err = synchroniser.ArtifactsToLocal(packageId, workDir, artifactsDir, includedIds, excludedIds, draftHandling, dirNamingType, scriptCollectionMap)
+			err = synchroniser.ArtifactsToGit(packageId, workDir, artifactsDir, includedIds, excludedIds, draftHandling, dirNamingType, scriptCollectionMap)
 			if err != nil {
 				return err
 			}
@@ -143,7 +150,7 @@ func runSync(cmd *cobra.Command) error {
 	}
 
 	// Sync from Git to tenant
-	if target == "remote" {
+	if target == "tenant" {
 		// Check for existence of package in tenant
 		_, _, packageExists, err := synchroniser.VerifyDownloadablePackage(packageId)
 		if !packageExists {
@@ -153,7 +160,7 @@ func runSync(cmd *cobra.Command) error {
 			return err
 		}
 
-		err = synchroniser.ArtifactsToRemote(packageId, workDir, artifactsDir, includedIds, excludedIds)
+		err = synchroniser.ArtifactsToTenant(packageId, workDir, artifactsDir, includedIds, excludedIds)
 		if err != nil {
 			return err
 		}
