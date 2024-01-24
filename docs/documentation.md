@@ -4,13 +4,14 @@ The key components of _FlashPipe_ are
 - **Docker image** - fully contained image that can be used to execute _FlashPipe_ commands in a CI/CD pipeline
 - **Companion GitHub Action** [engswee/flashpipe-action](https://github.com/engswee/flashpipe-action) - custom action to simplify usage in GitHub Actions workflows
 
-_FlashPipe_ uses the [public APIs of the SAP Integration Suite](https://api.sap.com/package/CloudIntegrationAPI/odata) to automate the Build-To-Deploy cycle. The components are implemented in Go and compiled as Unix executables.
+_FlashPipe_ uses the public APIs of the SAP Integration Suite ([Cloud Integration](https://api.sap.com/package/CloudIntegrationAPI/odata) & [API Management](https://api.sap.com/package/APIMgmt/odata)) to automate the Build-To-Deploy cycle. The components are implemented in Go and compiled as Unix executables.
 
 ## Prerequisite
 To use _FlashPipe_, you will need the following
 1. Access to **Cloud Integration** on an SAP Integration Suite tenant - typically an Integration Developer permissions are required
-2. Access to a **CI/CD platform**, e.g. [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/), [GitHub Actions](https://github.com/features/actions)
-3. **Git-based repository** to host the contents of the Cloud Integration artifacts
+2. Access to **API Management** on an SAP Integration Suite tenant - API access only using OAuth
+3. Access to a **CI/CD platform**, e.g. [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/), [GitHub Actions](https://github.com/features/actions)
+4. **Git-based repository** to host the contents of the Cloud Integration artifacts
 
 Technically, it should be possible to use _FlashPipe_ on any CI/CD platform that supports container-based pipeline execution.
 
@@ -43,9 +44,11 @@ For details on usage of the CLI commands in pipeline steps, visit the [Flashpipe
 Following are different usage examples of _FlashPipe_ on different CI/CD platforms.
 - [Upload/Deploy designtime artifacts using Azure Pipelines](azure-pipelines-upload.md)
 - [Upload/Deploy designtime artifacts using GitHub Actions](github-actions-upload.md)
-- [Sync designtime artifacts from Tenant to GitHub using GitHub Actions](github-actions-sync.md)
-- [Sync designtime artifacts from GitHub to Tenant using GitHub Actions](github-actions-sync-to-remote.md)
+- [Sync designtime artifacts from Tenant to GitHub using GitHub Actions](github-actions-sync-to-git.md)
+- [Sync designtime artifacts from GitHub to Tenant using GitHub Actions](github-actions-sync-to-tenant.md)
 - [Snapshot Tenant Content to GitHub using GitHub Actions](github-actions-snapshot.md)
+- [Sync APIM artifacts from Tenant to GitHub using GitHub Actions](github-actions-sync-to-git.md)
+- [Sync APIM artifacts from GitHub to Tenant using GitHub Actions](github-actions-sync-to-tenant.md)
 
 ## Archive
 For older versions of _FlashPipe_ that are implemented in Java/Groovy, refer to the [archive](https://github.com/engswee/flashpipe/tree/archive) branch of this repository.
