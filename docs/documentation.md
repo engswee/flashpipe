@@ -47,8 +47,7 @@ Following are different usage examples of _FlashPipe_ on different CI/CD platfor
 - [Sync designtime artifacts from Tenant to GitHub using GitHub Actions](github-actions-sync-to-git.md)
 - [Sync designtime artifacts from GitHub to Tenant using GitHub Actions](github-actions-sync-to-tenant.md)
 - [Snapshot Tenant Content to GitHub using GitHub Actions](github-actions-snapshot.md)
-- [Sync APIM artifacts from Tenant to GitHub using GitHub Actions](github-actions-sync-to-git.md)
-- [Sync APIM artifacts from GitHub to Tenant using GitHub Actions](github-actions-sync-to-tenant.md)
+- [Sync APIM artifacts between Tenant and GitHub using GitHub Actions](github-actions-sync-apim.md)
 
 ## Archive
 For older versions of _FlashPipe_ that are implemented in Java/Groovy, refer to the [archive](https://github.com/engswee/flashpipe/tree/archive) branch of this repository.

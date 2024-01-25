@@ -33,7 +33,7 @@ Create the following repository secrets. Refer to [OAuth client setup page](oaut
 **Note**: GitHub does not provide functionality to store unencrypted plain text variables, which would be useful for values like the base URLs. Optionally, these can be stored as encrypted secrets instead of being hardcoded in the YAML configuration file.
 
 ### 3. Configure workflow permissions
-In order for the workflows to be able to make changes to the repository, correct permissiongs need to be configured.
+In order for the workflows to be able to make changes to the repository, correct permissions need to be configured.
 
 In the GitHub repository, go to `Settings` > `Actions` > `General`. Scroll down to the `Workflow permissions` section and select `Read and write permissions` and click `Save`.
 ![Workflow permissions](images/setup/git-sync/03c_workflow_permissions.png)
