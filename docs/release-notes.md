@@ -1,5 +1,23 @@
 # Release Notes
 
+## 3.2.0 (Released 25 January 2024)
+
+---
+
+- 🔥🔥 Hot new feature 🔥🔥 - _FlashPipe_ now supports syncing of **API Management** artifacts 
+  - New `sync apim` command
+  - Handles syncing of API Proxies and dependent artifacts
+- Incorporation of usage analytics - no sensitive/personal data collected
+- Rename allowed values for `target` parameter of `sync` command so that it provides more clarity
+  - `local` & `remote` are now deprecated
+  - `git` & `tenant` are the new replacement values
+- New feature for `update artifact` command to default artifact name to value from MANIFEST.MF when optional parameter `artifact-name` is not provided
+- Update to latest dependencies to resolve following security vulnerabilities
+  - CVE-2023-48795
+  - CVE-2023-49569
+  - CVE-2023-49568
+  - GHSA-9763-4f94-gfch
+
 ## 3.1.0 (Released 9 October 2023)
 
 ---
@@ -180,7 +198,7 @@
 
 ---
 
-- 🔥🔥 New feature 🔥🔥 - _FlashPipe_ now enables [syncing of integration flow contents](github-actions-sync.md) from the tenant to Git repository
+- 🔥🔥 New feature 🔥🔥 - _FlashPipe_ now enables [syncing of integration flow contents](github-actions-sync-to-git.md) from the tenant to Git repository
   - New script `sync_to_git_repository.sh` can be configured in a pipeline for periodic or adhoc sync
 - Clean up the logs generated
   - A new default pattern layout for a cleaner simpler look

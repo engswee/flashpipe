@@ -11,7 +11,7 @@ To use _FlashPipe_, you will need the following
 1. Access to **Cloud Integration** on an SAP Integration Suite tenant - typically an Integration Developer permissions are required
 2. Access to **API Management** on an SAP Integration Suite tenant - API access only using OAuth
 3. Access to a **CI/CD platform**, e.g. [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/), [GitHub Actions](https://github.com/features/actions)
-4. **Git-based repository** to host the contents of the Cloud Integration artifacts
+4. **Git-based repository** to host the contents of the SAP Integration Suite artifacts
 
 Technically, it should be possible to use _FlashPipe_ on any CI/CD platform that supports container-based pipeline execution.
 

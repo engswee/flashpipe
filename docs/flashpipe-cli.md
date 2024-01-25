@@ -327,7 +327,7 @@ Environment variables set before call:
 
 ### 5. sync apim
 This command is used to sync API Management artifacts between a tenant and a Git repository. It will compare any differences (new, deleted, changed) in files between tenant and the Git repository before synchronising them.
-
+- dependent artifacts of the API Proxy are included like API Provider, Key Value Maps
 
 #### Usage
 ```bash
