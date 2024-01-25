@@ -96,7 +96,7 @@ variables:
 resources:
   containers:
     - container: flashpipe
-      image: engswee/flashpipe:3.2.0
+      image: engswee/flashpipe:3.2.1
 
 jobs:
   - job: build
