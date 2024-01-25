@@ -4,7 +4,7 @@ The page describes the steps to set up _FlashPipe_ on [GitHub Actions](https://g
 **NOTE** - The [`sync`](flashpipe-cli.md#4-sync) command allows 1-to-1 update of _multiple_ artifacts to the tenant, compared to the [`update artifact`](flashpipe-cli.md#1-update-artifact) command which only updates 1 artifact at a time (but with more configurable options).
 
 ### Prerequisite
-An existing GitHub repository already exists with artifact contents already stored in the repository. The steps to create this can be found in [Sync designtime artifacts from Tenant to GitHub using GitHub Actions](github-actions-sync.md).
+An existing GitHub repository already exists with artifact contents already stored in the repository. The steps to create this can be found in [Sync designtime artifacts from Tenant to GitHub using GitHub Actions](github-actions-sync-to-git.md).
 
 In the following example, the repository now contains new content for the other artifact types as highlighted below.
 ![Repository Files](images/setup/git-sync-to-remote/00_repo_files.png)
@@ -19,7 +19,7 @@ Provide a suitable name for the workflow file e.g. `sync-flashpipe-package-to-re
 
 **NOTE** - FlashPipe comes with companion GitHub Action [engswee/flashpipe-action](https://github.com/engswee/flashpipe-action) that simplifies usage in a workflow. The following actions are used in the workflow:
 - [engswee/flashpipe-action/update/package@v1](https://github.com/engswee/flashpipe-action#update-package) - this is an optional step in case the integration package does not exist in the tenant and needs to be created first. It can also be used to update the details of the integration package.
-- [engswee/flashpipe-action/sync@v1](https://github.com/engswee/flashpipe-action#sync) - the new parameter `target: remote` controls the direction of the sync from `local`(GitHub repository) to `remote`(tenant).
+- [engswee/flashpipe-action/sync@v1](https://github.com/engswee/flashpipe-action#sync) - the new parameter `target` controls the direction of the sync from `git`(GitHub repository) to `tenant`(SAP Integration Suite tenant).
 
 ![Sync Workflow](images/setup/git-sync-to-remote/01_sync_remote_workflow.png)
 

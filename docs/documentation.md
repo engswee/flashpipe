@@ -32,7 +32,7 @@ Starting from version `3.0.0`, rolling tag `latest` is introduced to make it eas
 
 ## Authentication
 _FlashPipe_ supports the following methods of authentication when accessing the SAP Integration Suite APIs.
-- Basic authentication
+- Basic authentication (only for Cloud Integration)
 - OAuth authentication
 
 It is recommended to use OAuth so that the access is not linked to an individual's credential (which may be revoked or the password might change). For details on setting up an OAuth client for use with _FlashPipe_, visit the [OAuth client setup page](oauth_client.md).
