@@ -1,6 +1,8 @@
 # Sync APIM artifacts between Tenant and GitHub with FlashPipe on GitHub Actions
 The page describes the steps to set up _FlashPipe_ on [GitHub Actions](https://github.com/features/actions) to sync API Management artifacts between an Integration Suite tenant and a GitHub repository.
 
+## A. Sync from Tenant to GitHub
+
 ### 1. Create GitHub repository
 Create (or use) an existing repository on GitHub.
 
@@ -62,4 +64,31 @@ During or upon completion of the workflow run, the logs can be viewed by clickin
 The APIM artifact files have now been downloaded from the tenant and committed to the repository.
 ![IFlow Files](images/setup/git-sync-apim/06b_apim_files.png)
 
-### 7. [Optional] Create workflows for syncing specific content manually or on a periodic schedule
+## B. Sync from GitHub to Tenant
+
+### 1. Create GitHub Actions workflow
+In the GitHub repository, go to `Actions` to create new workflow.
+![New Workflow](images/setup/git-sync/03a_new_workflow.png)
+
+Skip the templates and choose `set up a workflow yourself`.
+
+Provide a suitable name for the workflow file e.g. `sync-apim-to-tenant.yml` and replace the default content with the code sample below. Replace the tenant and authentication details accordingly.
+
+![Sync Workflow](images/setup/git-sync-apim/b_01_sync_apim_to_tenant_workflow.png)
+
+<script src="https://gist.github.com/engswee/72d0a121f6c8c924cf771fb4d1d65573.js"></script>
+
+Save and commit the new workflow file.
+
+### 2. Trigger workflow execution
+This workflow has been configured with `on: workflow_dispatch` event triggering which allows it to be executed manually.
+
+In the GitHub repository, go to `Actions`, select the workflow and click `Run workflow`.
+![Execute Workflow](images/setup/git-sync-apim/b_02_run_workflow.png)
+
+### 3. View execution results
+
+During or upon completion of the workflow run, the logs can be viewed by clicking on the workflow run.
+![Workflow Logs](images/setup/git-sync-apim/b_03_sync_tenant_logs.png)
+
+As seen from the logs, changes in the APIM artifact were synced to the tenant. 
