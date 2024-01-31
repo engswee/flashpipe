@@ -1,5 +1,11 @@
 # Release Notes
 
+## 3.2.1 (Released 31 January 2024)
+
+---
+
+- Bug fix - correct handling of artifact name when running `sync` command to tenant - when the name is longer than the width of MANIFEST.MF, then only a single space is trimmed from the next line
+
 ## 3.2.0 (Released 25 January 2024)
 
 ---
