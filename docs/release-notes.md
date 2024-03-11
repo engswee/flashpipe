@@ -1,5 +1,11 @@
 # Release Notes
 
+## 3.2.2 (Released 11 March 2024)
+
+---
+
+- Improve error handling when unmarshalling of JSON fails by displaying content in logs
+
 ## 3.2.1 (Released 31 January 2024)
 
 ---
