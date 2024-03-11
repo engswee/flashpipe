@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
+	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
 	"os"
 	"path/filepath"
@@ -150,7 +151,8 @@ func get(id string, version string, artifactType string, exe *httpclnt.HTTPExecu
 	}
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
-		return "", false, err
+		log.Error().Msgf("Error unmarshalling response as JSON. Response body = %s", respBody)
+		return "", false, errors.Wrap(err, 0)
 	}
 	return jsonData.Root.Version, true, nil
 }

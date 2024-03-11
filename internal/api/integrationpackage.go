@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/internal/httpclnt"
+	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
 	"os"
 )
@@ -77,7 +78,8 @@ func (ip *IntegrationPackage) GetPackagesList() ([]string, error) {
 	respBody, err := ip.exe.ReadRespBody(resp)
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
-		return nil, err
+		log.Error().Msgf("Error unmarshalling response as JSON. Response body = %s", respBody)
+		return nil, errors.Wrap(err, 0)
 	}
 	var packageIds []string
 	for _, result := range jsonData.Root.Results {
@@ -103,7 +105,8 @@ func (ip *IntegrationPackage) Get(id string) (packageData *PackageSingleData, re
 	respBody, err := ip.exe.ReadRespBody(resp)
 	err = json.Unmarshal(respBody, &packageData)
 	if err != nil {
-		return nil, false, false, err
+		log.Error().Msgf("Error unmarshalling response as JSON. Response body = %s", respBody)
+		return nil, false, false, errors.Wrap(err, 0)
 	}
 	if packageData.Root.Mode == "READ_ONLY" {
 		readOnly = true
@@ -125,7 +128,8 @@ func (ip *IntegrationPackage) GetArtifactsData(id string, artifactType string) (
 	respBody, err := ip.exe.ReadRespBody(resp)
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
-		return nil, err
+		log.Error().Msgf("Error unmarshalling response as JSON. Response body = %s", respBody)
+		return nil, errors.Wrap(err, 0)
 	}
 	var details []*ArtifactDetails
 	for _, result := range jsonData.Root.Results {
@@ -233,7 +237,8 @@ func GetPackageDetails(file string) (*PackageSingleData, error) {
 	}
 	err = json.Unmarshal(fileContent, &jsonData)
 	if err != nil {
-		return nil, err
+		log.Error().Msgf("Error unmarshalling file as JSON. Response body = %s", fileContent)
+		return nil, errors.Wrap(err, 0)
 	}
 	return jsonData, nil
 }

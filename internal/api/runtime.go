@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/internal/httpclnt"
+	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -54,7 +55,8 @@ func (r *Runtime) Get(id string) (version string, status string, err error) {
 	respBody, err := r.exe.ReadRespBody(resp)
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
-		return "", "", err
+		log.Error().Msgf("Error unmarshalling response as JSON. Response body = %s", respBody)
+		return "", "", errors.Wrap(err, 0)
 	}
 	if jsonData.Root.Status == "STARTED" {
 		return jsonData.Root.Version, "STARTED", nil
@@ -81,7 +83,8 @@ func (r *Runtime) GetErrorInfo(id string) (string, error) {
 	}
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
-		return "", err
+		log.Error().Msgf("Error unmarshalling response as JSON. Response body = %s", respBody)
+		return "", errors.Wrap(err, 0)
 	}
 	return jsonData.Parameter[0], nil
 }

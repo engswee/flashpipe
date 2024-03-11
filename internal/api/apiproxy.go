@@ -147,6 +147,7 @@ func (a *APIProxy) List() ([]*APIProxyMetadata, error) {
 	respBody, err := a.exe.ReadRespBody(resp)
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
+		log.Error().Msgf("Error unmarshalling response as JSON. Response body = %s", respBody)
 		return nil, errors.Wrap(err, 0)
 	}
 	var details []*APIProxyMetadata

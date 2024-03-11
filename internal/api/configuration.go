@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/engswee/flashpipe/internal/httpclnt"
+	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
 	"net/url"
 )
@@ -46,7 +47,8 @@ func (c *Configuration) Get(id string, version string) (*ParametersData, error) 
 	}
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
-		return nil, err
+		log.Error().Msgf("Error unmarshalling response as JSON. Response body = %s", respBody)
+		return nil, errors.Wrap(err, 0)
 	}
 	return jsonData, nil
 }
