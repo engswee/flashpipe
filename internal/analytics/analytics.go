@@ -88,7 +88,8 @@ func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId 
 	// 4 - Processing Status & 5 - Error Message
 	if cmdErr != nil {
 		params.Set("dimension4", "Error")
-		params.Set("dimension5", logger.GetErrorDetails(cmdErr))
+		// Remove line feed in string
+		params.Set("dimension5", strings.ReplaceAll(logger.GetErrorDetails(cmdErr), "\n", ","))
 	} else {
 		params.Set("dimension4", "Success")
 	}
@@ -175,7 +176,13 @@ func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId 
 	endTime := time.Now()
 	processingTime := endTime.Sub(startTime).Seconds()
 	params.Set("dimension19", fmt.Sprintf("%.2f", processingTime))
-
+	// 20 - Basic or OAuth
+	oauthHost := config.GetString(cmd, "oauth-host")
+	if oauthHost == "" {
+		params.Set("dimension20", "BASIC")
+	} else {
+		params.Set("dimension20", "OAUTH")
+	}
 	return params
 }
 
