@@ -7,6 +7,7 @@ import (
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
+	"github.com/engswee/flashpipe/internal/str"
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -108,6 +109,8 @@ func runUpdateArtifact(cmd *cobra.Command) error {
 			return err
 		}
 		bundleName := headers.Get("Bundle-Name")
+		// remove spaces due to length of bundle name exceeding MANIFEST.MF width
+		bundleName = str.TrimManifestField(bundleName, 72)
 		if bundleName != "" {
 			log.Info().Msgf("Using %v from Bundle-Name in MANIFEST.MF as artifact name", bundleName)
 			artifactName = bundleName

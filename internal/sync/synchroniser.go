@@ -322,7 +322,7 @@ func (s *Synchroniser) ArtifactsToTenant(packageId string, workDir string, artif
 
 			artifactName := headers.Get("Bundle-Name")
 			// remove spaces due to length of bundle name exceeding MANIFEST.MF width
-			artifactName = trimField(artifactName)
+			artifactName = str.TrimManifestField(artifactName, 72)
 			artifactType := headers.Get("SAP-BundleType")
 			if artifactType == "IntegrationFlow" {
 				artifactType = "Integration"
@@ -339,19 +339,6 @@ func (s *Synchroniser) ArtifactsToTenant(packageId string, workDir string, artif
 		log.Warn().Msgf("No directory with artifact contents found in %v", baseSourceDir)
 	}
 	return nil
-}
-
-func trimField(field string) string {
-	// If the length of the artifact name is longer than the allowed width of
-	// MANIFEST.MF, then it will flow over to the next line. Therefore,
-	// remove the 58th character if it is a space
-	// Example below:
-	// Bundle-Name: EQU 00001 ActiveDirectory Query User For Selected Attribu
-	//  tes
-	if len(field) > 57 && field[57] == ' ' {
-		field = field[:57] + field[58:]
-	}
-	return field
 }
 
 func GetManifestHeaders(manifestPath string) (textproto.MIMEHeader, error) {
