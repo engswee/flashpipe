@@ -114,21 +114,13 @@ func (suite *RuntimeSuite) TestRuntime_UnDeploy() {
 }
 
 func setupRuntime(t *testing.T, artifactId string, artifactType string, exe *httpclnt.HTTPExecuter) {
-	r := NewRuntime(exe)
+	dt := NewDesigntimeArtifact(artifactType, exe)
 
-	_, status, err := r.Get(artifactId)
+	err := dt.Deploy(artifactId)
 	if err != nil {
-		t.Logf("WARNING - Get failed with error - %v", err)
+		t.Logf("WARNING - Deploy failed with error - %v", err)
 	}
-	if status != "STARTED" {
-		dt := NewDesigntimeArtifact(artifactType, exe)
-
-		err = dt.Deploy(artifactId)
-		if err != nil {
-			t.Logf("WARNING - Deploy failed with error - %v", err)
-		}
-		time.Sleep(10 * time.Second)
-	}
+	time.Sleep(10 * time.Second)
 }
 
 func tearDownRuntime(t *testing.T, artifactId string, exe *httpclnt.HTTPExecuter) {
