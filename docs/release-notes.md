@@ -1,5 +1,15 @@
 # Release Notes
 
+## 3.2.3 (Released 1 May 2024)
+
+---
+
+- Bug fix - update handling of artifact name when running `update artifact` or `sync` to tenant, due to SAP changing width of MANIFEST.MF file to 72 characters
+- Update to latest dependencies to resolve following security vulnerabilities
+  - CVE-2024-24786
+  - CVE-2023-45288
+
+
 ## 3.2.2 (Released 11 March 2024)
 
 ---
