@@ -19,7 +19,7 @@ Technically, it should be possible to use _FlashPipe_ on any CI/CD platform that
 With major release `3.0.0`, _FlashPipe_ returns to the simpler approach of having a single tag for each version release. Separate full and lite tags are no longer available.
 The latest Docker image for _FlashPipe_ is
 
-  `engswee/flashpipe:3.2.2`
+  `engswee/flashpipe:3.2.3`
 
 For a list of all available images tags, check [here](https://hub.docker.com/r/engswee/flashpipe/tags).
 
@@ -27,7 +27,7 @@ For a list of all available images tags, check [here](https://hub.docker.com/r/e
 Starting from version `3.0.0`, rolling tag `latest` is introduced to make it easier to get the latest version. This rolling tag is dynamic and will point to the latest version of the image.
 
 ### Usage recommendation
-- When using _FlashPipe_ in productive pipelines, use an immutable tag (e.g. `3.2.2`) to ensure stability so that the pipeline will not be affected negatively by new version releases.
+- When using _FlashPipe_ in productive pipelines, use an immutable tag (e.g. `3.2.3`) to ensure stability so that the pipeline will not be affected negatively by new version releases.
 - When using _FlashPipe_ in development pipelines, use rolling tag `latest` to always get the latest version.
 
 ## Authentication

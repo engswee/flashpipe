@@ -99,5 +99,5 @@ jobs:
         file: ./build/Dockerfile
         push: true
         tags: |
-          engswee/cpi-cicd:3.2.2
+          engswee/cpi-cicd:3.2.3
           engswee/cpi-cicd:latest
