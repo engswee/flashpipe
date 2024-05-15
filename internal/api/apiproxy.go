@@ -147,6 +147,7 @@ func (a *APIProxy) List() ([]*APIProxyMetadata, error) {
 	respBody, err := a.exe.ReadRespBody(resp)
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
+		log.Warn().Msgf("⚠️ Please check that hostname and credentials for APIM are correct - do not use CPI values!")
 		log.Error().Msgf("Error unmarshalling response as JSON. Response body = %s", respBody)
 		return nil, errors.Wrap(err, 0)
 	}
