@@ -57,7 +57,7 @@ func (s *Synchroniser) PackageToGit(packageDataFromTenant *api.PackageSingleData
 	// Get existing package details file if it exists and compare values
 	gitSourceFile := fmt.Sprintf("%v/%v.json", artifactsDir, packageId)
 	if file.Exists(gitSourceFile) {
-		packageDataFromGit, err := api.GetPackageDetails(tenantFile)
+		packageDataFromGit, err := api.GetPackageDetails(gitSourceFile)
 		if err != nil {
 			return err
 		}

@@ -184,6 +184,11 @@ func TestCPICommands(t *testing.T) {
 	}
 	assert.True(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/META-INF/MANIFEST.MF"), "MANIFEST.MF does not exist")
 	assert.True(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/src/main/resources/parameters.prop"), "parameters.prop does not exist")
+	packageDataFromTenant, err := api.GetPackageDetails("../../output/sync/artifact/FlashPipeIntegrationTest.json")
+	if err != nil {
+		t.Fatalf("Unable to read integration package file with error %v", err)
+	}
+	assert.Equal(t, "1.0.1", packageDataFromTenant.Root.Version, "Integration package was not updated to version 1.0.1")
 
 	// 9 - Snapshot to Git
 	args = nil
