@@ -67,7 +67,7 @@ func copyDir(src string, dst string) (err error) {
 		return errors.Wrap(err, 0)
 	}
 	if !si.IsDir() {
-		return fmt.Errorf("source is not a directory")
+		return errors.Wrap(fmt.Errorf("source %v is not a directory", src), 0)
 	}
 
 	_, err = os.Stat(dst)
@@ -75,7 +75,7 @@ func copyDir(src string, dst string) (err error) {
 		return errors.Wrap(err, 0)
 	}
 	if err == nil {
-		return fmt.Errorf("destination already exists")
+		return errors.Wrap(fmt.Errorf("destination %v already exists", dst), 0)
 	}
 
 	err = os.MkdirAll(dst, si.Mode())
@@ -140,7 +140,7 @@ func unzipFile(f *zip.File, destination string) (err error) {
 	// 4. Check if file paths are not vulnerable to Zip Slip
 	filePath := filepath.Join(destination, f.Name)
 	if !strings.HasPrefix(filePath, filepath.Clean(destination)+string(os.PathSeparator)) {
-		return fmt.Errorf("invalid file path: %s", filePath)
+		return errors.Wrap(fmt.Errorf("invalid file path: %s", filePath), 0)
 	}
 
 	// 5. Create directory tree
