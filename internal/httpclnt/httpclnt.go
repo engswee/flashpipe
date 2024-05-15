@@ -52,7 +52,7 @@ func New(oauthHost string, oauthPath string, clientId string, clientSecret strin
 		if showLogs {
 			log.Debug().Msg("Initialising HTTP client with Basic Authentication")
 		}
-		e.httpClient = &http.Client{Timeout: 15 * time.Second}
+		e.httpClient = &http.Client{Timeout: 30 * time.Second}
 		e.basicUserId = userId
 		e.basicPassword = password
 		e.AuthType = "BASIC"
