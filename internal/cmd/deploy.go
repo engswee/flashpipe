@@ -161,6 +161,8 @@ func checkDeploymentStatus(runtime *api.Runtime, delayLength int, maxCheckLimit 
 		if status == "STARTED" {
 			return nil
 		} else if status != "STARTING" {
+			// If there is an error, delay before getting the error details as it sometimes return 204 when the error details are not available yet
+			time.Sleep(time.Duration(delayLength) * time.Second)
 			errorMessage, err := runtime.GetErrorInfo(id)
 			if err != nil {
 				return err
