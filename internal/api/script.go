@@ -32,7 +32,7 @@ func (sc *ScriptCollection) Deploy(id string) (err error) {
 func (sc *ScriptCollection) Delete(id string) (err error) {
 	return deleteCall(id, sc.typ, sc.exe)
 }
-func (sc *ScriptCollection) Get(id string, version string) (string, bool, error) {
+func (sc *ScriptCollection) Get(id string, version string) (string, string, bool, error) {
 	return get(id, version, sc.typ, sc.exe)
 }
 func (sc *ScriptCollection) Download(targetFile string, id string) error {

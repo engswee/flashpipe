@@ -36,7 +36,7 @@ func (vm *ValueMapping) Deploy(id string) error {
 func (vm *ValueMapping) Delete(id string) error {
 	return deleteCall(id, vm.typ, vm.exe)
 }
-func (vm *ValueMapping) Get(id string, version string) (string, bool, error) {
+func (vm *ValueMapping) Get(id string, version string) (string, string, bool, error) {
 	return get(id, version, vm.typ, vm.exe)
 }
 func (vm *ValueMapping) Download(targetFile string, id string) error {

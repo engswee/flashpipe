@@ -29,7 +29,7 @@ func (mm *MessageMapping) Deploy(id string) (err error) {
 func (mm *MessageMapping) Delete(id string) (err error) {
 	return deleteCall(id, mm.typ, mm.exe)
 }
-func (mm *MessageMapping) Get(id string, version string) (string, bool, error) {
+func (mm *MessageMapping) Get(id string, version string) (string, string, bool, error) {
 	return get(id, version, mm.typ, mm.exe)
 }
 func (mm *MessageMapping) Download(targetFile string, id string) error {

@@ -91,23 +91,24 @@ func (suite *DesigntimeSuite) TearDownSuite() {
 }
 
 func (suite *DesigntimeSuite) Test_CreateUpdateDeployDelete() {
-	for key, value := range suite.artifacts {
-		dt := NewDesigntimeArtifact(key, suite.exe)
-		createUpdateDeployDelete(value, strings.ReplaceAll(value, "_", " "), "FlashPipeIntegrationTest", dt, suite.T())
+	for artifactType, artifactId := range suite.artifacts {
+		dt := NewDesigntimeArtifact(artifactType, suite.exe)
+		createUpdateDeployDelete(artifactId, strings.ReplaceAll(artifactId, "_", " "), "FlashPipeIntegrationTest", dt, artifactType, suite.T())
 	}
 }
 
-func createUpdateDeployDelete(id string, name string, packageId string, dt DesigntimeArtifact, t *testing.T) {
+func createUpdateDeployDelete(id string, name string, packageId string, dt DesigntimeArtifact, artifactType string, t *testing.T) {
 	// Create
 	err := dt.Create(id, name, packageId, fmt.Sprintf("../../test/testdata/artifacts/create/%v", id))
 	if err != nil {
 		t.Fatalf("Create failed with error - %v", err)
 	}
 	// Check existence
-	_, artifactExists, err := dt.Get(id, "active")
+	_, artifactDescription, artifactExists, err := dt.Get(id, "active")
 	if err != nil {
 		t.Fatalf("Exists failed with error - %v", err)
 	}
+	assert.Equal(t, fmt.Sprintf("%v Created", artifactType), artifactDescription, "Artifact has incorrect description")
 	if assert.True(t, artifactExists, "Expected exists = true") {
 		// Update
 		err = dt.Update(id, name, packageId, fmt.Sprintf("../../test/testdata/artifacts/update/%v", id))
@@ -115,10 +116,11 @@ func createUpdateDeployDelete(id string, name string, packageId string, dt Desig
 			t.Fatalf("Update failed with error - %v", err)
 		}
 		// Check version
-		version, _, err := dt.Get(id, "active")
+		version, artifactDescriptionUpdated, _, err := dt.Get(id, "active")
 		if err != nil {
 			t.Fatalf("GetVersion failed with error - %v", err)
 		}
+		assert.Equal(t, fmt.Sprintf("%v Updated", artifactType), artifactDescriptionUpdated, "Artifact description not updated")
 		if assert.Equal(t, "1.0.1", version, "Expected version = 1.0.1") {
 			// Deploy
 			err = dt.Deploy(id)
@@ -189,7 +191,7 @@ func compare(id string, dt DesigntimeArtifact, t *testing.T) {
 func setupArtifact(t *testing.T, artifactId string, packageId string, artifactDir string, artifactType string, exe *httpclnt.HTTPExecuter) {
 	dt := NewDesigntimeArtifact(artifactType, exe)
 
-	_, artifactExists, err := dt.Get(artifactId, "active")
+	_, _, artifactExists, err := dt.Get(artifactId, "active")
 	if err != nil {
 		t.Logf("WARNING - Exists failed with error - %v", err)
 	}

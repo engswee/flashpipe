@@ -107,7 +107,7 @@ func deployArtifacts(artifactIds []string, artifactType string, delayLength int,
 }
 
 func deploySingle(artifact api.DesigntimeArtifact, runtime *api.Runtime, id string, compareVersions bool) error {
-	designtimeVer, exists, err := artifact.Get(id, "active")
+	designtimeVer, _, exists, err := artifact.Get(id, "active")
 	if err != nil {
 		return err
 	}

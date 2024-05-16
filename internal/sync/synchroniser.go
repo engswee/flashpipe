@@ -409,7 +409,7 @@ func (s *Synchroniser) SingleArtifactToTenant(artifactId, artifactName, artifact
 				return err
 			}
 
-			designtimeVersion, _, err := dt.Get(artifactId, "active")
+			designtimeVersion, _, _, err := dt.Get(artifactId, "active")
 			if err != nil {
 				return err
 			}
@@ -443,7 +443,7 @@ func (s *Synchroniser) SingleArtifactToTenant(artifactId, artifactName, artifact
 }
 
 func artifactExists(artifactId string, artifactType string, packageId string, dt api.DesigntimeArtifact, ip *api.IntegrationPackage) (bool, error) {
-	_, exists, err := dt.Get(artifactId, "active")
+	_, _, exists, err := dt.Get(artifactId, "active")
 	if err != nil {
 		return false, err
 	}

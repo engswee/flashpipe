@@ -16,7 +16,7 @@ type DesigntimeArtifact interface {
 	Update(id string, name string, packageId string, artifactDir string) error
 	Deploy(id string) error
 	Delete(id string) error
-	Get(id string, version string) (string, bool, error)
+	Get(id string, version string) (string, string, bool, error)
 	Download(targetFile string, id string) error
 	CopyContent(srcDir string, tgtDir string) error
 	CompareContent(srcDir string, tgtDir string, scriptMap []string, target string) (bool, error)
@@ -24,7 +24,8 @@ type DesigntimeArtifact interface {
 
 type designtimeArtifactData struct {
 	Root struct {
-		Version string `json:"Version"`
+		Version     string `json:"Version"`
+		Description string `json:"Description"`
 	} `json:"d"`
 }
 
@@ -132,7 +133,7 @@ func upsert(id string, name string, packageId string, artifactDir string, method
 	return modifyingCall(method, urlPath, requestBody, successCode, fmt.Sprintf("%v %v designtime artifact", callType, artifactType), exe)
 }
 
-func get(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) (string, bool, error) {
+func get(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) (string, string, bool, error) {
 	log.Info().Msgf("Getting details of %v designtime artifact %v", artifactType, id)
 	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='%v')", artifactType, id, version)
 
@@ -140,23 +141,23 @@ func get(id string, version string, artifactType string, exe *httpclnt.HTTPExecu
 	resp, err := readOnlyCall(urlPath, callType, exe)
 	if err != nil {
 		if err.Error() == fmt.Sprintf("%v call failed with response code = 404", callType) {
-			return "", false, nil
+			return "", "", false, nil
 		} else {
-			return "", false, err
+			return "", "", false, err
 		}
 	}
 	// Process response to extract version
 	var jsonData *designtimeArtifactData
 	respBody, err := exe.ReadRespBody(resp)
 	if err != nil {
-		return "", false, err
+		return "", "", false, err
 	}
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
 		log.Error().Msgf("Error unmarshalling response as JSON. Response body = %s", respBody)
-		return "", false, errors.Wrap(err, 0)
+		return "", "", false, errors.Wrap(err, 0)
 	}
-	return jsonData.Root.Version, true, nil
+	return jsonData.Root.Version, jsonData.Root.Description, true, nil
 }
 
 func getContent(id string, version string, artifactType string, exe *httpclnt.HTTPExecuter) ([]byte, error) {

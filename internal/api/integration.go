@@ -30,7 +30,7 @@ func (int *Integration) Deploy(id string) error {
 func (int *Integration) Delete(id string) error {
 	return deleteCall(id, int.typ, int.exe)
 }
-func (int *Integration) Get(id string, version string) (string, bool, error) {
+func (int *Integration) Get(id string, version string) (string, string, bool, error) {
 	return get(id, version, int.typ, int.exe)
 }
 func (int *Integration) Download(targetFile string, id string) error {
