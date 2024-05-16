@@ -59,16 +59,27 @@ func (sc *ScriptCollection) CopyContent(srcDir string, tgtDir string) error {
 			return err
 		}
 	}
+	// Copy also metainfo.prop that contains the description if it is available
+	if file.Exists(srcDir + "/metainfo.prop") {
+		err = file.CopyFile(srcDir+"/metainfo.prop", tgtDir+"/metainfo.prop")
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 func (sc *ScriptCollection) CompareContent(srcDir string, tgtDir string, _ []string, _ string) (bool, error) {
 	// Diff directories
+	log.Info().Msg("Checking for changes in META-INF directory")
+	metaDiffer := file.DiffDirectories(srcDir+"/META-INF", tgtDir+"/META-INF")
 	// It is technically possible to have an empty script collection
 	if file.Exists(srcDir+"/src/main/resources") && file.Exists(tgtDir+"/src/main/resources") {
-		return diffContent(srcDir, tgtDir), nil
+		return metaDiffer || diffContent(srcDir, tgtDir), nil
 	} else if !file.Exists(srcDir+"/src/main/resources") && !file.Exists(tgtDir+"/src/main/resources") {
 		log.Warn().Msg("Skipping diff as /src/main/resources does not exist in both source and target")
-		return false, nil
+		log.Info().Msg("Checking for changes in metainfo.prop")
+		metainfoDiffer := DiffOptionalFile(srcDir, tgtDir, "metainfo.prop")
+		return metaDiffer || metainfoDiffer, nil
 	}
 	log.Info().Msg("Directory /src/main/resources does not exist in either source or target")
 	return true, nil

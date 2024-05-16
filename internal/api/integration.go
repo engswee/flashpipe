@@ -1,10 +1,8 @@
 package api
 
 import (
-	"fmt"
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
-	"github.com/rs/zerolog/log"
 )
 
 type Integration struct {
@@ -56,22 +54,10 @@ func (int *Integration) CompareContent(srcDir string, tgtDir string, scriptMap [
 	// - Therefore diff of parameters.prop may come up with false differences
 	if target == "git" {
 		// When syncing (from tenant to Git), include diff of parameter.prop separately
-		paramDiffer := diffParam(srcDir, tgtDir)
+		paramDiffer := DiffOptionalFile(srcDir, tgtDir, "src/main/resources/parameters.prop")
 		return dirDiffer || paramDiffer, nil
 	} else {
 		// When uploading (from Git to tenant), API is used to update the configuration parameters separately
 		return dirDiffer, nil
 	}
-}
-func diffParam(srcDir string, tgtDir string) bool {
-	downloadedParams := fmt.Sprintf("%v/src/main/resources/parameters.prop", srcDir)
-	gitParams := fmt.Sprintf("%v/src/main/resources/parameters.prop", tgtDir)
-	if file.Exists(downloadedParams) && file.Exists(gitParams) {
-		return file.DiffFile(downloadedParams, gitParams)
-	} else if !file.Exists(downloadedParams) && !file.Exists(gitParams) {
-		log.Warn().Msg("Skipping diff of parameters.prop as it does not exist in both source and target")
-		return false
-	}
-	log.Info().Msg("File parameters.prop does not exist in either source or target")
-	return true
 }

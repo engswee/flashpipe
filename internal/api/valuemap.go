@@ -52,6 +52,13 @@ func (vm *ValueMapping) CopyContent(srcDir string, tgtDir string) error {
 	if err != nil {
 		return err
 	}
+	// Copy also metainfo.prop that contains the description if it is available
+	if file.Exists(srcDir + "/metainfo.prop") {
+		err = file.CopyFile(srcDir+"/metainfo.prop", tgtDir+"/metainfo.prop")
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 func (vm *ValueMapping) CompareContent(srcDir string, tgtDir string, _ []string, _ string) (bool, error) {
@@ -60,6 +67,7 @@ func (vm *ValueMapping) CompareContent(srcDir string, tgtDir string, _ []string,
 	metaDiffer := file.DiffDirectories(srcDir+"/META-INF", tgtDir+"/META-INF")
 	log.Info().Msg("Checking for changes in value_mapping.xml")
 	xmlDiffer := file.DiffFile(srcDir+"/value_mapping.xml", tgtDir+"/value_mapping.xml")
+	// TODO - The API for value mapping does not return metainfo.prop, so we can't compare it
 
 	return metaDiffer || xmlDiffer, nil
 }

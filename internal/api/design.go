@@ -174,8 +174,10 @@ func diffContent(firstDir string, secondDir string) bool {
 	metaDiffer := file.DiffDirectories(firstDir+"/META-INF", secondDir+"/META-INF")
 	log.Info().Msg("Checking for changes in src/main/resources directory")
 	resourcesDiffer := file.DiffDirectories(firstDir+"/src/main/resources", secondDir+"/src/main/resources")
+	log.Info().Msg("Checking for changes in metainfo.prop")
+	metainfoDiffer := DiffOptionalFile(firstDir, secondDir, "metainfo.prop")
 
-	return metaDiffer || resourcesDiffer
+	return metaDiffer || resourcesDiffer || metainfoDiffer
 }
 
 func copyContent(srcDir string, tgtDir string) error {
@@ -188,5 +190,24 @@ func copyContent(srcDir string, tgtDir string) error {
 	if err != nil {
 		return err
 	}
+	// Copy also metainfo.prop that contains the description if it is available
+	if file.Exists(srcDir + "/metainfo.prop") {
+		err = file.CopyFile(srcDir+"/metainfo.prop", tgtDir+"/metainfo.prop")
+		if err != nil {
+			return err
+		}
+	}
 	return nil
+}
+func DiffOptionalFile(srcDir string, tgtDir string, fileRelativePath string) bool {
+	downloadedFile := fmt.Sprintf("%v/%v", srcDir, fileRelativePath)
+	gitFile := fmt.Sprintf("%v/%v", tgtDir, fileRelativePath)
+	if file.Exists(downloadedFile) && file.Exists(gitFile) {
+		return file.DiffFile(downloadedFile, gitFile)
+	} else if !file.Exists(downloadedFile) && !file.Exists(gitFile) {
+		log.Warn().Msgf("Skipping diff of %v as it does not exist in both source and target", fileRelativePath)
+		return false
+	}
+	log.Info().Msgf("File %v does not exist in either source or target", fileRelativePath)
+	return true
 }
