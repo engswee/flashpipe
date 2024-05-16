@@ -29,7 +29,7 @@ type designtimeArtifactData struct {
 }
 
 type designtimeArtifactUpdateData struct {
-	Name            string `json:"Name"`
+	Name            string `json:"Name,omitempty"`
 	Id              string `json:"Id,omitempty"`
 	PackageId       string `json:"PackageId,omitempty"`
 	ArtifactContent string `json:"ArtifactContent"`
@@ -59,6 +59,8 @@ func constructUpdateBody(method string, id string, name string, packageId string
 	}
 	// Update of Message Mapping fails as PackageId and Id are not allowed
 	if method == "PUT" {
+		// When updating, clear name so that it picks it up from Bundle manifest
+		artifact.Name = ""
 		artifact.Id = ""
 		artifact.PackageId = ""
 	}
