@@ -88,7 +88,7 @@ func TestIntegration_DeployMockOauth(t *testing.T) {
 }
 
 func TestIntegration_diffParam(t *testing.T) {
-	dirDiffer := diffParam("../../test/testdata/artifacts/collection/IFlow1", "../../test/testdata/artifacts/update/Integration_Test_IFlow")
+	dirDiffer := DiffOptionalFile("../../test/testdata/artifacts/collection/IFlow1", "../../test/testdata/artifacts/update/Integration_Test_IFlow", "src/main/resources/parameters.prop")
 
 	assert.True(t, dirDiffer, "Directory contents do not differ")
 }
