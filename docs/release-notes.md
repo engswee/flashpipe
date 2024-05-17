@@ -1,5 +1,15 @@
 # Release Notes
 
+## 3.3.0 (Released 17 May 2024)
+
+---
+
+- Include designtime artifact's description when performing update/sync between tenant and Git
+- When updating designtime artifacts in tenant, the name always comes from MANIFEST.MF
+- Include warning for errors when syncing APIM, commonly due to using CPI tenant and credentials incorrectly
+- Introduce delay when there is error in deployment so that the error details are returned correctly
+- Bug fix - correctly sync updates of integration package details from tenant to Git
+
 ## 3.2.3 (Released 1 May 2024)
 
 ---
@@ -8,7 +18,6 @@
 - Update to latest dependencies to resolve following security vulnerabilities
   - CVE-2024-24786
   - CVE-2023-45288
-
 
 ## 3.2.2 (Released 11 March 2024)
 
