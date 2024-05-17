@@ -9,6 +9,9 @@ import (
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -27,6 +30,15 @@ tenant to a Git repository.`,
 			default:
 				return fmt.Errorf("invalid value for --draft-handling = %v", draftHandling)
 			}
+			// If artifacts directory is provided, validate that is it a subdirectory of Git repo
+			gitRepoDir := config.GetString(cmd, "dir-git-repo")
+			if gitRepoDir != "" {
+				artifactsDir := config.GetString(cmd, "dir-artifacts")
+				gitRepoDirClean := filepath.Clean(gitRepoDir) + string(os.PathSeparator)
+				if artifactsDir != "" && !strings.HasPrefix(artifactsDir, gitRepoDirClean) {
+					return fmt.Errorf("--dir-artifacts [%v] should be a subdirectory of --dir-git-repo [%v]", artifactsDir, gitRepoDirClean)
+				}
+			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -40,7 +52,8 @@ tenant to a Git repository.`,
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	snapshotCmd.Flags().String("dir-git-repo", "", "Directory of Git repository containing contents of artifacts (grouped into packages)")
+	snapshotCmd.Flags().String("dir-git-repo", "", "Directory of Git repository")
+	snapshotCmd.Flags().String("dir-artifacts", "", "Directory containing contents of artifacts (grouped into packages)")
 	snapshotCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files")
 	snapshotCmd.Flags().String("draft-handling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR")
 	snapshotCmd.Flags().String("git-commit-msg", "Tenant snapshot of "+time.Now().Format(time.UnixDate), "Message used in commit")
@@ -58,6 +71,7 @@ func runSnapshot(cmd *cobra.Command) error {
 	log.Info().Msg("Executing snapshot command")
 
 	gitRepoDir := config.GetString(cmd, "dir-git-repo")
+	artifactsBaseDir := config.GetStringWithDefault(cmd, "dir-artifacts", gitRepoDir)
 	workDir := config.GetString(cmd, "dir-work")
 	draftHandling := config.GetString(cmd, "draft-handling")
 	commitMsg := config.GetString(cmd, "git-commit-msg")
@@ -67,7 +81,7 @@ func runSnapshot(cmd *cobra.Command) error {
 	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 
 	serviceDetails := api.GetServiceDetails(cmd)
-	err := getTenantSnapshot(serviceDetails, gitRepoDir, workDir, draftHandling, syncPackageLevelDetails)
+	err := getTenantSnapshot(serviceDetails, artifactsBaseDir, workDir, draftHandling, syncPackageLevelDetails)
 	if err != nil {
 		return err
 	}
@@ -81,7 +95,7 @@ func runSnapshot(cmd *cobra.Command) error {
 	return nil
 }
 
-func getTenantSnapshot(serviceDetails *api.ServiceDetails, gitRepoDir string, workDir string, draftHandling string, syncPackageLevelDetails bool) error {
+func getTenantSnapshot(serviceDetails *api.ServiceDetails, artifactsBaseDir string, workDir string, draftHandling string, syncPackageLevelDetails bool) error {
 	log.Info().Msg("---------------------------------------------------------------------------------")
 	log.Info().Msg("📢 Begin taking a snapshot of the tenant")
 
@@ -104,7 +118,7 @@ func getTenantSnapshot(serviceDetails *api.ServiceDetails, gitRepoDir string, wo
 		log.Info().Msg("---------------------------------------------------------------------------------")
 		log.Info().Msgf("Processing package %d/%d - ID: %v", i+1, len(ids), id)
 		packageWorkingDir := fmt.Sprintf("%v/%v", workDir, id)
-		packageArtifactsDir := fmt.Sprintf("%v/%v", gitRepoDir, id)
+		packageArtifactsDir := fmt.Sprintf("%v/%v", artifactsBaseDir, id)
 		packageDataFromTenant, readOnly, _, err := synchroniser.VerifyDownloadablePackage(id)
 		if err != nil {
 			if err != nil {
