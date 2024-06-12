@@ -2,6 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
@@ -9,14 +14,9 @@ import (
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 func NewSyncCommand() *cobra.Command {
-
 	syncCmd := &cobra.Command{
 		Use:   "sync",
 		Short: "Sync designtime artifacts between tenant and Git",
@@ -38,9 +38,9 @@ tenant and a Git repository.`,
 				return fmt.Errorf("invalid value for --draft-handling = %v", draftHandling)
 			}
 			// If artifacts directory is provided, validate that is it a subdirectory of Git repo
-			gitRepoDir := config.GetString(cmd, "dir-git-repo")
+			gitRepoDir := config.GetDirectory(cmd, "dir-git-repo")
 			if gitRepoDir != "" {
-				artifactsDir := config.GetString(cmd, "dir-artifacts")
+				artifactsDir := config.GetDirectory(cmd, "dir-artifacts")
 				gitRepoDirClean := filepath.Clean(gitRepoDir) + string(os.PathSeparator)
 				if artifactsDir != "" && !strings.HasPrefix(artifactsDir, gitRepoDirClean) {
 					return fmt.Errorf("--dir-artifacts [%v] should be a subdirectory of --dir-git-repo [%v]", artifactsDir, gitRepoDirClean)
@@ -96,9 +96,9 @@ func runSync(cmd *cobra.Command) error {
 	log.Info().Msg("Executing sync command")
 
 	packageId := config.GetString(cmd, "package-id")
-	gitRepoDir := config.GetString(cmd, "dir-git-repo")
+	gitRepoDir := config.GetDirectory(cmd, "dir-git-repo")
 	artifactsDir := config.GetStringWithDefault(cmd, "dir-artifacts", gitRepoDir)
-	workDir := config.GetString(cmd, "dir-work")
+	workDir := config.GetDirectory(cmd, "dir-work")
 	dirNamingType := config.GetString(cmd, "dir-naming-type")
 	draftHandling := config.GetString(cmd, "draft-handling")
 	includedIds := config.GetStringSlice(cmd, "ids-include")

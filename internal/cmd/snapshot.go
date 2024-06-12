@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
@@ -9,11 +11,9 @@ import (
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"time"
 )
 
 func NewSnapshotCommand() *cobra.Command {
-
 	snapshotCmd := &cobra.Command{
 		Use:   "snapshot",
 		Short: "Snapshot integration packages from tenant to Git",
@@ -57,8 +57,8 @@ tenant to a Git repository.`,
 func runSnapshot(cmd *cobra.Command) error {
 	log.Info().Msg("Executing snapshot command")
 
-	gitRepoDir := config.GetString(cmd, "dir-git-repo")
-	workDir := config.GetString(cmd, "dir-work")
+	gitRepoDir := config.GetDirectory(cmd, "dir-git-repo")
+	workDir := config.GetDirectory(cmd, "dir-work")
 	draftHandling := config.GetString(cmd, "draft-handling")
 	commitMsg := config.GetString(cmd, "git-commit-msg")
 	commitUser := config.GetString(cmd, "git-commit-user")
