@@ -2,6 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
@@ -11,14 +16,9 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 func NewAPIMCommand() *cobra.Command {
-
 	apimCmd := &cobra.Command{
 		Use:   "apim",
 		Short: "Sync API Management artifacts between tenant and Git",
@@ -26,9 +26,9 @@ func NewAPIMCommand() *cobra.Command {
 tenant and a Git repository.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// If artifacts directory is provided, validate that is it a subdirectory of Git repo
-			gitRepoDir := config.GetString(cmd, "dir-git-repo")
+			gitRepoDir := config.GetDirectory(cmd, "dir-git-repo")
 			if gitRepoDir != "" {
-				artifactsDir := config.GetString(cmd, "dir-artifacts")
+				artifactsDir := config.GetDirectory(cmd, "dir-artifacts")
 				gitRepoDirClean := filepath.Clean(gitRepoDir) + string(os.PathSeparator)
 				if artifactsDir != "" && !strings.HasPrefix(artifactsDir, gitRepoDirClean) {
 					return fmt.Errorf("--dir-artifacts [%v] should be a subdirectory of --dir-git-repo [%v]", artifactsDir, gitRepoDirClean)
@@ -62,9 +62,9 @@ tenant and a Git repository.`,
 func runSyncAPIM(cmd *cobra.Command) error {
 	log.Info().Msg("Executing sync apim command")
 
-	gitRepoDir := config.GetString(cmd, "dir-git-repo")
+	gitRepoDir := config.GetDirectory(cmd, "dir-git-repo")
 	artifactsDir := config.GetStringWithDefault(cmd, "dir-artifacts", gitRepoDir)
-	workDir := config.GetString(cmd, "dir-work")
+	workDir := config.GetDirectory(cmd, "dir-work")
 	includedIds := config.GetStringSlice(cmd, "ids-include")
 	excludedIds := config.GetStringSlice(cmd, "ids-exclude")
 	commitMsg := config.GetString(cmd, "git-commit-msg")

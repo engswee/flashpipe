@@ -1,6 +1,8 @@
 package config
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
@@ -29,5 +31,10 @@ func GetInt(cmd *cobra.Command, flagName string) int {
 
 func GetBool(cmd *cobra.Command, flagName string) bool {
 	val, _ := cmd.Flags().GetBool(flagName)
+	return val
+}
+
+func GetDirectory(cmd *cobra.Command, flagName string) string {
+	val := os.ExpandEnv(GetString(cmd, flagName))
 	return val
 }

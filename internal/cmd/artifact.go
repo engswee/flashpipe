@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
@@ -11,11 +13,9 @@ import (
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"time"
 )
 
 func NewArtifactCommand() *cobra.Command {
-
 	artifactCmd := &cobra.Command{
 		Use:   "artifact",
 		Short: "Create/update artifacts",
@@ -74,10 +74,10 @@ func runUpdateArtifact(cmd *cobra.Command) error {
 		log.Info().Msgf("Using package ID %v as package name", packageId)
 		packageName = packageId
 	}
-	artifactDir := config.GetString(cmd, "dir-artifact")
+	artifactDir := config.GetDirectory(cmd, "dir-artifact")
 	parametersFile := config.GetString(cmd, "file-param")
 	manifestFile := config.GetString(cmd, "file-manifest")
-	workDir := config.GetString(cmd, "dir-work")
+	workDir := config.GetDirectory(cmd, "dir-work")
 	scriptMap := config.GetStringSlice(cmd, "script-collection-map")
 
 	defaultParamFile := fmt.Sprintf("%v/src/main/resources/parameters.prop", artifactDir)
