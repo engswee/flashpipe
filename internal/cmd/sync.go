@@ -97,7 +97,7 @@ func runSync(cmd *cobra.Command) error {
 
 	packageId := config.GetString(cmd, "package-id")
 	gitRepoDir := config.GetDirectory(cmd, "dir-git-repo")
-	artifactsDir := config.GetStringWithDefault(cmd, "dir-artifacts", gitRepoDir)
+	artifactsDir := config.GetDirectoryWithDefault(cmd, "dir-artifacts", gitRepoDir)
 	workDir := config.GetDirectory(cmd, "dir-work")
 	dirNamingType := config.GetString(cmd, "dir-naming-type")
 	draftHandling := config.GetString(cmd, "draft-handling")

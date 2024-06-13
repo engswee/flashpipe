@@ -38,3 +38,11 @@ func GetDirectory(cmd *cobra.Command, flagName string) string {
 	val := os.ExpandEnv(GetString(cmd, flagName))
 	return val
 }
+
+func GetDirectoryWithDefault(cmd *cobra.Command, flagName string, defaultValue string) string {
+	val := GetDirectory(cmd, flagName)
+	if val == "" {
+		return defaultValue
+	}
+	return val
+}

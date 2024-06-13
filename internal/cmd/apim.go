@@ -63,7 +63,7 @@ func runSyncAPIM(cmd *cobra.Command) error {
 	log.Info().Msg("Executing sync apim command")
 
 	gitRepoDir := config.GetDirectory(cmd, "dir-git-repo")
-	artifactsDir := config.GetStringWithDefault(cmd, "dir-artifacts", gitRepoDir)
+	artifactsDir := config.GetDirectoryWithDefault(cmd, "dir-artifacts", gitRepoDir)
 	workDir := config.GetDirectory(cmd, "dir-work")
 	includedIds := config.GetStringSlice(cmd, "ids-include")
 	excludedIds := config.GetStringSlice(cmd, "ids-exclude")
