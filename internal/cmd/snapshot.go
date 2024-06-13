@@ -70,9 +70,9 @@ tenant to a Git repository.`,
 func runSnapshot(cmd *cobra.Command) error {
 	log.Info().Msg("Executing snapshot command")
 
-	gitRepoDir := config.GetString(cmd, "dir-git-repo")
+	gitRepoDir := config.GetDirectory(cmd, "dir-git-repo")
 	artifactsBaseDir := config.GetStringWithDefault(cmd, "dir-artifacts", gitRepoDir)
-	workDir := config.GetString(cmd, "dir-work")
+	workDir := config.GetDirectory(cmd, "dir-work")
 	draftHandling := config.GetString(cmd, "draft-handling")
 	commitMsg := config.GetString(cmd, "git-commit-msg")
 	commitUser := config.GetString(cmd, "git-commit-user")
