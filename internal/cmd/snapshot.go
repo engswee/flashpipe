@@ -2,6 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
@@ -9,14 +14,9 @@ import (
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 func NewSnapshotCommand() *cobra.Command {
-
 	snapshotCmd := &cobra.Command{
 		Use:   "snapshot",
 		Short: "Snapshot integration packages from tenant to Git",
@@ -31,9 +31,16 @@ tenant to a Git repository.`,
 				return fmt.Errorf("invalid value for --draft-handling = %v", draftHandling)
 			}
 			// If artifacts directory is provided, validate that is it a subdirectory of Git repo
-			gitRepoDir := config.GetDirectory(cmd, "dir-git-repo")
+			gitRepoDir, err := config.GetStringWithEnvExpand(cmd, "dir-git-repo")
+			if err != nil {
+				return fmt.Errorf("security alert for --dir-git-repo: %w", err)
+			}
+
 			if gitRepoDir != "" {
-				artifactsDir := config.GetDirectory(cmd, "dir-artifacts")
+				artifactsDir, err := config.GetStringWithEnvExpand(cmd, "dir-artifacts")
+				if err != nil {
+					return fmt.Errorf("security alert for --dir-artifacts: %w", err)
+				}
 				gitRepoDirClean := filepath.Clean(gitRepoDir) + string(os.PathSeparator)
 				if artifactsDir != "" && !strings.HasPrefix(artifactsDir, gitRepoDirClean) {
 					return fmt.Errorf("--dir-artifacts [%v] should be a subdirectory of --dir-git-repo [%v]", artifactsDir, gitRepoDirClean)
@@ -70,9 +77,18 @@ tenant to a Git repository.`,
 func runSnapshot(cmd *cobra.Command) error {
 	log.Info().Msg("Executing snapshot command")
 
-	gitRepoDir := config.GetDirectory(cmd, "dir-git-repo")
-	artifactsBaseDir := config.GetDirectoryWithDefault(cmd, "dir-artifacts", gitRepoDir)
-	workDir := config.GetDirectory(cmd, "dir-work")
+	gitRepoDir, err := config.GetStringWithEnvExpand(cmd, "dir-git-repo")
+	if err != nil {
+		return fmt.Errorf("security alert for --dir-git-repo: %w", err)
+	}
+	artifactsBaseDir, err := config.GetStringWithEnvExpandWithDefault(cmd, "dir-artifacts", gitRepoDir)
+	if err != nil {
+		return fmt.Errorf("security alert for --dir-artifacts: %w", err)
+	}
+	workDir, err := config.GetStringWithEnvExpand(cmd, "dir-work")
+	if err != nil {
+		return fmt.Errorf("security alert for --dir-work: %w", err)
+	}
 	draftHandling := config.GetString(cmd, "draft-handling")
 	commitMsg := config.GetString(cmd, "git-commit-msg")
 	commitUser := config.GetString(cmd, "git-commit-user")
@@ -81,7 +97,7 @@ func runSnapshot(cmd *cobra.Command) error {
 	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 
 	serviceDetails := api.GetServiceDetails(cmd)
-	err := getTenantSnapshot(serviceDetails, artifactsBaseDir, workDir, draftHandling, syncPackageLevelDetails)
+	err = getTenantSnapshot(serviceDetails, artifactsBaseDir, workDir, draftHandling, syncPackageLevelDetails)
 	if err != nil {
 		return err
 	}

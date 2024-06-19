@@ -26,9 +26,15 @@ func NewAPIMCommand() *cobra.Command {
 tenant and a Git repository.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// If artifacts directory is provided, validate that is it a subdirectory of Git repo
-			gitRepoDir := config.GetDirectory(cmd, "dir-git-repo")
+			gitRepoDir, err := config.GetStringWithEnvExpand(cmd, "dir-git-repo")
+			if err != nil {
+				return fmt.Errorf("security alert for --dir-git-repo: %w", err)
+			}
 			if gitRepoDir != "" {
-				artifactsDir := config.GetDirectory(cmd, "dir-artifacts")
+				artifactsDir, err := config.GetStringWithEnvExpand(cmd, "dir-artifacts")
+				if err != nil {
+					return fmt.Errorf("security alert for --dir-artifacts: %w", err)
+				}
 				gitRepoDirClean := filepath.Clean(gitRepoDir) + string(os.PathSeparator)
 				if artifactsDir != "" && !strings.HasPrefix(artifactsDir, gitRepoDirClean) {
 					return fmt.Errorf("--dir-artifacts [%v] should be a subdirectory of --dir-git-repo [%v]", artifactsDir, gitRepoDirClean)
@@ -62,9 +68,18 @@ tenant and a Git repository.`,
 func runSyncAPIM(cmd *cobra.Command) error {
 	log.Info().Msg("Executing sync apim command")
 
-	gitRepoDir := config.GetDirectory(cmd, "dir-git-repo")
-	artifactsDir := config.GetDirectoryWithDefault(cmd, "dir-artifacts", gitRepoDir)
-	workDir := config.GetDirectory(cmd, "dir-work")
+	gitRepoDir, err := config.GetStringWithEnvExpand(cmd, "dir-git-repo")
+	if err != nil {
+		return fmt.Errorf("security alert for --dir-git-repo: %w", err)
+	}
+	artifactsDir, err := config.GetStringWithEnvExpandWithDefault(cmd, "dir-artifacts", gitRepoDir)
+	if err != nil {
+		return fmt.Errorf("security alert for --dir-artifacts: %w", err)
+	}
+	workDir, err := config.GetStringWithEnvExpand(cmd, "dir-work")
+	if err != nil {
+		return fmt.Errorf("security alert for --dir-work: %w", err)
+	}
 	includedIds := config.GetStringSlice(cmd, "ids-include")
 	excludedIds := config.GetStringSlice(cmd, "ids-exclude")
 	commitMsg := config.GetString(cmd, "git-commit-msg")
@@ -83,7 +98,7 @@ func runSyncAPIM(cmd *cobra.Command) error {
 
 	syncer := sync.NewSyncer(target, "APIM", exe)
 	apimWorkDir := fmt.Sprintf("%v/apim", workDir)
-	err := syncer.Exec(apimWorkDir, artifactsDir, str.TrimSlice(includedIds), str.TrimSlice(excludedIds))
+	err = syncer.Exec(apimWorkDir, artifactsDir, str.TrimSlice(includedIds), str.TrimSlice(excludedIds))
 	if err != nil {
 		return err
 	}

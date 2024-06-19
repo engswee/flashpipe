@@ -74,10 +74,16 @@ func runUpdateArtifact(cmd *cobra.Command) error {
 		log.Info().Msgf("Using package ID %v as package name", packageId)
 		packageName = packageId
 	}
-	artifactDir := config.GetDirectory(cmd, "dir-artifact")
+	artifactDir, err := config.GetStringWithEnvExpand(cmd, "dir-artifact")
+	if err != nil {
+		return fmt.Errorf("security alert for --dir-artifact: %w", err)
+	}
 	parametersFile := config.GetString(cmd, "file-param")
 	manifestFile := config.GetString(cmd, "file-manifest")
-	workDir := config.GetDirectory(cmd, "dir-work")
+	workDir, err := config.GetStringWithEnvExpand(cmd, "dir-work")
+	if err != nil {
+		return fmt.Errorf("security alert for --dir-work: %w", err)
+	}
 	scriptMap := config.GetStringSlice(cmd, "script-collection-map")
 
 	defaultParamFile := fmt.Sprintf("%v/src/main/resources/parameters.prop", artifactDir)
@@ -125,7 +131,7 @@ func runUpdateArtifact(cmd *cobra.Command) error {
 	exe := api.InitHTTPExecuter(serviceDetails)
 
 	// Create integration package first if required
-	err := createPackage(packageId, packageName, exe)
+	err = createPackage(packageId, packageName, exe)
 	if err != nil {
 		return err
 	}

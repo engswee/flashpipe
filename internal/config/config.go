@@ -1,9 +1,12 @@
 package config
 
 import (
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func GetString(cmd *cobra.Command, flagName string) string {
@@ -34,15 +37,43 @@ func GetBool(cmd *cobra.Command, flagName string) bool {
 	return val
 }
 
-func GetDirectory(cmd *cobra.Command, flagName string) string {
+func GetStringWithEnvExpand(cmd *cobra.Command, flagName string) (string, error) {
 	val := os.ExpandEnv(GetString(cmd, flagName))
-	return val
+
+	isNoSecretsFound, err := validateInputContainsNoSecrets(val)
+	if !isNoSecretsFound {
+		return "", fmt.Errorf("Secrets found in flag %v: %w", flagName, err)
+	}
+
+	return val, nil
 }
 
-func GetDirectoryWithDefault(cmd *cobra.Command, flagName string, defaultValue string) string {
-	val := GetDirectory(cmd, flagName)
-	if val == "" {
-		return defaultValue
+func GetStringWithEnvExpandWithDefault(cmd *cobra.Command, flagName string, defaultValue string) (string, error) {
+	val, err := GetStringWithEnvExpand(cmd, flagName)
+	if err != nil {
+		return "", fmt.Errorf("Secrets found in flag %v: %w", flagName, err)
 	}
-	return val
+
+	if val == "" {
+		return defaultValue, nil
+	}
+
+	return val, nil
+}
+
+func validateInputContainsNoSecrets(input string) (bool, error) {
+	secretsConfigParams := []string{
+		"tmn-userid",
+		"tmn-password",
+		"oauth-clientid",
+		"oauth-clientsecret",
+	}
+
+	for _, secretsConfigParam := range secretsConfigParams {
+		if viper.IsSet(secretsConfigParam) && strings.Contains(input, viper.GetString(secretsConfigParam)) {
+			return false, fmt.Errorf("Input contains value of secret configuration parameter %v", secretsConfigParam)
+		}
+	}
+
+	return true, nil
 }
