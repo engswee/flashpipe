@@ -40,9 +40,9 @@ func GetBool(cmd *cobra.Command, flagName string) bool {
 func GetStringWithEnvExpand(cmd *cobra.Command, flagName string) (string, error) {
 	val := os.ExpandEnv(GetString(cmd, flagName))
 
-	isNoSecretsFound, err := validateInputContainsNoSecrets(val)
-	if !isNoSecretsFound {
-		return "", fmt.Errorf("Secrets found in flag %v: %w", flagName, err)
+	isNoSensContFound, err := verifyNoSensitiveContent(val)
+	if !isNoSensContFound {
+		return "", fmt.Errorf("Sensitive content found in flag %v: %w", flagName, err)
 	}
 
 	return val, nil
@@ -51,7 +51,7 @@ func GetStringWithEnvExpand(cmd *cobra.Command, flagName string) (string, error)
 func GetStringWithEnvExpandWithDefault(cmd *cobra.Command, flagName string, defaultValue string) (string, error) {
 	val, err := GetStringWithEnvExpand(cmd, flagName)
 	if err != nil {
-		return "", fmt.Errorf("Secrets found in flag %v: %w", flagName, err)
+		return "", fmt.Errorf("Sensitive content found in flag %v: %w", flagName, err)
 	}
 
 	if val == "" {
@@ -61,17 +61,17 @@ func GetStringWithEnvExpandWithDefault(cmd *cobra.Command, flagName string, defa
 	return val, nil
 }
 
-func validateInputContainsNoSecrets(input string) (bool, error) {
-	secretsConfigParams := []string{
+func verifyNoSensitiveContent(input string) (bool, error) {
+	sensContConfigParams := []string{
 		"tmn-userid",
 		"tmn-password",
 		"oauth-clientid",
 		"oauth-clientsecret",
 	}
 
-	for _, secretsConfigParam := range secretsConfigParams {
-		if viper.IsSet(secretsConfigParam) && strings.Contains(input, viper.GetString(secretsConfigParam)) {
-			return false, fmt.Errorf("Input contains value of secret configuration parameter %v", secretsConfigParam)
+	for _, sensContConfigParam := range sensContConfigParams {
+		if viper.IsSet(sensContConfigParam) && strings.Contains(input, viper.GetString(sensContConfigParam)) {
+			return false, fmt.Errorf("Input contains sensitive content from configuration parameter %v", sensContConfigParam)
 		}
 	}
 
