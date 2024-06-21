@@ -1,6 +1,8 @@
 package str
 
 import (
+	"github.com/rs/zerolog/log"
+	"slices"
 	"strings"
 )
 
@@ -33,4 +35,21 @@ func TrimManifestField(field string, width int) string {
 		field = field[:index] + field[index+1:]
 	}
 	return field
+}
+
+func FilterIDs(id string, includedIds []string, excludedIds []string) bool {
+	// Filter in/out IDs
+	if len(includedIds) > 0 {
+		if !slices.Contains(includedIds, id) {
+			log.Warn().Msgf("Skipping %v as it is not in --ids-include", id)
+			return true
+		}
+	}
+	if len(excludedIds) > 0 {
+		if slices.Contains(excludedIds, id) {
+			log.Warn().Msgf("Skipping %v as it is in --ids-exclude", id)
+			return true
+		}
+	}
+	return false
 }

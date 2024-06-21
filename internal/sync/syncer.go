@@ -5,11 +5,11 @@ import (
 	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
+	"github.com/engswee/flashpipe/internal/str"
 	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
 	"os"
 	"path/filepath"
-	"slices"
 )
 
 type Syncer interface {
@@ -69,7 +69,7 @@ func (s *APIMGitSynchroniser) Exec(workDir string, artifactsDir string, included
 		log.Info().Msgf("📢 Begin processing for APIProxy %v", artifact.Name)
 
 		// Filter in/out artifacts
-		if skipArtifact(artifact.Name, includedIds, excludedIds) {
+		if str.FilterIDs(artifact.Name, includedIds, excludedIds) {
 			continue
 		}
 
@@ -157,7 +157,7 @@ func (s *APIMTenantSynchroniser) Exec(workDir string, artifactsDir string, inclu
 			log.Info().Msgf("Processing directory %v", gitArtifactDir)
 
 			// Filter in/out artifacts
-			if skipArtifact(artifactId, includedIds, excludedIds) {
+			if str.FilterIDs(artifactId, includedIds, excludedIds) {
 				continue
 			}
 
@@ -206,21 +206,4 @@ func (s *APIMTenantSynchroniser) Exec(workDir string, artifactsDir string, inclu
 	log.Info().Msg("---------------------------------------------------------------------------------")
 	log.Info().Msgf("🏆 Completed processing of APIProxies")
 	return nil
-}
-
-func skipArtifact(artifactId string, includedIds []string, excludedIds []string) bool {
-	// Filter in/out artifacts
-	if len(includedIds) > 0 {
-		if !slices.Contains(includedIds, artifactId) {
-			log.Warn().Msgf("Skipping %v as it is not in --ids-include", artifactId)
-			return true
-		}
-	}
-	if len(excludedIds) > 0 {
-		if slices.Contains(excludedIds, artifactId) {
-			log.Warn().Msgf("Skipping %v as it is in --ids-exclude", artifactId)
-			return true
-		}
-	}
-	return false
 }

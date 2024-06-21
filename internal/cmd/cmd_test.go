@@ -197,6 +197,7 @@ func TestCPICommands(t *testing.T) {
 	args = append(args, "snapshot")
 	args = append(args, "--dir-git-repo", "../../output/snapshot/repo")
 	args = append(args, "--dir-work", "../../output/snapshot/work")
+	args = append(args, "--ids-include", "FlashPipeIntegrationTest")
 	args = append(args, "--sync-package-details")
 	args = append(args, "--git-skip-commit")
 

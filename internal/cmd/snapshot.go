@@ -2,21 +2,22 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
-
 	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/repo"
+	"github.com/engswee/flashpipe/internal/str"
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 )
 
 func NewSnapshotCommand() *cobra.Command {
+
 	snapshotCmd := &cobra.Command{
 		Use:   "snapshot",
 		Short: "Snapshot integration packages from tenant to Git",
@@ -63,6 +64,10 @@ tenant to a Git repository.`,
 	snapshotCmd.Flags().String("dir-artifacts", "", "Directory containing contents of artifacts (grouped into packages)")
 	snapshotCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files")
 	snapshotCmd.Flags().String("draft-handling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR")
+	snapshotCmd.Flags().StringSlice("ids-include", nil, "List of included package IDs")
+	snapshotCmd.Flags().StringSlice("ids-exclude", nil, "List of excluded package IDs")
+
+	// TODO - add restore feature
 	snapshotCmd.Flags().String("git-commit-msg", "Tenant snapshot of "+time.Now().Format(time.UnixDate), "Message used in commit")
 	snapshotCmd.Flags().String("git-commit-user", "github-actions[bot]", "User used in commit")
 	snapshotCmd.Flags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit")
@@ -70,6 +75,7 @@ tenant to a Git repository.`,
 	snapshotCmd.Flags().Bool("sync-package-details", false, "Sync details of Integration Packages")
 
 	_ = snapshotCmd.MarkFlagRequired("dir-git-repo")
+	snapshotCmd.MarkFlagsMutuallyExclusive("ids-include", "ids-exclude")
 
 	return snapshotCmd
 }
@@ -90,6 +96,8 @@ func runSnapshot(cmd *cobra.Command) error {
 		return fmt.Errorf("security alert for --dir-work: %w", err)
 	}
 	draftHandling := config.GetString(cmd, "draft-handling")
+	includedIds := config.GetStringSlice(cmd, "ids-include")
+	excludedIds := config.GetStringSlice(cmd, "ids-exclude")
 	commitMsg := config.GetString(cmd, "git-commit-msg")
 	commitUser := config.GetString(cmd, "git-commit-user")
 	commitEmail := config.GetString(cmd, "git-commit-email")
@@ -97,7 +105,7 @@ func runSnapshot(cmd *cobra.Command) error {
 	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 
 	serviceDetails := api.GetServiceDetails(cmd)
-	err = getTenantSnapshot(serviceDetails, artifactsBaseDir, workDir, draftHandling, syncPackageLevelDetails)
+	err = getTenantSnapshot(serviceDetails, artifactsBaseDir, workDir, draftHandling, syncPackageLevelDetails, includedIds, excludedIds)
 	if err != nil {
 		return err
 	}
@@ -111,7 +119,7 @@ func runSnapshot(cmd *cobra.Command) error {
 	return nil
 }
 
-func getTenantSnapshot(serviceDetails *api.ServiceDetails, artifactsBaseDir string, workDir string, draftHandling string, syncPackageLevelDetails bool) error {
+func getTenantSnapshot(serviceDetails *api.ServiceDetails, artifactsBaseDir string, workDir string, draftHandling string, syncPackageLevelDetails bool, includedIds []string, excludedIds []string) error {
 	log.Info().Msg("---------------------------------------------------------------------------------")
 	log.Info().Msg("📢 Begin taking a snapshot of the tenant")
 
@@ -142,6 +150,10 @@ func getTenantSnapshot(serviceDetails *api.ServiceDetails, artifactsBaseDir stri
 			}
 		}
 		if !readOnly {
+			// Filter in/out artifacts
+			if str.FilterIDs(id, includedIds, excludedIds) {
+				continue
+			}
 			if syncPackageLevelDetails {
 				err = synchroniser.PackageToGit(packageDataFromTenant, id, packageWorkingDir, packageArtifactsDir)
 				if err != nil {

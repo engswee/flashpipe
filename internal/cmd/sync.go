@@ -61,7 +61,6 @@ tenant and a Git repository.`,
 			default:
 				return fmt.Errorf("invalid value for --target = %v", target)
 			}
-			// TODO - Validate secrets in env var, lower priority as it is no longer resolved in GitHub action workflow
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
