@@ -1,5 +1,17 @@
 # Release Notes
 
+## 3.4.0 (Released 28 June 2024)
+
+---
+
+- New flags for `snapshot` command
+  - New flag `--dir-artifacts` (env var `FLASHPIPE_DIR_ARTIFACTS`)
+    - allows the artifact contents to be stored in a subdirectory of the Git repository (grouped into packaged)
+  - New flags `--ids-include` (env var `FLASHPIPE_IDS_INCLUDE`) and `--ids-exclude` (env var `FLASHPIPE_IDS_EXCLUDE`)
+    - allows including or excluding specific package IDs from snapshot
+- Supporting Shell expansion for environment variables for certain parameters (details in [FlashPipe CLI page](flashpipe-cli.md))
+  - contributed by [Vadim Klimov](https://github.com/vadimklimov)
+
 ## 3.3.0 (Released 17 May 2024)
 
 ---

@@ -63,7 +63,7 @@ Flags:
   -h, --help                           help for artifact
       --package-id string              ID of Integration Package
       --package-name string            Name of Integration Package. Defaults to package-id value when not provided
-      --script-collection-map string   Comma-separated source-target ID pairs for converting script collection references during create/update
+      --script-collection-map strings  Comma-separated source-target ID pairs for converting script collection references during create/update
 
 Global Flags:
       --config string               config file (default is $HOME/flashpipe.yaml)
@@ -82,18 +82,18 @@ NOTE: Encapsulate values in double quotes ("") if there are space characters in 
 #### CLI flags and environment variables list
 The following is the list of flags for the `update artifact` command and their corresponding environment variable name.
 
-| CLI flag name         | Environment variable name       | Mandatory |
-|-----------------------|---------------------------------|-----------|
-| artifact-id           | FLASHPIPE_ARTIFACT_ID           | Yes       |
-| artifact-name         | FLASHPIPE_ARTIFACT_NAME         | No        |
-| package-id            | FLASHPIPE_PACKAGE_ID            | Yes       |
-| package-name          | FLASHPIPE_PACKAGE_NAME          | No        |
-| dir-artifact          | FLASHPIPE_DIR_ARTIFACT          | Yes       |
-| artifact-type         | FLASHPIPE_ARTIFACT_TYPE         | No        |
-| file-param            | FLASHPIPE_FILE_PARAM            | No        |
-| file-manifest         | FLASHPIPE_FILE_MANIFEST         | No        |
-| dir-work              | FLASHPIPE_DIR_WORK              | No        |
-| script-collection-map | FLASHPIPE_SCRIPT_COLLECTION_MAP | No        |
+| CLI flag name         | Environment variable name       | Mandatory | Shell expansion supported |
+|-----------------------|---------------------------------|-----------|---------------------------|
+| artifact-id           | FLASHPIPE_ARTIFACT_ID           | Yes       | No                        |
+| artifact-name         | FLASHPIPE_ARTIFACT_NAME         | No        | No                        |
+| package-id            | FLASHPIPE_PACKAGE_ID            | Yes       | No                        |
+| package-name          | FLASHPIPE_PACKAGE_NAME          | No        | No                        |
+| dir-artifact          | FLASHPIPE_DIR_ARTIFACT          | Yes       | Yes                       |
+| artifact-type         | FLASHPIPE_ARTIFACT_TYPE         | No        | No                        |
+| file-param            | FLASHPIPE_FILE_PARAM            | No        | No                        |
+| file-manifest         | FLASHPIPE_FILE_MANIFEST         | No        | No                        |
+| dir-work              | FLASHPIPE_DIR_WORK              | No        | Yes                       |
+| script-collection-map | FLASHPIPE_SCRIPT_COLLECTION_MAP | No        | No                        |
 
 
 #### Example (Basic Auth with CLI flags)
@@ -157,9 +157,9 @@ Global Flags:
 #### CLI flags and environment variables list
 The following is the list of flags for the `update package` command and their corresponding environment variable name.
 
-| CLI flag name         | Environment variable name | Mandatory |
-|-----------------------|---------------------------|-----------|
-| package-file          | FLASHPIPE_PACKAGE_FILE    | Yes       |
+| CLI flag name | Environment variable name | Mandatory | Shell expansion supported |
+|---------------|---------------------------|-----------|---------------------------|
+| package-file  | FLASHPIPE_PACKAGE_FILE    | Yes       | No                        |
 
 #### Example (Basic Auth with CLI flags)
 ```bash
@@ -193,7 +193,7 @@ Usage:
   flashpipe deploy [flags]
 
 Flags:
-      --artifact-ids string    Comma separated list of artifact IDs
+      --artifact-ids strings   Comma separated list of artifact IDs
       --artifact-type string   Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping (default "Integration")
       --compare-versions       Perform version comparison of design time against runtime before deployment (default true)
       --delay-length int       Delay (in seconds) between each check of artifact deployment status (default 30)
@@ -215,13 +215,13 @@ Global Flags:
 #### CLI flags and environment variables list
 The following is the list of flags for the `deploy` command and their corresponding environment variable name.
 
-| CLI flag name    | Environment variable name  | Mandatory |
-|------------------|----------------------------|-----------|
-| artifact-ids     | FLASHPIPE_ARTIFACT_IDS     | Yes       |
-| artifact-type    | FLASHPIPE_ARTIFACT_TYPE    | No        |
-| compare-versions | FLASHPIPE_COMPARE_VERSIONS | No        |
-| delay-length     | FLASHPIPE_DELAY_LENGTH     | No        |
-| max-check-limit  | FLASHPIPE_MAX_CHECK_LIMIT  | No        |
+| CLI flag name    | Environment variable name  | Mandatory | Shell expansion supported |
+|------------------|----------------------------|-----------|---------------------------|
+| artifact-ids     | FLASHPIPE_ARTIFACT_IDS     | Yes       | No                        |
+| artifact-type    | FLASHPIPE_ARTIFACT_TYPE    | No        | No                        |
+| compare-versions | FLASHPIPE_COMPARE_VERSIONS | No        | No                        |
+| delay-length     | FLASHPIPE_DELAY_LENGTH     | No        | No                        |
+| max-check-limit  | FLASHPIPE_MAX_CHECK_LIMIT  | No        | No                        |
 
 #### Example (Basic Auth with CLI flags)
 ```bash
@@ -265,10 +265,10 @@ Flags:
       --git-commit-user string         User used in commit (default "github-actions[bot]")
       --git-skip-commit                Skip committing changes to Git repository
   -h, --help                           help for sync
-      --ids-exclude string             List of excluded artifact IDs
-      --ids-include string             List of included artifact IDs
+      --ids-exclude strings            List of excluded artifact IDs
+      --ids-include strings            List of included artifact IDs
       --package-id string              ID of Integration Package
-      --script-collection-map string   Comma-separated source-target ID pairs for converting script collection references during sync 
+      --script-collection-map strings  Comma-separated source-target ID pairs for converting script collection references during sync 
       --sync-package-details           Sync details of Integration Package
       --target                         Target of sync. Allowed values: git, tenant (default "git")
 
@@ -287,23 +287,23 @@ Global Flags:
 #### CLI flags and environment variables list
 The following is the list of flags for the `sync` command and their corresponding environment variable name. The fourth column indicates whether the flag is valid for the specific value of --target.
 
-| CLI flag name         | Environment variable name       | Mandatory | Applicable for value of --target |
-|-----------------------|---------------------------------|-----------|----------------------------------|
-| package-id            | FLASHPIPE_PACKAGE_ID            | Yes       | git, tenant                      |
-| dir-git-repo          | FLASHPIPE_DIR_GIT_REPO          | Yes       | git, tenant                      |
-| dir-artifacts         | FLASHPIPE_DIR_ARTIFACTS         | No        | git, tenant                      |
-| target                | FLASHPIPE_TARGET                | No        | git, tenant                      |
-| dir-naming-type       | FLASHPIPE_DIR_NAMING_TYPE       | No        | git                              |
-| draft-handling        | FLASHPIPE_DRAFT_HANDLING        | No        | git                              |
-| ids-include           | FLASHPIPE_IDS_INCLUDE           | No        | git, tenant                      |
-| ids-exclude           | FLASHPIPE_IDS_EXCLUDE           | No        | git, tenant                      |
-| git-commit-msg        | FLASHPIPE_GIT_COMMIT_MSG        | No        | git                              |
-| git-commit-user       | FLASHPIPE_GIT_COMMIT_USER       | No        | git                              |
-| git-commit-email      | FLASHPIPE_GIT_COMMIT_EMAIL      | No        | git                              |
-| git-skip-commit       | FLASHPIPE_GIT_SKIP_COMMIT       | No        | git                              |
-| script-collection-map | FLASHPIPE_SCRIPT_COLLECTION_MAP | No        | git                              |
-| sync-package-details  | FLASHPIPE_SYNC_PACKAGE_DETAILS  | No        | git                              |
-| dir-work              | FLASHPIPE_DIR_WORK              | No        | git, tenant                      |
+| CLI flag name         | Environment variable name       | Mandatory | Applicable for value of --target | Shell expansion supported |
+|-----------------------|---------------------------------|-----------|----------------------------------|---------------------------|
+| package-id            | FLASHPIPE_PACKAGE_ID            | Yes       | git, tenant                      | No                        |
+| dir-git-repo          | FLASHPIPE_DIR_GIT_REPO          | Yes       | git, tenant                      | Yes                       |
+| dir-artifacts         | FLASHPIPE_DIR_ARTIFACTS         | No        | git, tenant                      | Yes                       |
+| target                | FLASHPIPE_TARGET                | No        | git, tenant                      | No                        |
+| dir-naming-type       | FLASHPIPE_DIR_NAMING_TYPE       | No        | git                              | No                        |
+| draft-handling        | FLASHPIPE_DRAFT_HANDLING        | No        | git                              | No                        |
+| ids-include           | FLASHPIPE_IDS_INCLUDE           | No        | git, tenant                      | No                        |
+| ids-exclude           | FLASHPIPE_IDS_EXCLUDE           | No        | git, tenant                      | No                        |
+| git-commit-msg        | FLASHPIPE_GIT_COMMIT_MSG        | No        | git                              | No                        |
+| git-commit-user       | FLASHPIPE_GIT_COMMIT_USER       | No        | git                              | No                        |
+| git-commit-email      | FLASHPIPE_GIT_COMMIT_EMAIL      | No        | git                              | No                        |
+| git-skip-commit       | FLASHPIPE_GIT_SKIP_COMMIT       | No        | git                              | No                        |
+| script-collection-map | FLASHPIPE_SCRIPT_COLLECTION_MAP | No        | git                              | No                        |
+| sync-package-details  | FLASHPIPE_SYNC_PACKAGE_DETAILS  | No        | git                              | No                        |
+| dir-work              | FLASHPIPE_DIR_WORK              | No        | git, tenant                      | Yes                       |
 
 #### Example (Basic Auth with CLI flags)
 ```bash
@@ -348,8 +348,8 @@ Flags:
       --git-commit-user string         User used in commit (default "github-actions[bot]")
       --git-skip-commit                Skip committing changes to Git repository
   -h, --help                           help for sync
-      --ids-exclude string             List of excluded artifact IDs
-      --ids-include string             List of included artifact IDs
+      --ids-exclude strings            List of excluded artifact IDs
+      --ids-include strings            List of included artifact IDs
       --target                         Target of sync. Allowed values: git, tenant (default "git")
 
 Global Flags:
@@ -365,18 +365,18 @@ Global Flags:
 #### CLI flags and environment variables list
 The following is the list of flags for the `sync apim` command and their corresponding environment variable name. The fourth column indicates whether the flag is valid for the specific value of --target.
 
-| CLI flag name         | Environment variable name       | Mandatory | Applicable for value of --target |
-|-----------------------|---------------------------------|-----------|----------------------------------|
-| dir-git-repo          | FLASHPIPE_DIR_GIT_REPO          | Yes       | git, tenant                      |
-| dir-artifacts         | FLASHPIPE_DIR_ARTIFACTS         | No        | git, tenant                      |
-| target                | FLASHPIPE_TARGET                | No        | git, tenant                      |
-| ids-include           | FLASHPIPE_IDS_INCLUDE           | No        | git, tenant                      |
-| ids-exclude           | FLASHPIPE_IDS_EXCLUDE           | No        | git, tenant                      |
-| git-commit-msg        | FLASHPIPE_GIT_COMMIT_MSG        | No        | git                              |
-| git-commit-user       | FLASHPIPE_GIT_COMMIT_USER       | No        | git                              |
-| git-commit-email      | FLASHPIPE_GIT_COMMIT_EMAIL      | No        | git                              |
-| git-skip-commit       | FLASHPIPE_GIT_SKIP_COMMIT       | No        | git                              |
-| dir-work              | FLASHPIPE_DIR_WORK              | No        | git, tenant                      |
+| CLI flag name    | Environment variable name  | Mandatory | Applicable for value of --target | Shell expansion supported |
+|------------------|----------------------------|-----------|----------------------------------|---------------------------|
+| dir-git-repo     | FLASHPIPE_DIR_GIT_REPO     | Yes       | git, tenant                      | Yes                       |
+| dir-artifacts    | FLASHPIPE_DIR_ARTIFACTS    | No        | git, tenant                      | Yes                       |
+| target           | FLASHPIPE_TARGET           | No        | git, tenant                      | No                        |
+| ids-include      | FLASHPIPE_IDS_INCLUDE      | No        | git, tenant                      | No                        |
+| ids-exclude      | FLASHPIPE_IDS_EXCLUDE      | No        | git, tenant                      | No                        |
+| git-commit-msg   | FLASHPIPE_GIT_COMMIT_MSG   | No        | git                              | No                        |
+| git-commit-user  | FLASHPIPE_GIT_COMMIT_USER  | No        | git                              | No                        |
+| git-commit-email | FLASHPIPE_GIT_COMMIT_EMAIL | No        | git                              | No                        |
+| git-skip-commit  | FLASHPIPE_GIT_SKIP_COMMIT  | No        | git                              | No                        |
+| dir-work         | FLASHPIPE_DIR_WORK         | No        | git, tenant                      | Yes                       |
 
 #### Example (OAuth with CLI flags)
 ```bash
@@ -411,6 +411,7 @@ Usage:
   flashpipe snapshot [flags]
 
 Flags:
+      --dir-artifacts string      Directory containing contents of artifacts (grouped into packages)
       --dir-git-repo string       Directory of Git repository containing contents of artifacts (grouped into packages)
       --dir-work string           Working directory for in-transit files (default "/tmp")
       --draft-handling string     Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR (default "SKIP")
@@ -419,6 +420,8 @@ Flags:
       --git-commit-user string    User used in commit (default "github-actions[bot]")
       --git-skip-commit           Skip committing changes to Git repository
   -h, --help                      help for snapshot
+      --ids-include strings       List of included package IDs
+      --ids-exclude strings       List of excluded package IDs
       --sync-package-details      Sync details of Integration Packages
 
 Global Flags:
@@ -436,16 +439,19 @@ Global Flags:
 #### CLI flags and environment variables list
 The following is the list of flags for the `snapshot` command and their corresponding environment variable name.
 
-| CLI flag name         | Environment variable name       | Mandatory |
-|-----------------------|---------------------------------|-----------|
-| dir-git-repo          | FLASHPIPE_DIR_GIT_REPO          | Yes       |
-| draft-handling        | FLASHPIPE_DRAFT_HANDLING        | No        |
-| git-commit-msg        | FLASHPIPE_GIT_COMMIT_MSG        | No        |
-| git-commit-user       | FLASHPIPE_GIT_COMMIT_USER       | No        |
-| git-commit-email      | FLASHPIPE_GIT_COMMIT_EMAIL      | No        |
-| git-skip-commit       | FLASHPIPE_GIT_SKIP_COMMIT       | No        |
-| sync-package-details  | FLASHPIPE_SYNC_PACKAGE_DETAILS  | No        |
-| dir-work              | FLASHPIPE_DIR_WORK              | No        |
+| CLI flag name        | Environment variable name      | Mandatory | Shell expansion supported |
+|----------------------|--------------------------------|-----------|---------------------------|
+| dir-git-repo         | FLASHPIPE_DIR_GIT_REPO         | Yes       | Yes                       |
+| dir-artifacts        | FLASHPIPE_DIR_ARTIFACTS        | No        | Yes                       |
+| draft-handling       | FLASHPIPE_DRAFT_HANDLING       | No        | No                        |
+| ids-include          | FLASHPIPE_IDS_INCLUDE          | No        | No                        |
+| ids-exclude          | FLASHPIPE_IDS_EXCLUDE          | No        | No                        |
+| git-commit-msg       | FLASHPIPE_GIT_COMMIT_MSG       | No        | No                        |
+| git-commit-user      | FLASHPIPE_GIT_COMMIT_USER      | No        | No                        |
+| git-commit-email     | FLASHPIPE_GIT_COMMIT_EMAIL     | No        | No                        |
+| git-skip-commit      | FLASHPIPE_GIT_SKIP_COMMIT      | No        | No                        |
+| sync-package-details | FLASHPIPE_SYNC_PACKAGE_DETAILS | No        | No                        |
+| dir-work             | FLASHPIPE_DIR_WORK             | No        | Yes                       |
 
 #### Example (Basic Auth with CLI flags)
 ```bash

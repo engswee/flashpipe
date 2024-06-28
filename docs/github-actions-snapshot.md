@@ -51,7 +51,7 @@ Provide a suitable name for the workflow file e.g. `snapshot-tenant.yml` and rep
 
 ![Snapshot Workflow](images/setup/snapshot/03b_snapshot_workflow.png)
 
-<script src="https://gist.github.com/engswee/95ff1aed35e19cbfb51075add2da3b87.js"></script>
+<script src="https://gist.github.com/engswee/a3b0fd5072a916bea6a14085f383f667.js"></script>
 
 Save and commit the new workflow file.
 
