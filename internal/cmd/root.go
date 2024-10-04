@@ -38,7 +38,7 @@ automating time-consuming manual tasks like:
 	rootCmd.PersistentFlags().String("config", "", "config file (default is $HOME/flashpipe.yaml)")
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	rootCmd.PersistentFlags().String("tmn-host", "", "Host for tenant management node of Cloud Integration excluding https://")
+	rootCmd.PersistentFlags().String("tmn-host", "", "Host for tenant management node of Cloud Integration or API Portal node of APIM excluding https://")
 	rootCmd.PersistentFlags().String("tmn-userid", "", "User ID for Basic Auth")
 	rootCmd.PersistentFlags().String("tmn-password", "", "Password for Basic Auth")
 	rootCmd.PersistentFlags().String("oauth-host", "", "Host for OAuth token server excluding https:// ")
