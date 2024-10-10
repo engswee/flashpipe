@@ -6,6 +6,14 @@ The key components of _FlashPipe_ are
 
 _FlashPipe_ uses the public APIs of the SAP Integration Suite ([Cloud Integration](https://api.sap.com/package/CloudIntegrationAPI/odata) & [API Management](https://api.sap.com/package/APIMgmt/odata)) to automate the Build-To-Deploy cycle. The components are implemented in Go and compiled as Unix executables.
 
+## Architecture
+_FlashPipe_ can be used on a CI/CD Platform or using the CLI on a local computer (via Docker). Following are the architectural diagrams displaying the interactions between _FlashPipe_ and other components.
+
+| Usage          | Diagram                                                                     |
+|----------------|-----------------------------------------------------------------------------|
+| CI/CD Platform | ![CI/CD Platform diagram](images/architecture/flashpipe-github-actions.gif) |
+| Local CLI      | ![Local CLI diagram](images/architecture/flashpipe-local-cli.gif)           |
+
 ## Prerequisite
 To use _FlashPipe_, you will need the following
 1. Access to **Cloud Integration** on an SAP Integration Suite tenant - typically an Integration Developer permissions are required
