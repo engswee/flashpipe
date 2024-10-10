@@ -44,4 +44,7 @@ _FlashPipe_ is developed using [GoLand](https://www.jetbrains.com/go/) courtesy 
 
 ![GoLand logo](https://resources.jetbrains.com/storage/products/company/brand/logos/GoLand_icon.svg)
 
+### Stargazers over time
+[![Stargazers over time](https://starchart.cc/engswee/flashpipe.svg?variant=adaptive)](https://starchart.cc/engswee/flashpipe)
+
 
