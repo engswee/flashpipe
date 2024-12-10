@@ -56,6 +56,7 @@ func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId 
 	params.Set("new_visit", "1")
 	params.Set("action_name", cmd.Name())
 	params.Set("apiv", "1")
+	hashedHost := HashString(tmnHost)
 	params.Set("uid", HashString(tmnHost))
 
 	// Custom dimensions
@@ -88,8 +89,10 @@ func constructQueryParameters(cmd *cobra.Command, cmdErr error, analyticsSiteId 
 	// 4 - Processing Status & 5 - Error Message
 	if cmdErr != nil {
 		params.Set("dimension4", "Error")
-		// Remove line feed in string
-		params.Set("dimension5", strings.ReplaceAll(logger.GetErrorDetails(cmdErr), "\n", ","))
+		errorMessage := logger.GetErrorDetails(cmdErr)
+		errorMessage = strings.ReplaceAll(errorMessage, tmnHost, hashedHost) // Anonymise host
+		errorMessage = strings.ReplaceAll(errorMessage, "\n", ",")           // Remove line feed in string
+		params.Set("dimension5", errorMessage)
 	} else {
 		params.Set("dimension4", "Success")
 	}
