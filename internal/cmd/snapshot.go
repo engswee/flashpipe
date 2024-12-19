@@ -60,19 +60,18 @@ tenant to a Git repository.`,
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	snapshotCmd.Flags().String("dir-git-repo", "", "Directory of Git repository")
-	snapshotCmd.Flags().String("dir-artifacts", "", "Directory containing contents of artifacts (grouped into packages)")
-	snapshotCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files")
+	snapshotCmd.PersistentFlags().String("dir-git-repo", "", "Directory of Git repository")
+	snapshotCmd.PersistentFlags().String("dir-artifacts", "", "Directory containing contents of artifacts (grouped into packages)")
+	snapshotCmd.PersistentFlags().String("dir-work", "/tmp", "Working directory for in-transit files")
 	snapshotCmd.Flags().String("draft-handling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR")
-	snapshotCmd.Flags().StringSlice("ids-include", nil, "List of included package IDs")
-	snapshotCmd.Flags().StringSlice("ids-exclude", nil, "List of excluded package IDs")
+	snapshotCmd.PersistentFlags().StringSlice("ids-include", nil, "List of included package IDs")
+	snapshotCmd.PersistentFlags().StringSlice("ids-exclude", nil, "List of excluded package IDs")
 
-	// TODO - add restore feature
 	snapshotCmd.Flags().String("git-commit-msg", "Tenant snapshot of "+time.Now().Format(time.UnixDate), "Message used in commit")
 	snapshotCmd.Flags().String("git-commit-user", "github-actions[bot]", "User used in commit")
 	snapshotCmd.Flags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit")
 	snapshotCmd.Flags().Bool("git-skip-commit", false, "Skip committing changes to Git repository")
-	snapshotCmd.Flags().Bool("sync-package-details", false, "Sync details of Integration Packages")
+	snapshotCmd.Flags().Bool("sync-package-details", true, "Sync details of Integration Packages")
 
 	_ = snapshotCmd.MarkFlagRequired("dir-git-repo")
 	snapshotCmd.MarkFlagsMutuallyExclusive("ids-include", "ids-exclude")
@@ -96,8 +95,8 @@ func runSnapshot(cmd *cobra.Command) error {
 		return fmt.Errorf("security alert for --dir-work: %w", err)
 	}
 	draftHandling := config.GetString(cmd, "draft-handling")
-	includedIds := config.GetStringSlice(cmd, "ids-include")
-	excludedIds := config.GetStringSlice(cmd, "ids-exclude")
+	includedIds := str.TrimSlice(config.GetStringSlice(cmd, "ids-include"))
+	excludedIds := str.TrimSlice(config.GetStringSlice(cmd, "ids-exclude"))
 	commitMsg := config.GetString(cmd, "git-commit-msg")
 	commitUser := config.GetString(cmd, "git-commit-user")
 	commitEmail := config.GetString(cmd, "git-commit-email")

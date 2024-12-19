@@ -68,7 +68,9 @@ func Execute() {
 	updateCmd.AddCommand(NewArtifactCommand())
 	updateCmd.AddCommand(NewPackageCommand())
 	rootCmd.AddCommand(updateCmd)
-	rootCmd.AddCommand(NewSnapshotCommand())
+	snapshotCmd := NewSnapshotCommand()
+	snapshotCmd.AddCommand(NewRestoreCommand())
+	rootCmd.AddCommand(snapshotCmd)
 
 	err := rootCmd.Execute()
 
