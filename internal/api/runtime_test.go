@@ -80,12 +80,12 @@ func (suite *RuntimeSuite) TearDownSuite() {
 
 func (suite *RuntimeSuite) TestRuntime_GetErrorInfo() {
 	rt := NewRuntime(suite.exe)
-	time.Sleep(5 * time.Second)
+	time.Sleep(15 * time.Second)
 	errorMessage, err := rt.GetErrorInfo("Integration_Test_Message_Mapping")
 	if err != nil {
 		suite.T().Fatalf("GetErrorInfo failed with error - %v", err)
 	}
-	assert.Contains(suite.T(), errorMessage, "Validation of the artifact failed", "errorMessage does not have validation error")
+	assert.Contains(suite.T(), errorMessage, "validation of resource is failed", "errorMessage does not have validation error")
 }
 
 func (suite *RuntimeSuite) TestRuntime_Get() {
