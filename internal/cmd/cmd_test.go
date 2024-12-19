@@ -34,7 +34,9 @@ func TestCPICommands(t *testing.T) {
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(NewDeployCommand())
 	rootCmd.AddCommand(NewSyncCommand())
-	rootCmd.AddCommand(NewSnapshotCommand())
+	snapshotCmd := NewSnapshotCommand()
+	snapshotCmd.AddCommand(NewRestoreCommand())
+	rootCmd.AddCommand(snapshotCmd)
 
 	// 1 - Create integration package
 	var args []string
@@ -106,7 +108,7 @@ func TestCPICommands(t *testing.T) {
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
 	if err != nil {
-		t.Fatalf("sync failed with error %v", err)
+		t.Fatalf("sync to git failed with error %v", err)
 	}
 	assert.True(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/META-INF/MANIFEST.MF"), "MANIFEST.MF does not exist")
 	assert.False(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/src/main/resources/parameters.prop"), "parameters.prop exists")
@@ -182,7 +184,7 @@ func TestCPICommands(t *testing.T) {
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
 	if err != nil {
-		t.Fatalf("sync failed with error %v", err)
+		t.Fatalf("sync to git failed with error %v", err)
 	}
 	assert.True(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/META-INF/MANIFEST.MF"), "MANIFEST.MF does not exist")
 	assert.True(t, file.Exists("../../output/sync/artifact/Integration_Test_IFlow/src/main/resources/parameters.prop"), "parameters.prop does not exist")
@@ -203,7 +205,7 @@ func TestCPICommands(t *testing.T) {
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
 	if err != nil {
-		t.Fatalf("sync failed with error %v", err)
+		t.Fatalf("snapshot failed with error %v", err)
 	}
 	assert.True(t, file.Exists("../../output/snapshot/repo/FlashPipeIntegrationTest/Integration_Test_IFlow/META-INF/MANIFEST.MF"), "MANIFEST.MF does not exist")
 	assert.True(t, file.Exists("../../output/snapshot/repo/FlashPipeIntegrationTest/Integration_Test_IFlow/src/main/resources/parameters.prop"), "parameters.prop does not exist")
@@ -219,7 +221,7 @@ func TestCPICommands(t *testing.T) {
 
 	_, _, err = ExecuteCommandC(rootCmd, args...)
 	if err != nil {
-		t.Fatalf("sync failed with error %v", err)
+		t.Fatalf("sync to tenant failed with error %v", err)
 	}
 	artifacts, err := ip.GetAllArtifacts("FlashPipeIntegrationTest")
 	if err != nil {
@@ -230,6 +232,28 @@ func TestCPICommands(t *testing.T) {
 	assert.Equal(t, "1.0.0", api.FindArtifactById("Integration_Test_Message_Mapping", artifacts).Version, "Integration_Test_Message_Mapping was not updated to version 1.0.0")
 	assert.Equal(t, "1.0.0", api.FindArtifactById("Integration_Test_Script_Collection", artifacts).Version, "Integration_Test_Script_Collection was not updated to version 1.0.0")
 	assert.Equal(t, "1.0.0", api.FindArtifactById("Integration_Test_Value_Mapping", artifacts).Version, "Integration_Test_Value_Mapping was not updated to version 1.0.0")
+
+	// 11 - Restore snapshot to tenant
+	err = ip.Delete("FlashPipeIntegrationTest")
+	if err != nil {
+		t.Logf("WARNING - Delete package failed with error %v", err)
+	}
+	args = nil
+	args = append(args, "snapshot", "restore")
+	args = append(args, "--dir-git-repo", "../../output/snapshot/repo")
+	args = append(args, "--dir-work", "../../output/restore/work")
+	args = append(args, "--ids-include", "FlashPipeIntegrationTest")
+
+	_, _, err = ExecuteCommandC(rootCmd, args...)
+	if err != nil {
+		t.Fatalf("snapshot restore failed with error %v", err)
+	}
+	artifacts, err = ip.GetAllArtifacts("FlashPipeIntegrationTest")
+	if err != nil {
+		t.Fatalf("GetAllArtifacts failed with error - %v", err)
+	}
+
+	assert.Equal(t, "1.0.1", api.FindArtifactById("Integration_Test_IFlow", artifacts).Version, "Integration_Test_IFlow was not updated to version 1.0.1")
 
 	// ------------ Clean up ------------
 	println("---------- Tearing down test - start ----------")
@@ -250,6 +274,10 @@ func TestCPICommands(t *testing.T) {
 		t.Logf("WARNING - Directory removal failed with error - %v", err)
 	}
 	err = os.RemoveAll("../../output/snapshot")
+	if err != nil {
+		t.Logf("WARNING - Directory removal failed with error - %v", err)
+	}
+	err = os.RemoveAll("../../output/restore")
 	if err != nil {
 		t.Logf("WARNING - Directory removal failed with error - %v", err)
 	}
