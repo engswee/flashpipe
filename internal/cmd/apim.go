@@ -80,8 +80,8 @@ func runSyncAPIM(cmd *cobra.Command) error {
 	if err != nil {
 		return fmt.Errorf("security alert for --dir-work: %w", err)
 	}
-	includedIds := config.GetStringSlice(cmd, "ids-include")
-	excludedIds := config.GetStringSlice(cmd, "ids-exclude")
+	includedIds := str.TrimSlice(config.GetStringSlice(cmd, "ids-include"))
+	excludedIds := str.TrimSlice(config.GetStringSlice(cmd, "ids-exclude"))
 	commitMsg := config.GetString(cmd, "git-commit-msg")
 	commitUser := config.GetString(cmd, "git-commit-user")
 	commitEmail := config.GetString(cmd, "git-commit-email")
@@ -98,7 +98,7 @@ func runSyncAPIM(cmd *cobra.Command) error {
 
 	syncer := sync.NewSyncer(target, "APIM", exe)
 	apimWorkDir := fmt.Sprintf("%v/apim", workDir)
-	err = syncer.Exec(apimWorkDir, artifactsDir, str.TrimSlice(includedIds), str.TrimSlice(excludedIds))
+	err = syncer.Exec(apimWorkDir, artifactsDir, includedIds, excludedIds)
 	if err != nil {
 		return err
 	}

@@ -23,7 +23,7 @@ func TestFilterIncludeIDs(t *testing.T) {
 		{Id: "DummyMapping"},
 		{Id: "DummyScript"},
 	}
-	filtered, _ := filterArtifacts(artifacts, []string{"DummyIFlow "}, nil)
+	filtered, _ := filterArtifacts(artifacts, []string{"DummyIFlow"}, nil)
 
 	assert.Equal(t, 1, len(filtered), "Expected number of artifacts = 1")
 	assert.Equal(t, "DummyIFlow", filtered[0].Id, "Expected ID for first entry = DummyIFlow")
@@ -35,7 +35,7 @@ func TestFilterExcludeIDs(t *testing.T) {
 		{Id: "DummyMapping"},
 		{Id: "DummyScript"},
 	}
-	filtered, _ := filterArtifacts(artifacts, nil, []string{" DummyIFlow"})
+	filtered, _ := filterArtifacts(artifacts, nil, []string{"DummyIFlow"})
 
 	assert.Equal(t, 2, len(filtered), "Expected number of artifacts = 2")
 	assert.Equal(t, "DummyMapping", filtered[0].Id, "Expected ID for first entry = DummyMapping")

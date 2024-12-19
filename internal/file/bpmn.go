@@ -13,8 +13,8 @@ func UpdateBPMN(artifactDir string, scriptMap []string) error {
 		// Extract collection into key pairs
 		output := map[string]string{}
 		log.Debug().Msgf("Updating files in %v with collection %v", artifactDir, scriptMap)
-		pairs := str.TrimSlice(scriptMap)
-		for _, pair := range pairs {
+
+		for _, pair := range scriptMap {
 			srcTgt := str.ExtractDelimitedValues(pair, "=")
 			output[srcTgt[0]] = srcTgt[1]
 		}

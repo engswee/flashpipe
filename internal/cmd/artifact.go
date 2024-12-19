@@ -84,7 +84,7 @@ func runUpdateArtifact(cmd *cobra.Command) error {
 	if err != nil {
 		return fmt.Errorf("security alert for --dir-work: %w", err)
 	}
-	scriptMap := config.GetStringSlice(cmd, "script-collection-map")
+	scriptMap := str.TrimSlice(config.GetStringSlice(cmd, "script-collection-map"))
 
 	defaultParamFile := fmt.Sprintf("%v/src/main/resources/parameters.prop", artifactDir)
 	if parametersFile == "" {

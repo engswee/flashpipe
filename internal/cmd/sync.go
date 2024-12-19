@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/engswee/flashpipe/internal/str"
 	"os"
 	"path/filepath"
 	"strings"
@@ -115,12 +116,12 @@ func runSync(cmd *cobra.Command) error {
 	}
 	dirNamingType := config.GetString(cmd, "dir-naming-type")
 	draftHandling := config.GetString(cmd, "draft-handling")
-	includedIds := config.GetStringSlice(cmd, "ids-include")
-	excludedIds := config.GetStringSlice(cmd, "ids-exclude")
+	includedIds := str.TrimSlice(config.GetStringSlice(cmd, "ids-include"))
+	excludedIds := str.TrimSlice(config.GetStringSlice(cmd, "ids-exclude"))
 	commitMsg := config.GetString(cmd, "git-commit-msg")
 	commitUser := config.GetString(cmd, "git-commit-user")
 	commitEmail := config.GetString(cmd, "git-commit-email")
-	scriptCollectionMap := config.GetStringSlice(cmd, "script-collection-map")
+	scriptCollectionMap := str.TrimSlice(config.GetStringSlice(cmd, "script-collection-map"))
 	skipCommit := config.GetBool(cmd, "git-skip-commit")
 	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 	target := config.GetString(cmd, "target")

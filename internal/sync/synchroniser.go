@@ -211,9 +211,7 @@ func (s *Synchroniser) ArtifactsToGit(packageId string, workDir string, artifact
 
 func filterArtifacts(artifacts []*api.ArtifactDetails, includedIds []string, excludedIds []string) ([]*api.ArtifactDetails, error) {
 	var output []*api.ArtifactDetails
-	// Trim whitespace from IDs
-	includedIds = str.TrimSlice(includedIds)
-	excludedIds = str.TrimSlice(excludedIds)
+
 	if len(includedIds) > 0 {
 		for _, id := range includedIds {
 			artifact := api.FindArtifactById(id, artifacts)
