@@ -1,5 +1,11 @@
 # Release Notes
 
+## 3.4.1 (Released 19 December 2024)
+
+---
+
+- Bug fix - update handling when runtime artifact has not been deployed (due to change in behaviour of IntegrationRuntimeArtifacts API by SAP)
+
 ## 3.4.0 (Released 28 June 2024)
 
 ---
