@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/str"
 	"os"
 	"path/filepath"
@@ -169,7 +170,16 @@ func runSync(cmd *cobra.Command) error {
 		// Check for existence of package in tenant
 		_, _, packageExists, err := synchroniser.VerifyDownloadablePackage(packageId)
 		if !packageExists {
-			return fmt.Errorf("Package %v does not exist. Please run 'update package' command first", packageId)
+			// If the definition for the integration package is available, then update it from the file
+			packageFile := fmt.Sprintf("%v/%v.json", artifactsDir, packageId)
+			if file.Exists(packageFile) {
+				err = sync.UpdatePackageFromFile(packageFile, exe)
+				if err != nil {
+					return err
+				}
+			} else {
+				return fmt.Errorf("Package %v does not exist. Please run 'update package' command first", packageId)
+			}
 		}
 		if err != nil {
 			return err
