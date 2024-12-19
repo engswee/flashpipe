@@ -6,6 +6,8 @@ import (
 	"github.com/engswee/flashpipe/internal/httpclnt"
 	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
+	"io"
+	"strings"
 )
 
 type Runtime struct {
@@ -47,6 +49,14 @@ func (r *Runtime) Get(id string) (version string, status string, err error) {
 		if err.Error() == fmt.Sprintf("%v call failed with response code = 404", callType) { // artifact not deployed to runtime
 			return "NOT_DEPLOYED", "", nil
 		} else {
+			bytes, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return "", "", err
+			}
+			respBody := string(bytes[:])
+			if strings.Contains(respBody, "Requested entity could not be found") { // artifact not deployed to runtime
+				return "NOT_DEPLOYED", "", nil
+			}
 			return "", "", err
 		}
 	}

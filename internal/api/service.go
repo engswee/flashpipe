@@ -68,7 +68,8 @@ func modifyingCallWithContentType(method string, urlPath string, content []byte,
 		return err
 	}
 	if resp.StatusCode != successCode {
-		return exe.LogError(resp, callType)
+		_, err = exe.LogError(resp, callType)
+		return err
 	}
 	return nil
 }
@@ -99,7 +100,9 @@ func readOnlyCallWithBodyAndAcceptType(urlPath string, content []byte, callType 
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return resp, exe.LogError(resp, callType)
+		resBody, err := exe.LogError(resp, callType)
+		resp.Body = io.NopCloser(bytes.NewReader(resBody))
+		return resp, err
 	}
 	return resp, nil
 }
