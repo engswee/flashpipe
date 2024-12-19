@@ -104,8 +104,8 @@ func (e *HTTPExecuter) ReadRespBody(resp *http.Response) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func (e *HTTPExecuter) LogError(resp *http.Response, callType string) (err error) {
-	resBody, err := e.ReadRespBody(resp)
+func (e *HTTPExecuter) LogError(resp *http.Response, callType string) (resBody []byte, err error) {
+	resBody, err = e.ReadRespBody(resp)
 	if err != nil {
 		return
 	}
@@ -114,5 +114,5 @@ func (e *HTTPExecuter) LogError(resp *http.Response, callType string) (err error
 		log.Error().Msgf("Response body = %s", resBody)
 	}
 
-	return fmt.Errorf("%v call failed with response code = %d", callType, resp.StatusCode)
+	return resBody, fmt.Errorf("%v call failed with response code = %d", callType, resp.StatusCode)
 }

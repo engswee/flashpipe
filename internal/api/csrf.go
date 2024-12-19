@@ -35,7 +35,8 @@ func (c *Csrf) GetToken() (string, []*http.Cookie, error) {
 			c.csrfCookies = resp.Cookies()
 			log.Debug().Msgf("Received CSRF Token - %v", c.token)
 		} else {
-			return "", nil, c.exe.LogError(resp, "Get CSRF Token")
+			_, err = c.exe.LogError(resp, "Get CSRF Token")
+			return "", nil, err
 		}
 	}
 	return c.token, c.csrfCookies, nil

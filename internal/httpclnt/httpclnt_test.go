@@ -138,7 +138,7 @@ func TestMockBasicAuthIDNotFound(t *testing.T) {
 	}
 	// Verify HTTP response
 	if resp.StatusCode == http.StatusNotFound {
-		err := exe.LogError(resp, "Get Integration designtime")
+		_, err = exe.LogError(resp, "Get Integration designtime")
 		errMsg := err.Error()
 		if errMsg != "Get Integration designtime call failed with response code = 404" {
 			t.Fatalf("Actual error returned = %s", errMsg)
