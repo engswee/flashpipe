@@ -4,6 +4,7 @@ import (
 	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
+	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"time"
@@ -39,34 +40,9 @@ func runUpdatePackage(cmd *cobra.Command) error {
 
 	packageFile := config.GetString(cmd, "package-file")
 
-	// Get package details from JSON file
-	log.Info().Msgf("Getting package details from %v file", packageFile)
-	packageDetails, err := api.GetPackageDetails(packageFile)
-	if err != nil {
-		return err
-	}
-
 	// Initialise HTTP executer
 	serviceDetails := api.GetServiceDetails(cmd)
 	exe := api.InitHTTPExecuter(serviceDetails)
-	ip := api.NewIntegrationPackage(exe)
 
-	packageId := packageDetails.Root.Id
-	_, _, exists, err := ip.Get(packageId)
-	if !exists {
-		log.Info().Msgf("Package %v does not exist", packageId)
-		err = ip.Create(packageDetails)
-		if err != nil {
-			return err
-		}
-		log.Info().Msgf("Package %v created", packageId)
-	} else {
-		// Update integration package
-		err = ip.Update(packageDetails)
-		if err != nil {
-			return err
-		}
-		log.Info().Msgf("Package %v updated", packageId)
-	}
-	return nil
+	return sync.UpdatePackageFromFile(packageFile, exe)
 }

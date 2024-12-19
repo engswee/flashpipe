@@ -27,6 +27,13 @@ func NewSyncer(target string, functionType string, exe *httpclnt.HTTPExecuter) S
 		default:
 			return nil
 		}
+	case "CPIPackage":
+		switch target {
+		case "tenant":
+			return NewCPIPackageTenantSynchroniser(exe)
+		default:
+			return nil
+		}
 		// TODO - refactor CPI syncer
 	//case "CPI":
 	//	return NewScriptCollection(exe)
@@ -205,5 +212,51 @@ func (s *APIMTenantSynchroniser) Exec(workDir string, artifactsDir string, inclu
 	}
 	log.Info().Msg("---------------------------------------------------------------------------------")
 	log.Info().Msgf("🏆 Completed processing of APIProxies")
+	return nil
+}
+
+type CPIPackageTenantSynchroniser struct {
+	exe *httpclnt.HTTPExecuter
+}
+
+// NewCPIPackageTenantSynchroniser returns an initialised CPIPackageTenantSynchroniser instance.
+func NewCPIPackageTenantSynchroniser(exe *httpclnt.HTTPExecuter) Syncer {
+	s := new(CPIPackageTenantSynchroniser)
+	s.exe = exe
+	return s
+}
+
+func (s *CPIPackageTenantSynchroniser) Exec(_ string, artifactsDir string, _ []string, _ []string) error {
+	packageFile := fmt.Sprintf("%v/%v.json", artifactsDir, filepath.Base(artifactsDir))
+	return UpdatePackageFromFile(packageFile, s.exe)
+}
+
+func UpdatePackageFromFile(packageFile string, exe *httpclnt.HTTPExecuter) error {
+	// Get package details from JSON file
+	log.Info().Msgf("Getting package details from %v file", packageFile)
+	packageDetails, err := api.GetPackageDetails(packageFile)
+	if err != nil {
+		return err
+	}
+
+	ip := api.NewIntegrationPackage(exe)
+
+	packageId := packageDetails.Root.Id
+	_, _, exists, err := ip.Get(packageId)
+	if !exists {
+		log.Info().Msgf("Package %v does not exist", packageId)
+		err = ip.Create(packageDetails)
+		if err != nil {
+			return err
+		}
+		log.Info().Msgf("Package %v created", packageId)
+	} else {
+		// Update integration package
+		err = ip.Update(packageDetails)
+		if err != nil {
+			return err
+		}
+		log.Info().Msgf("Package %v updated", packageId)
+	}
 	return nil
 }
