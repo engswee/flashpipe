@@ -7,6 +7,7 @@ _FlashPipe_ provides a fully functional CLI with the following commands to inter
 - **[sync](#4-sync)**
 - **[sync apim](#5-sync-apim)**
 - **[snapshot](#6-snapshot)**
+- **[snapshot restore](#7-snapshot-restore)**
 
 
 These commands perform the _magic_ that significantly simplifies the steps required to execute the build and deploy steps in a CI/CD pipeline.
@@ -347,7 +348,7 @@ Flags:
       --git-commit-msg string          Message used in commit (default "Sync repo from tenant")
       --git-commit-user string         User used in commit (default "github-actions[bot]")
       --git-skip-commit                Skip committing changes to Git repository
-  -h, --help                           help for sync
+  -h, --help                           help for apim
       --ids-exclude strings            List of excluded artifact IDs
       --ids-include strings            List of included artifact IDs
       --target                         Target of sync. Allowed values: git, tenant (default "git")
@@ -412,7 +413,7 @@ Usage:
 
 Flags:
       --dir-artifacts string      Directory containing contents of artifacts (grouped into packages)
-      --dir-git-repo string       Directory of Git repository containing contents of artifacts (grouped into packages)
+      --dir-git-repo string       Directory of Git repository
       --dir-work string           Working directory for in-transit files (default "/tmp")
       --draft-handling string     Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR (default "SKIP")
       --git-commit-email string   Email used in commit (default "41898282+github-actions[bot]@users.noreply.github.com")
@@ -422,7 +423,7 @@ Flags:
   -h, --help                      help for snapshot
       --ids-include strings       List of included package IDs
       --ids-exclude strings       List of excluded package IDs
-      --sync-package-details      Sync details of Integration Packages
+      --sync-package-details      Sync details of Integration Packages (default true)
 
 Global Flags:
       --config string               config file (default is $HOME/flashpipe.yaml)
@@ -461,6 +462,67 @@ flashpipe snapshot --tmn-host ***.hana.ondemand.com --tmn-userid <userid> --tmn-
 #### Example (OAuth with environment variables)
 ```bash
 flashpipe snapshot
+
+Environment variables set before call:
+    FLASHPIPE_TMN_HOST: ***.hana.ondemand.com
+    FLASHPIPE_OAUTH_HOST: ***.authentication.<region>.hana.ondemand.com
+    FLASHPIPE_OAUTH_CLIENTID: <clientid>
+    FLASHPIPE_OAUTH_CLIENTSECRET: <clientsecret>
+    FLASHPIPE_DIR_GIT_REPO: "TrialTenant"
+```
+
+### 7. snapshot restore
+This command is used to restore a snapshot of the Cloud Integration artifacts and integration package details from a Git repository back to the tenant. It will compare any differences (new, deleted, changed) in files from Git repository and update to the tenant.
+
+
+#### Usage
+```bash
+flashpipe snapshot restore -h
+
+Restore all editable integration packages from a Git repository to SAP Integration Suite tenant.
+
+Usage:
+  flashpipe snapshot restore [flags]
+
+Flags:
+      --dir-artifacts string      Directory containing contents of artifacts (grouped into packages)
+      --dir-git-repo string       Directory of Git repository
+      --dir-work string           Working directory for in-transit files (default "/tmp")
+  -h, --help                      help for restore
+      --ids-include strings       List of included package IDs
+      --ids-exclude strings       List of excluded package IDs
+
+Global Flags:
+      --config string               config file (default is $HOME/flashpipe.yaml)
+      --debug                       Show debug logs
+      --oauth-clientid string       Client ID for using OAuth
+      --oauth-clientsecret string   Client Secret for using OAuth
+      --oauth-host string           Host for OAuth token server excluding https:// 
+      --oauth-path string           Path for OAuth token server (default "/oauth/token")
+      --tmn-host string             Host for tenant management node of Cloud Integration excluding https://
+      --tmn-password string         Password for Basic Auth
+      --tmn-userid string           User ID for Basic Auth
+```
+
+#### CLI flags and environment variables list
+The following is the list of flags for the `snapshot restore` command and their corresponding environment variable name.
+
+| CLI flag name        | Environment variable name      | Mandatory | Shell expansion supported |
+|----------------------|--------------------------------|-----------|---------------------------|
+| dir-git-repo         | FLASHPIPE_DIR_GIT_REPO         | Yes       | Yes                       |
+| dir-artifacts        | FLASHPIPE_DIR_ARTIFACTS        | No        | Yes                       |
+| ids-include          | FLASHPIPE_IDS_INCLUDE          | No        | No                        |
+| ids-exclude          | FLASHPIPE_IDS_EXCLUDE          | No        | No                        |
+| dir-work             | FLASHPIPE_DIR_WORK             | No        | Yes                       |
+
+#### Example (Basic Auth with CLI flags)
+```bash
+flashpipe snapshot restore --tmn-host ***.hana.ondemand.com --tmn-userid <userid> --tmn-password <password> --dir-git-repo "TrialTenant"
+```
+
+#### Example (OAuth with environment variables)
+```bash
+flashpipe snapshot restore
 
 Environment variables set before call:
     FLASHPIPE_TMN_HOST: ***.hana.ondemand.com
