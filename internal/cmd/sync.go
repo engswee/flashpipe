@@ -57,8 +57,6 @@ tenant and a Git repository.`,
 			// Validate target
 			target := config.GetString(cmd, "target")
 			switch target {
-			case "local", "remote":
-				log.Warn().Msg("--target = local/remote is deprecated, use --target = git/tenant")
 			case "git", "tenant":
 			default:
 				return fmt.Errorf("invalid value for --target = %v", target)
@@ -84,7 +82,7 @@ tenant and a Git repository.`,
 	syncCmd.Flags().String("draft-handling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR")
 	syncCmd.PersistentFlags().StringSlice("ids-include", nil, "List of included artifact IDs")
 	syncCmd.PersistentFlags().StringSlice("ids-exclude", nil, "List of excluded artifact IDs")
-	syncCmd.PersistentFlags().String("target", "git", "Target of sync. Allowed values: git, tenant, local(deprecated), remote(deprecated)")
+	syncCmd.PersistentFlags().String("target", "git", "Target of sync. Allowed values: git, tenant")
 	syncCmd.PersistentFlags().String("git-commit-msg", "Sync repo from tenant", "Message used in commit")
 	syncCmd.PersistentFlags().String("git-commit-user", "github-actions[bot]", "User used in commit")
 	syncCmd.PersistentFlags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit")

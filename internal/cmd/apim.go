@@ -43,8 +43,6 @@ tenant and a Git repository.`,
 			// Validate target
 			target := config.GetString(cmd, "target")
 			switch target {
-			case "local", "remote":
-				log.Warn().Msg("--target = local/remote is deprecated, use --target = git/tenant")
 			case "git", "tenant":
 			default:
 				return fmt.Errorf("invalid value for --target = %v", target)
