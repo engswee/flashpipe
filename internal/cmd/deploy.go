@@ -169,7 +169,7 @@ func checkDeploymentStatus(runtime *api.Runtime, delayLength int, maxCheckLimit 
 			}
 			return fmt.Errorf("Artifact deployment unsuccessful, ended with status %s. Error message = %s", status, errorMessage)
 		}
-		if i == (maxCheckLimit-1) && status != "STARTED" {
+		if i == (maxCheckLimit - 1) {
 			return fmt.Errorf("Artifact status remained in %s after %d checks", status, maxCheckLimit)
 		}
 		time.Sleep(time.Duration(delayLength) * time.Second)

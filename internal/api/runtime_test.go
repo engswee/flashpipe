@@ -94,11 +94,20 @@ func (suite *RuntimeSuite) TestRuntime_Get() {
 	if err != nil {
 		suite.T().Fatalf("Get failed with error - %v", err)
 	}
+
+	// Retry checking status of the runtime artifact if it is still STARTING
 	if status == "STARTING" {
-		time.Sleep(15 * time.Second)
-		version, status, err = rt.Get("Integration_Test_IFlow")
-		if err != nil {
-			suite.T().Fatalf("Get failed with error - %v", err)
+		maxCheckLimit := 5
+		for i := 0; i < maxCheckLimit; i++ {
+			suite.T().Log("Runtime artifact in status STARTING. Retrying after a while")
+			time.Sleep(15 * time.Second)
+			version, status, err = rt.Get("Integration_Test_IFlow")
+			if err != nil {
+				suite.T().Fatalf("Get failed with error - %v", err)
+			}
+			if status != "STARTING" {
+				break
+			}
 		}
 	}
 	assert.Equal(suite.T(), "STARTED", status, "Runtime status of Integration_Test_IFlow is not STARTED")
