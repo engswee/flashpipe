@@ -102,27 +102,30 @@ func restoreSnapshot(serviceDetails *api.ServiceDetails, artifactsBaseDir string
 	// Go through each directory and check if there is an integration package details in it, if yes, then proceed to restore integration package and artifacts
 	for _, entry := range entries {
 		packageId := entry.Name()
-		packageFile := fmt.Sprintf("%v/%v/%v.json", baseSourceDir, packageId, packageId)
-		if entry.IsDir() && file.Exists(packageFile) {
-			packageDir := fmt.Sprintf("%v/%v", baseSourceDir, packageId)
+		packageDir := fmt.Sprintf("%v/%v", baseSourceDir, packageId)
+		packageFile := fmt.Sprintf("%v/%v.json", packageDir, packageId)
+		if entry.IsDir() {
 			log.Info().Msg("---------------------------------------------------------------------------------")
 			log.Info().Msgf("Processing directory %v", packageDir)
+			if file.Exists(packageFile) {
+				// Filter in/out packages
+				if str.FilterIDs(packageId, includedIds, excludedIds) {
+					continue
+				}
 
-			// Filter in/out packages
-			if str.FilterIDs(packageId, includedIds, excludedIds) {
-				continue
-			}
+				// 1 - Sync CPI Integration Package
+				err = packageSynchroniser.Exec("", packageDir, nil, nil)
+				if err != nil {
+					return err
+				}
 
-			// 1 - Sync CPI Integration Package
-			err = packageSynchroniser.Exec("", packageDir, nil, nil)
-			if err != nil {
-				return err
-			}
-
-			// 2 - Sync CPI Artifacts
-			err = artifactsSynchroniser.ArtifactsToTenant(packageId, workDir, packageDir, nil, nil)
-			if err != nil {
-				return err
+				// 2 - Sync CPI Artifacts
+				err = artifactsSynchroniser.ArtifactsToTenant(packageId, workDir, packageDir, nil, nil)
+				if err != nil {
+					return err
+				}
+			} else {
+				log.Warn().Msgf("Skipping directory as integration package file %v is not found", packageFile)
 			}
 		}
 	}
