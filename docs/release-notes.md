@@ -1,5 +1,22 @@
 # Release Notes
 
+## 3.5.0 (Released 20 December 2024)
+
+---
+
+- 🔥🔥 Hot new feature 🔥🔥 - _FlashPipe_ now supports restoring snapshot from Git repository to tenant
+  - New `snapshot restore` command
+    - Handles creating/updating multiple CPI integration packages (and corresponding artifacts) from snapshot in Git repository to tenant
+    - Refer to [FlashPipe CLI page](flashpipe-cli.md) for more details
+- Remove values for `--target` flag of `sync` and `sync apim` commands
+  - Previously deprecated `local` & `remote` values are no longer allowed
+- Update default value for `--sync-package-details` flag of `snapshot` command to `true`
+- Update behavior of `sync` command when integration package does not exist in tenant
+  - If there is a JSON file with the integration package details in the directory, then it is used to create the integration package first, without requiring execution of `update package` command
+- Update to latest Go version 1.23.4 and dependencies to resolve following security vulnerabilities
+  - CVE-2024-45337
+  - CVE-2024-45338
+
 ## 3.4.1 (Released 19 December 2024)
 
 ---
@@ -57,10 +74,10 @@
   - New `sync apim` command
   - Handles syncing of API Proxies and dependent artifacts
 - Incorporation of usage analytics - no sensitive/personal data collected
-- Rename allowed values for `target` parameter of `sync` command so that it provides more clarity
+- Rename allowed values for `--target` flag of `sync` command so that it provides more clarity
   - `local` & `remote` are now deprecated
   - `git` & `tenant` are the new replacement values
-- New feature for `update artifact` command to default artifact name to value from MANIFEST.MF when optional parameter `artifact-name` is not provided
+- New feature for `update artifact` command to default artifact name to value from MANIFEST.MF when optional flag `--artifact-name` is not provided
 - Update to latest dependencies to resolve following security vulnerabilities
   - CVE-2023-48795
   - CVE-2023-49569
