@@ -171,7 +171,8 @@ func runSync(cmd *cobra.Command) error {
 			// If the definition for the integration package is available, then update it from the file
 			packageFile := fmt.Sprintf("%v/%v.json", artifactsDir, packageId)
 			if file.Exists(packageFile) {
-				err = sync.UpdatePackageFromFile(packageFile, exe)
+				packageSynchroniser := sync.NewSyncer("tenant", "CPIPackage", exe)
+				err = packageSynchroniser.Exec(sync.Request{PackageFile: packageFile})
 				if err != nil {
 					return err
 				}

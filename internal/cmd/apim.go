@@ -96,7 +96,7 @@ func runSyncAPIM(cmd *cobra.Command) error {
 
 	syncer := sync.NewSyncer(target, "APIM", exe)
 	apimWorkDir := fmt.Sprintf("%v/apim", workDir)
-	err = syncer.Exec(apimWorkDir, artifactsDir, includedIds, excludedIds)
+	err = syncer.Exec(sync.Request{WorkDir: apimWorkDir, ArtifactsDir: artifactsDir, IncludedIds: includedIds, ExcludedIds: excludedIds})
 	if err != nil {
 		return err
 	}

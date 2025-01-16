@@ -114,7 +114,7 @@ func restoreSnapshot(serviceDetails *api.ServiceDetails, artifactsBaseDir string
 				}
 
 				// 1 - Sync CPI Integration Package
-				err = packageSynchroniser.Exec("", packageDir, nil, nil)
+				err = packageSynchroniser.Exec(sync.Request{ArtifactsDir: packageDir})
 				if err != nil {
 					return err
 				}

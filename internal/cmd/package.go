@@ -43,6 +43,7 @@ func runUpdatePackage(cmd *cobra.Command) error {
 	// Initialise HTTP executer
 	serviceDetails := api.GetServiceDetails(cmd)
 	exe := api.InitHTTPExecuter(serviceDetails)
+	packageSynchroniser := sync.NewSyncer("tenant", "CPIPackage", exe)
 
-	return sync.UpdatePackageFromFile(packageFile, exe)
+	return packageSynchroniser.Exec(sync.Request{PackageFile: packageFile})
 }

@@ -13,7 +13,15 @@ import (
 )
 
 type Syncer interface {
-	Exec(workDir string, artifactsDir string, includedIds []string, excludedIds []string) error
+	Exec(request Request) error
+}
+
+type Request struct {
+	WorkDir      string
+	ArtifactsDir string
+	IncludedIds  []string
+	ExcludedIds  []string
+	PackageFile  string
 }
 
 func NewSyncer(target string, functionType string, exe *httpclnt.HTTPExecuter) Syncer {
@@ -53,7 +61,7 @@ func NewAPIMGitSynchroniser(exe *httpclnt.HTTPExecuter) Syncer {
 	return s
 }
 
-func (s *APIMGitSynchroniser) Exec(workDir string, artifactsDir string, includedIds []string, excludedIds []string) error {
+func (s *APIMGitSynchroniser) Exec(request Request) error {
 	log.Info().Msg("Sync APIM content to Git")
 
 	proxy := api.NewAPIProxy(s.exe)
@@ -64,7 +72,7 @@ func (s *APIMGitSynchroniser) Exec(workDir string, artifactsDir string, included
 	}
 
 	// Create temp directories in working dir
-	targetRootDir := fmt.Sprintf("%v/download", workDir)
+	targetRootDir := fmt.Sprintf("%v/download", request.WorkDir)
 	err = os.MkdirAll(targetRootDir, os.ModePerm)
 	if err != nil {
 		return errors.Wrap(err, 0)
@@ -76,7 +84,7 @@ func (s *APIMGitSynchroniser) Exec(workDir string, artifactsDir string, included
 		log.Info().Msgf("📢 Begin processing for APIProxy %v", artifact.Name)
 
 		// Filter in/out artifacts
-		if str.FilterIDs(artifact.Name, includedIds, excludedIds) {
+		if str.FilterIDs(artifact.Name, request.IncludedIds, request.ExcludedIds) {
 			continue
 		}
 
@@ -87,7 +95,7 @@ func (s *APIMGitSynchroniser) Exec(workDir string, artifactsDir string, included
 		}
 
 		// Compare content and update Git if required
-		gitArtifactPath := fmt.Sprintf("%v/%v", artifactsDir, artifact.Name)
+		gitArtifactPath := fmt.Sprintf("%v/%v", request.ArtifactsDir, artifact.Name)
 		downloadedArtifactPath := fmt.Sprintf("%v/%v", targetRootDir, artifact.Name)
 		if file.Exists(fmt.Sprintf("%v/manifest.json", gitArtifactPath)) {
 			// (1) If artifact already exists in Git, then compare and update
@@ -130,9 +138,9 @@ func NewAPIMTenantSynchroniser(exe *httpclnt.HTTPExecuter) Syncer {
 	return s
 }
 
-func (s *APIMTenantSynchroniser) Exec(workDir string, artifactsDir string, includedIds []string, excludedIds []string) error {
+func (s *APIMTenantSynchroniser) Exec(request Request) error {
 	// Get directory list
-	baseSourceDir := filepath.Clean(artifactsDir)
+	baseSourceDir := filepath.Clean(request.ArtifactsDir)
 	entries, err := os.ReadDir(baseSourceDir)
 	if err != nil {
 		return errors.Wrap(err, 0)
@@ -141,12 +149,12 @@ func (s *APIMTenantSynchroniser) Exec(workDir string, artifactsDir string, inclu
 	proxy := api.NewAPIProxy(s.exe)
 
 	// Create temp directories in working dir
-	uploadWorkDir := fmt.Sprintf("%v/upload", workDir)
+	uploadWorkDir := fmt.Sprintf("%v/upload", request.WorkDir)
 	err = os.MkdirAll(uploadWorkDir, os.ModePerm)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	downloadWorkDir := fmt.Sprintf("%v/download", workDir)
+	downloadWorkDir := fmt.Sprintf("%v/download", request.WorkDir)
 	err = os.MkdirAll(downloadWorkDir, os.ModePerm)
 	if err != nil {
 		return errors.Wrap(err, 0)
@@ -164,7 +172,7 @@ func (s *APIMTenantSynchroniser) Exec(workDir string, artifactsDir string, inclu
 			log.Info().Msgf("Processing directory %v", gitArtifactDir)
 
 			// Filter in/out artifacts
-			if str.FilterIDs(artifactId, includedIds, excludedIds) {
+			if str.FilterIDs(artifactId, request.IncludedIds, request.ExcludedIds) {
 				continue
 			}
 
@@ -226,12 +234,13 @@ func NewCPIPackageTenantSynchroniser(exe *httpclnt.HTTPExecuter) Syncer {
 	return s
 }
 
-func (s *CPIPackageTenantSynchroniser) Exec(_ string, artifactsDir string, _ []string, _ []string) error {
-	packageFile := fmt.Sprintf("%v/%v.json", artifactsDir, filepath.Base(artifactsDir))
-	return UpdatePackageFromFile(packageFile, s.exe)
-}
-
-func UpdatePackageFromFile(packageFile string, exe *httpclnt.HTTPExecuter) error {
+func (s *CPIPackageTenantSynchroniser) Exec(request Request) error {
+	var packageFile string
+	if request.PackageFile != "" {
+		packageFile = request.PackageFile
+	} else {
+		packageFile = fmt.Sprintf("%v/%v.json", request.ArtifactsDir, filepath.Base(request.ArtifactsDir))
+	}
 	// Get package details from JSON file
 	log.Info().Msgf("Getting package details from %v file", packageFile)
 	packageDetails, err := api.GetPackageDetails(packageFile)
@@ -239,7 +248,7 @@ func UpdatePackageFromFile(packageFile string, exe *httpclnt.HTTPExecuter) error
 		return err
 	}
 
-	ip := api.NewIntegrationPackage(exe)
+	ip := api.NewIntegrationPackage(s.exe)
 
 	packageId := packageDetails.Root.Id
 	_, _, exists, err := ip.Get(packageId)
