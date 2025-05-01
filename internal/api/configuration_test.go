@@ -1,13 +1,14 @@
 package api
 
 import (
+	"os"
+	"testing"
+
 	"github.com/engswee/flashpipe/internal/httpclnt"
 	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"os"
-	"testing"
 )
 
 type ConfigurationSuite struct {
@@ -77,8 +78,12 @@ func (suite *ConfigurationSuite) TestConfiguration_Get() {
 	if err != nil {
 		suite.T().Fatalf("Get failed with error - %v", err)
 	}
-	parameter := FindParameterByKey("Sender Endpoint", parametersData.Root.Results)
-	assert.Equal(suite.T(), "/flow", parameter.ParameterValue, "Parameter Sender Endpoint should have value /flow")
+	parameterSenderEndpoint := FindParameterByKey("Sender Endpoint", parametersData.Root.Results)
+	assert.Equal(suite.T(), "/flow", parameterSenderEndpoint.ParameterValue, "Parameter Sender Endpoint should have value /flow")
+	parameter1 := FindParameterByKey("Parameter 1", parametersData.Root.Results)
+	assert.Equal(suite.T(), "Value1", parameter1.ParameterValue, "Parameter 1 should have value Value1")
+	parameter2 := FindParameterByKey("Parameter 2", parametersData.Root.Results)
+	assert.Equal(suite.T(), "Value 2 plus ${property.Parameter1}", parameter2.ParameterValue, "Parameter 2 should have value Value 2 plus ${property.Parameter1}")
 }
 
 func (suite *ConfigurationSuite) TestConfiguration_Update() {
@@ -88,10 +93,23 @@ func (suite *ConfigurationSuite) TestConfiguration_Update() {
 	if err != nil {
 		suite.T().Fatalf("Update failed with error - %v", err)
 	}
+	err = c.Update("Integration_Test_IFlow", "active", "Parameter 1", "Value 1 updated")
+	if err != nil {
+		suite.T().Fatalf("Update failed with error - %v", err)
+	}
+	err = c.Update("Integration_Test_IFlow", "active", "Parameter 2", "Value 2 with ${header.Parameter1}")
+	if err != nil {
+		suite.T().Fatalf("Update failed with error - %v", err)
+	}
+
 	parametersData, err := c.Get("Integration_Test_IFlow", "active")
 	if err != nil {
 		suite.T().Fatalf("Get failed with error - %v", err)
 	}
-	parameter := FindParameterByKey("Sender Endpoint", parametersData.Root.Results)
-	assert.Equal(suite.T(), "/flow_update", parameter.ParameterValue, "Parameter Sender Endpoint should have value /flow_update after update")
+	parameterSenderEndpoint := FindParameterByKey("Sender Endpoint", parametersData.Root.Results)
+	assert.Equal(suite.T(), "/flow_update", parameterSenderEndpoint.ParameterValue, "Parameter Sender Endpoint should have value /flow_update after update")
+	parameter1 := FindParameterByKey("Parameter 1", parametersData.Root.Results)
+	assert.Equal(suite.T(), "Value 1 updated", parameter1.ParameterValue, "Parameter 1 should have value Value 1 updated after update")
+	parameter2 := FindParameterByKey("Parameter 2", parametersData.Root.Results)
+	assert.Equal(suite.T(), "Value 2 with ${header.Parameter1}", parameter2.ParameterValue, "Parameter 2 should have value Value 2 with ${header.Parameter1} after update")
 }

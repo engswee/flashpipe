@@ -1,2 +1,5 @@
-#Thu Aug 17 12:07:26 UTC 2023
+#
+#Thu May 01 08:17:53 UTC 2025
+Parameter\ 1=Value1
+Parameter\ 2=Value 2 plus ${property.Parameter1}
 Sender\ Endpoint=/flow

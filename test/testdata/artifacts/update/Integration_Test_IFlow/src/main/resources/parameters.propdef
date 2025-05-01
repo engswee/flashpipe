@@ -1,6 +1,22 @@
-<?xml version="1.0" encoding="UTF-8"?><parameters><parameter>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><parameters><parameter>
     <key/>
     <name>Sender Endpoint</name>
+    <type>xsd:string</type>
+    <isRequired>false</isRequired>
+    <constraint/>
+    <description/>
+    <additionalMetadata/>
+  </parameter><parameter>
+    <key/>
+    <name>Parameter 1</name>
+    <type>xsd:string</type>
+    <isRequired>false</isRequired>
+    <constraint/>
+    <description/>
+    <additionalMetadata/>
+  </parameter><parameter>
+    <key/>
+    <name>Parameter 2</name>
     <type>xsd:string</type>
     <isRequired>false</isRequired>
     <constraint/>
