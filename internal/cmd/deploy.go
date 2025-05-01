@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/str"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"time"
 )
 
 func NewDeployCommand() *cobra.Command {
@@ -115,7 +116,7 @@ func deploySingle(artifact api.DesigntimeArtifact, runtime *api.Runtime, id stri
 		return fmt.Errorf("Designtime artifact %v does not exist", id)
 	}
 
-	if compareVersions == true {
+	if compareVersions {
 		runtimeVer, _, err := runtime.Get(id)
 		if err != nil {
 			return err

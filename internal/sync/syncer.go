@@ -2,14 +2,15 @@ package sync
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
 	"github.com/engswee/flashpipe/internal/str"
 	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
-	"os"
-	"path/filepath"
 )
 
 type Syncer interface {
@@ -201,7 +202,7 @@ func (s *APIMTenantSynchroniser) Exec(request Request) error {
 				log.Info().Msg("Comparing content from tenant against Git")
 				downloadArtifactDir := fmt.Sprintf("%v/%v", downloadWorkDir, artifactId)
 				dirDiffer := file.DiffDirectories(downloadArtifactDir, gitArtifactDir)
-				if dirDiffer == true {
+				if dirDiffer {
 					log.Info().Msg("Changes found in APIProxy. APIProxy will be updated in tenant")
 
 					err = proxy.Upload(gitArtifactDir, uploadWorkDir)
@@ -252,6 +253,9 @@ func (s *CPIPackageTenantSynchroniser) Exec(request Request) error {
 
 	packageId := packageDetails.Root.Id
 	_, _, exists, err := ip.Get(packageId)
+	if err != nil {
+		return err
+	}
 	if !exists {
 		log.Info().Msgf("Package %v does not exist", packageId)
 		err = ip.Create(packageDetails)

@@ -4,12 +4,13 @@ import (
 	"archive/zip"
 	"encoding/base64"
 	"fmt"
-	"github.com/go-errors/errors"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/go-errors/errors"
 )
 
 func CopyFile(src, dst string) (err error) {
@@ -251,6 +252,9 @@ func ZipDir(src string, dst string, includeSrc bool) error {
 			}
 			defer file.Close()
 			_, err = io.Copy(writer, file)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
 		}
 		return err
 	})

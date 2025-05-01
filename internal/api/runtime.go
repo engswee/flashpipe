@@ -3,11 +3,12 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"strings"
+
 	"github.com/engswee/flashpipe/internal/httpclnt"
 	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
-	"io"
-	"strings"
 )
 
 type Runtime struct {
@@ -63,6 +64,9 @@ func (r *Runtime) Get(id string) (version string, status string, err error) {
 	// Process response to extract version and status
 	var jsonData *runtimeData
 	respBody, err := r.exe.ReadRespBody(resp)
+	if err != nil {
+		return "", "", err
+	}
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
 		log.Error().Msgf("Error unmarshalling response as JSON. Response body = %s", respBody)

@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/engswee/flashpipe/internal/file"
-	"github.com/engswee/flashpipe/internal/httpclnt"
-	"github.com/go-errors/errors"
-	"github.com/rs/zerolog/log"
 	"io"
 	"mime/multipart"
 	"os"
 	"path/filepath"
+
+	"github.com/engswee/flashpipe/internal/file"
+	"github.com/engswee/flashpipe/internal/httpclnt"
+	"github.com/go-errors/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type APIProxy struct {
@@ -54,7 +55,7 @@ func NewAPIProxy(exe *httpclnt.HTTPExecuter) *APIProxy {
 
 func (a *APIProxy) Download(apiName string, targetRootDir string) error {
 	log.Info().Msgf("Downloading APIProxy %v", apiName)
-	urlPath := fmt.Sprintf("/apiportal/api/1.0/ContentArchive.svc")
+	urlPath := "/apiportal/api/1.0/ContentArchive.svc"
 
 	// Construct query for payload body
 	query := &APIProxyQuery{}
@@ -64,7 +65,7 @@ func (a *APIProxy) Download(apiName string, targetRootDir string) error {
 		return errors.Wrap(err, 0)
 	}
 
-	callType := fmt.Sprintf("Get APIProxy")
+	callType := "Get APIProxy"
 	resp, err := readOnlyCallWithBody(urlPath, requestBody, callType, a.exe)
 	if err != nil {
 		return err
@@ -78,6 +79,9 @@ func (a *APIProxy) Download(apiName string, targetRootDir string) error {
 		return errors.Wrap(err, 0)
 	}
 	content, err := a.exe.ReadRespBody(resp)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 	err = os.WriteFile(targetFile, content, os.ModePerm)
 	if err != nil {
 		return errors.Wrap(err, 0)
@@ -111,7 +115,7 @@ func (a *APIProxy) Upload(sourceDir string, workDir string) error {
 		return err
 	}
 
-	urlPath := fmt.Sprintf("/apiportal/api/1.0/ContentArchive.svc")
+	urlPath := "/apiportal/api/1.0/ContentArchive.svc"
 	err = modifyingCallWithContentType("POST", urlPath, body.Bytes(), cType, 200, "Upload API ContentArchive", a.exe)
 	if err != nil {
 		return err
@@ -124,7 +128,7 @@ func (a *APIProxy) Get(id string) (bool, error) {
 	log.Info().Msgf("Getting details of APIProxy %v", id)
 	urlPath := fmt.Sprintf("/apiportal/api/1.0/Management.svc/APIProxies('%v')", id)
 
-	callType := fmt.Sprintf("Get APIProxy")
+	callType := "Get APIProxy"
 	_, err := readOnlyCall(urlPath, callType, a.exe)
 	if err != nil {
 		if err.Error() == fmt.Sprintf("%v call failed with response code = 404", callType) {
@@ -138,13 +142,19 @@ func (a *APIProxy) Get(id string) (bool, error) {
 
 func (a *APIProxy) List() ([]*APIProxyMetadata, error) {
 	log.Info().Msgf("Getting list of APIProxies")
-	urlPath := fmt.Sprintf("/apiportal/api/1.0/Management.svc/APIProxies")
+	urlPath := "/apiportal/api/1.0/Management.svc/APIProxies"
 
-	callType := fmt.Sprintf("List APIProxies")
+	callType := "List APIProxies"
 	resp, err := readOnlyCall(urlPath, callType, a.exe)
+	if err != nil {
+		return nil, err
+	}
 	// Process response to extract proxy details
 	var jsonData *apiProxyResponseData
 	respBody, err := a.exe.ReadRespBody(resp)
+	if err != nil {
+		return nil, err
+	}
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
 		log.Warn().Msgf("⚠️ Please check that hostname and credentials for APIM are correct - do not use CPI values!")
@@ -166,7 +176,7 @@ func (a *APIProxy) Delete(id string) error {
 	log.Info().Msgf("Deleting APIProxy %v", id)
 
 	urlPath := fmt.Sprintf("/apiportal/api/1.0/Management.svc/APIProxies('%v')", id)
-	return modifyingCall("DELETE", urlPath, nil, 204, fmt.Sprintf("Delete APIProxy"), a.exe)
+	return modifyingCall("DELETE", urlPath, nil, 204, "Delete APIProxy", a.exe)
 }
 
 func createFormDataFileRequest(formDataParameters map[string]string, fileParameterName, inputFilePath string) (*bytes.Buffer, string, error) {

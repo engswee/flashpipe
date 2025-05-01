@@ -3,10 +3,11 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+
 	"github.com/engswee/flashpipe/internal/httpclnt"
 	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
-	"os"
 )
 
 type IntegrationPackage struct {
@@ -76,6 +77,9 @@ func (ip *IntegrationPackage) GetPackagesList() ([]string, error) {
 	// Process response to extract packages
 	var jsonData *packageMultipleData
 	respBody, err := ip.exe.ReadRespBody(resp)
+	if err != nil {
+		return nil, err
+	}
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
 		log.Error().Msgf("Error unmarshalling response as JSON. Response body = %s", respBody)
@@ -103,6 +107,9 @@ func (ip *IntegrationPackage) Get(id string) (packageData *PackageSingleData, re
 	}
 	// Process response to extract details
 	respBody, err := ip.exe.ReadRespBody(resp)
+	if err != nil {
+		return nil, false, false, err
+	}
 	err = json.Unmarshal(respBody, &packageData)
 	if err != nil {
 		log.Error().Msgf("Error unmarshalling response as JSON. Response body = %s", respBody)
@@ -126,6 +133,9 @@ func (ip *IntegrationPackage) GetArtifactsData(id string, artifactType string) (
 	// Process response to extract artifact details
 	var jsonData *artifactData
 	respBody, err := ip.exe.ReadRespBody(resp)
+	if err != nil {
+		return nil, err
+	}
 	err = json.Unmarshal(respBody, &jsonData)
 	if err != nil {
 		log.Error().Msgf("Error unmarshalling response as JSON. Response body = %s", respBody)

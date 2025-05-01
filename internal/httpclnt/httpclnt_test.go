@@ -36,7 +36,7 @@ func TestMockOauth(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(fmt.Sprintf(`{ "d": { "Id": "Dummy" } }`)))
+		w.Write([]byte(`{ "d": { "Id": "Dummy" } }`))
 	})
 	svr := httptest.NewServer(mux)
 
@@ -77,7 +77,7 @@ func TestMockBasicAuth(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(fmt.Sprintf(`{ "d": { "Id": "Dummy" } }`)))
+		w.Write([]byte(`{ "d": { "Id": "Dummy" } }`))
 	})
 	svr := httptest.NewServer(mux)
 
@@ -118,7 +118,7 @@ func TestMockBasicAuthIDNotFound(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(fmt.Sprintf(`{ "error": { "code": "Not Found" } }`)))
+		w.Write([]byte(`{ "error": { "code": "Not Found" } }`))
 	})
 	svr := httptest.NewServer(mux)
 

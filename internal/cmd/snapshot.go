@@ -2,6 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
@@ -10,10 +15,6 @@ import (
 	"github.com/engswee/flashpipe/internal/sync"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 func NewSnapshotCommand() *cobra.Command {
@@ -144,9 +145,7 @@ func getTenantSnapshot(serviceDetails *api.ServiceDetails, artifactsBaseDir stri
 		packageArtifactsDir := fmt.Sprintf("%v/%v", artifactsBaseDir, id)
 		packageDataFromTenant, readOnly, _, err := synchroniser.VerifyDownloadablePackage(id)
 		if err != nil {
-			if err != nil {
-				return err
-			}
+			return err
 		}
 		if !readOnly {
 			// Filter in/out artifacts
