@@ -4,6 +4,12 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"net/textproto"
+	"os"
+	"path/filepath"
+	"slices"
+	"strings"
+
 	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
@@ -11,11 +17,6 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/magiconair/properties"
 	"github.com/rs/zerolog/log"
-	"net/textproto"
-	"os"
-	"path/filepath"
-	"slices"
-	"strings"
 )
 
 type Synchroniser struct {
@@ -396,7 +397,7 @@ func (s *Synchroniser) SingleArtifactToTenant(artifactId, artifactName, artifact
 			return err
 		}
 
-		if changesFound == true {
+		if changesFound {
 			log.Info().Msg("Changes found in designtime artifact. Designtime artifact will be updated in CPI tenant")
 			err = prepareUploadDir(workDir, artifactDir, dt)
 			if err != nil {
@@ -519,14 +520,14 @@ func updateConfiguration(artifactId string, parametersFile string, exe *httpclnt
 
 	// Get parameters from parameters.prop file
 	log.Info().Msgf("Getting parameters from %v file", parametersFile)
-	fileParameters := properties.MustLoadFile(parametersFile, properties.UTF8)
+	fileParameters := properties.MustLoadFile(parametersFile, properties.UTF8).Map()
 
 	log.Info().Msg("Comparing parameters and updating where necessary")
 	atLeastOneUpdated := false
 	for _, result := range tenantParameters.Root.Results {
 		if result.DataType != "custom:schedule" { // TODO - handle translation to Cron
 			// Skip updating for schedulers which require translation to Cron values
-			fileValue := fileParameters.GetString(result.ParameterKey, "")
+			fileValue := fileParameters[result.ParameterKey]
 			if fileValue != "" && fileValue != result.ParameterValue {
 				log.Info().Msgf("Parameter %v to be updated from %v to %v", result.ParameterKey, result.ParameterValue, fileValue)
 				err = c.Update(artifactId, "active", result.ParameterKey, fileValue)
