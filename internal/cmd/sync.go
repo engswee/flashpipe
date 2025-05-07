@@ -2,12 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/engswee/flashpipe/internal/file"
-	"github.com/engswee/flashpipe/internal/str"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/engswee/flashpipe/internal/file"
+	"github.com/engswee/flashpipe/internal/str"
 
 	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/api"
@@ -124,11 +125,6 @@ func runSync(cmd *cobra.Command) error {
 	skipCommit := config.GetBool(cmd, "git-skip-commit")
 	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
 	target := config.GetString(cmd, "target")
-	if target == "local" {
-		target = "git"
-	} else if target == "remote" {
-		target = "tenant"
-	}
 
 	serviceDetails := api.GetServiceDetails(cmd)
 	// Initialise HTTP executer

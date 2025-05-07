@@ -85,11 +85,7 @@ func runSyncAPIM(cmd *cobra.Command) error {
 	commitEmail := config.GetString(cmd, "git-commit-email")
 	skipCommit := config.GetBool(cmd, "git-skip-commit")
 	target := config.GetString(cmd, "target")
-	if target == "local" {
-		target = "git"
-	} else if target == "remote" {
-		target = "tenant"
-	}
+
 	serviceDetails := api.GetServiceDetails(cmd)
 	// Initialise HTTP executer
 	exe := api.InitHTTPExecuter(serviceDetails)
