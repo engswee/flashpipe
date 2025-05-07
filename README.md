@@ -38,12 +38,6 @@ To contribute to _FlashPipe_, check the [contribution guidelines page](CONTRIBUT
 
 _FlashPipe_ is licensed under the terms of Apache License, Version 2.0 - see the [LICENSE](LICENSE) file for details.
 
-### Development
-
-_FlashPipe_ is developed using [GoLand](https://www.jetbrains.com/go/) courtesy of JetBrains' [Free License Program for Open Source Development](https://www.jetbrains.com/community/opensource/#support).
-
-![GoLand logo](https://resources.jetbrains.com/storage/products/company/brand/logos/GoLand_icon.svg)
-
 ### Stargazers over time
 [![Stargazers over time](https://starchart.cc/engswee/flashpipe.svg?variant=adaptive)](https://starchart.cc/engswee/flashpipe)
 
