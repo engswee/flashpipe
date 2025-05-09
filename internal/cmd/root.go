@@ -2,18 +2,19 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/engswee/flashpipe/internal/config"
 	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"os"
-	"strings"
 )
 
 func NewCmdRoot() *cobra.Command {
-	var version = "3.5.0" // FLASHPIPE_VERSION
+	var version = "3.5.1" // FLASHPIPE_VERSION
 
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd := &cobra.Command{
