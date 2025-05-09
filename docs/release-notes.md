@@ -1,5 +1,15 @@
 # Release Notes
 
+## 3.5.1 (Released 9 May 2025)
+
+---
+
+- Bug fix - update handling of dynamic expressions found in externalised parameters
+- Update to latest Go version 1.24.3 and dependencies to resolve following security vulnerabilities
+  - CVE-2025-22869
+  - CVE-2025-22872
+  - CVE-2025-22870
+
 ## 3.5.0 (Released 20 December 2024)
 
 ---
