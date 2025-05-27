@@ -20,6 +20,10 @@ automating time-consuming manual tasks.
 
 For details on using _FlashPipe_, visit the [GitHub Pages documentation site](https://engswee.github.io/flashpipe/).
 
+### Analytics
+
+_FlashPipe_ collects anonymous usage analytics to help guide ongoing development and improve the tool. No personal or user-identifiable information is collected. Analytics collection is always enabled and not optional. By using _FlashPipe_, you consent to this data collection. If you have concerns, you are encouraged to review the implementation. If you do not agree, please refrain from using the tool.
+
 ### Examples Repository
 The following repository on GitHub provides examples of different use cases of _FlashPipe_.
 
