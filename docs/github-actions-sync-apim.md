@@ -48,7 +48,7 @@ Provide a suitable name for the workflow file e.g. `sync-apim-to-git.yml` and re
 
 Save and commit the new workflow file.
 
-Note: GitHub provides functionality to store unencrypted plain text as `repository variables`. Optionally, values like base URLs can be stored as repository variables instead of being hardcoded in the YAML configuration file, and can then be access using `${{ vars.VARIABLE_NAME }}` in the configuration file.
+Note: GitHub provides functionality to store unencrypted plain text as `repository variables`. Optionally, values like base URLs can be stored as repository variables instead of being hardcoded in the YAML configuration file, and can then be access using [the `vars` context](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#using-the-vars-context-to-access-configuration-variable-values) in the configuration file.
 
 ### 5. Trigger workflow execution
 This workflow has been configured with `on: workflow_dispatch` event triggering which allows it to be executed manually.
