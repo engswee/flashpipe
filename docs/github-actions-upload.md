@@ -53,7 +53,7 @@ Create the following repository secrets. Refer to [OAuth client setup page](oaut
 2. `DEV_CLIENT_SECRET` - OAuth client secret
    ![OAuth Secrets](images/setup/github-actions/05c_oauth_secrets.png)
 
-**Note**: GitHub does not provide functionality to store unencrypted plain text variables, which would be useful for values like the base URLs. Optionally, these can be stored as encrypted secrets instead of being hardcoded in the YAML configuration file.
+Note: GitHub provides functionality to store unencrypted plain text as `repository variables`. Optionally, values like base URLs can be stored as repository variables instead of being hardcoded in the YAML configuration file, and can then be access using `${{ vars.VARIABLE_NAME }}` in the configuration file.
 
 ### 5. Commit/push the workflow YAML, and check pipeline run
 Once all is in place, commit/push the workflow YAML. This will automatically trigger the workflow to be executed, you can monitor its execution and job logs. Go to `Actions` to view the workflows.
