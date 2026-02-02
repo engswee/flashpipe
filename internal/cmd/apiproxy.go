@@ -24,15 +24,19 @@ func NewAPIProxyCommand() *cobra.Command {
 		Aliases: []string{"apim"},
 		Short:   "Sync API Management proxies (with dependent artifacts) between tenant and Git",
 		Long: `Synchronise API Management proxies (with dependent artifacts) between SAP Integration Suite
-tenant and a Git repository.`,
+tenant and a Git repository.
+
+Configuration:
+  Settings can be loaded from the global config file (--config) under the
+  'sync.apiproxy' section. CLI flags override config file settings.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// If artifacts directory is provided, validate that is it a subdirectory of Git repo
-			gitRepoDir, err := config.GetStringWithEnvExpand(cmd, "dir-git-repo")
+			gitRepoDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-git-repo", "sync.apiproxy.dirGitRepo")
 			if err != nil {
 				return fmt.Errorf("security alert for --dir-git-repo: %w", err)
 			}
 			if gitRepoDir != "" {
-				artifactsDir, err := config.GetStringWithEnvExpand(cmd, "dir-artifacts")
+				artifactsDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-artifacts", "sync.apiproxy.dirArtifacts")
 				if err != nil {
 					return fmt.Errorf("security alert for --dir-artifacts: %w", err)
 				}
@@ -42,7 +46,7 @@ tenant and a Git repository.`,
 				}
 			}
 			// Validate target
-			target := config.GetString(cmd, "target")
+			target := config.GetStringWithFallback(cmd, "target", "sync.apiproxy.target")
 			switch target {
 			case "git", "tenant":
 			default:
@@ -66,25 +70,26 @@ tenant and a Git repository.`,
 func runSyncAPIProxy(cmd *cobra.Command) error {
 	log.Info().Msg("Executing sync apiproxy command")
 
-	gitRepoDir, err := config.GetStringWithEnvExpand(cmd, "dir-git-repo")
+	// Support reading from config file under 'sync.apiproxy' key
+	gitRepoDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-git-repo", "sync.apiproxy.dirGitRepo")
 	if err != nil {
 		return fmt.Errorf("security alert for --dir-git-repo: %w", err)
 	}
-	artifactsDir, err := config.GetStringWithEnvExpandWithDefault(cmd, "dir-artifacts", gitRepoDir)
-	if err != nil {
-		return fmt.Errorf("security alert for --dir-artifacts: %w", err)
+	artifactsDir := config.GetStringWithFallback(cmd, "dir-artifacts", "sync.apiproxy.dirArtifacts")
+	if artifactsDir == "" {
+		artifactsDir = gitRepoDir
 	}
-	workDir, err := config.GetStringWithEnvExpand(cmd, "dir-work")
+	workDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-work", "sync.apiproxy.dirWork")
 	if err != nil {
 		return fmt.Errorf("security alert for --dir-work: %w", err)
 	}
-	includedIds := str.TrimSlice(config.GetStringSlice(cmd, "ids-include"))
-	excludedIds := str.TrimSlice(config.GetStringSlice(cmd, "ids-exclude"))
-	commitMsg := config.GetString(cmd, "git-commit-msg")
-	commitUser := config.GetString(cmd, "git-commit-user")
-	commitEmail := config.GetString(cmd, "git-commit-email")
-	skipCommit := config.GetBool(cmd, "git-skip-commit")
-	target := config.GetString(cmd, "target")
+	includedIds := str.TrimSlice(config.GetStringSliceWithFallback(cmd, "ids-include", "sync.apiproxy.idsInclude"))
+	excludedIds := str.TrimSlice(config.GetStringSliceWithFallback(cmd, "ids-exclude", "sync.apiproxy.idsExclude"))
+	commitMsg := config.GetStringWithFallback(cmd, "git-commit-msg", "sync.apiproxy.gitCommitMsg")
+	commitUser := config.GetStringWithFallback(cmd, "git-commit-user", "sync.apiproxy.gitCommitUser")
+	commitEmail := config.GetStringWithFallback(cmd, "git-commit-email", "sync.apiproxy.gitCommitEmail")
+	skipCommit := config.GetBoolWithFallback(cmd, "git-skip-commit", "sync.apiproxy.gitSkipCommit")
+	target := config.GetStringWithFallback(cmd, "target", "sync.apiproxy.target")
 
 	serviceDetails := api.GetServiceDetails(cmd)
 	// Initialise HTTP executer

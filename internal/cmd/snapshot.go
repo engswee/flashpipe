@@ -23,23 +23,27 @@ func NewSnapshotCommand() *cobra.Command {
 		Use:   "snapshot",
 		Short: "Snapshot integration packages from tenant to Git",
 		Long: `Snapshot all editable integration packages from SAP Integration Suite
-tenant to a Git repository.`,
+tenant to a Git repository.
+
+Configuration:
+  Settings can be loaded from the global config file (--config) under the
+  'snapshot' section. CLI flags override config file settings.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// Validate Draft Handling
-			draftHandling := config.GetString(cmd, "draft-handling")
+			draftHandling := config.GetStringWithFallback(cmd, "draft-handling", "snapshot.draftHandling")
 			switch draftHandling {
 			case "SKIP", "ADD", "ERROR":
 			default:
 				return fmt.Errorf("invalid value for --draft-handling = %v", draftHandling)
 			}
 			// If artifacts directory is provided, validate that is it a subdirectory of Git repo
-			gitRepoDir, err := config.GetStringWithEnvExpand(cmd, "dir-git-repo")
+			gitRepoDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-git-repo", "snapshot.dirGitRepo")
 			if err != nil {
 				return fmt.Errorf("security alert for --dir-git-repo: %w", err)
 			}
 
 			if gitRepoDir != "" {
-				artifactsDir, err := config.GetStringWithEnvExpand(cmd, "dir-artifacts")
+				artifactsDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-artifacts", "snapshot.dirArtifacts")
 				if err != nil {
 					return fmt.Errorf("security alert for --dir-artifacts: %w", err)
 				}
@@ -61,18 +65,19 @@ tenant to a Git repository.`,
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	snapshotCmd.PersistentFlags().String("dir-git-repo", "", "Directory of Git repository")
-	snapshotCmd.PersistentFlags().String("dir-artifacts", "", "Directory containing contents of artifacts (grouped into packages)")
-	snapshotCmd.PersistentFlags().String("dir-work", "/tmp", "Working directory for in-transit files")
-	snapshotCmd.Flags().String("draft-handling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR")
-	snapshotCmd.PersistentFlags().StringSlice("ids-include", nil, "List of included package IDs")
-	snapshotCmd.PersistentFlags().StringSlice("ids-exclude", nil, "List of excluded package IDs")
+	// Note: These can be set in config file under 'snapshot' key
+	snapshotCmd.PersistentFlags().String("dir-git-repo", "", "Directory of Git repository (config: snapshot.dirGitRepo)")
+	snapshotCmd.PersistentFlags().String("dir-artifacts", "", "Directory containing contents of artifacts (grouped into packages) (config: snapshot.dirArtifacts)")
+	snapshotCmd.PersistentFlags().String("dir-work", "/tmp", "Working directory for in-transit files (config: snapshot.dirWork)")
+	snapshotCmd.Flags().String("draft-handling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR (config: snapshot.draftHandling)")
+	snapshotCmd.PersistentFlags().StringSlice("ids-include", nil, "List of included package IDs (config: snapshot.idsInclude)")
+	snapshotCmd.PersistentFlags().StringSlice("ids-exclude", nil, "List of excluded package IDs (config: snapshot.idsExclude)")
 
-	snapshotCmd.Flags().String("git-commit-msg", "Tenant snapshot of "+time.Now().Format(time.UnixDate), "Message used in commit")
-	snapshotCmd.Flags().String("git-commit-user", "github-actions[bot]", "User used in commit")
-	snapshotCmd.Flags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit")
-	snapshotCmd.Flags().Bool("git-skip-commit", false, "Skip committing changes to Git repository")
-	snapshotCmd.Flags().Bool("sync-package-details", true, "Sync details of Integration Packages")
+	snapshotCmd.Flags().String("git-commit-msg", "Tenant snapshot of "+time.Now().Format(time.UnixDate), "Message used in commit (config: snapshot.gitCommitMsg)")
+	snapshotCmd.Flags().String("git-commit-user", "github-actions[bot]", "User used in commit (config: snapshot.gitCommitUser)")
+	snapshotCmd.Flags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit (config: snapshot.gitCommitEmail)")
+	snapshotCmd.Flags().Bool("git-skip-commit", false, "Skip committing changes to Git repository (config: snapshot.gitSkipCommit)")
+	snapshotCmd.Flags().Bool("sync-package-details", true, "Sync details of Integration Packages (config: snapshot.syncPackageDetails)")
 
 	_ = snapshotCmd.MarkFlagRequired("dir-git-repo")
 	snapshotCmd.MarkFlagsMutuallyExclusive("ids-include", "ids-exclude")
@@ -83,26 +88,27 @@ tenant to a Git repository.`,
 func runSnapshot(cmd *cobra.Command) error {
 	log.Info().Msg("Executing snapshot command")
 
-	gitRepoDir, err := config.GetStringWithEnvExpand(cmd, "dir-git-repo")
+	// Support reading from config file under 'snapshot' key
+	gitRepoDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-git-repo", "snapshot.dirGitRepo")
 	if err != nil {
 		return fmt.Errorf("security alert for --dir-git-repo: %w", err)
 	}
-	artifactsBaseDir, err := config.GetStringWithEnvExpandWithDefault(cmd, "dir-artifacts", gitRepoDir)
-	if err != nil {
-		return fmt.Errorf("security alert for --dir-artifacts: %w", err)
+	artifactsBaseDir := config.GetStringWithFallback(cmd, "dir-artifacts", "snapshot.dirArtifacts")
+	if artifactsBaseDir == "" {
+		artifactsBaseDir = gitRepoDir
 	}
-	workDir, err := config.GetStringWithEnvExpand(cmd, "dir-work")
+	workDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-work", "snapshot.dirWork")
 	if err != nil {
 		return fmt.Errorf("security alert for --dir-work: %w", err)
 	}
-	draftHandling := config.GetString(cmd, "draft-handling")
-	includedIds := str.TrimSlice(config.GetStringSlice(cmd, "ids-include"))
-	excludedIds := str.TrimSlice(config.GetStringSlice(cmd, "ids-exclude"))
-	commitMsg := config.GetString(cmd, "git-commit-msg")
-	commitUser := config.GetString(cmd, "git-commit-user")
-	commitEmail := config.GetString(cmd, "git-commit-email")
-	skipCommit := config.GetBool(cmd, "git-skip-commit")
-	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
+	draftHandling := config.GetStringWithFallback(cmd, "draft-handling", "snapshot.draftHandling")
+	includedIds := str.TrimSlice(config.GetStringSliceWithFallback(cmd, "ids-include", "snapshot.idsInclude"))
+	excludedIds := str.TrimSlice(config.GetStringSliceWithFallback(cmd, "ids-exclude", "snapshot.idsExclude"))
+	commitMsg := config.GetStringWithFallback(cmd, "git-commit-msg", "snapshot.gitCommitMsg")
+	commitUser := config.GetStringWithFallback(cmd, "git-commit-user", "snapshot.gitCommitUser")
+	commitEmail := config.GetStringWithFallback(cmd, "git-commit-email", "snapshot.gitCommitEmail")
+	skipCommit := config.GetBoolWithFallback(cmd, "git-skip-commit", "snapshot.gitSkipCommit")
+	syncPackageLevelDetails := config.GetBoolWithFallback(cmd, "sync-package-details", "snapshot.syncPackageDetails")
 
 	serviceDetails := api.GetServiceDetails(cmd)
 	err = getTenantSnapshot(serviceDetails, artifactsBaseDir, workDir, draftHandling, syncPackageLevelDetails, includedIds, excludedIds)

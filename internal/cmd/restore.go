@@ -2,6 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/engswee/flashpipe/internal/analytics"
 	"github.com/engswee/flashpipe/internal/api"
 	"github.com/engswee/flashpipe/internal/config"
@@ -11,10 +16,6 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 func NewRestoreCommand() *cobra.Command {
@@ -22,17 +23,21 @@ func NewRestoreCommand() *cobra.Command {
 	restoreCmd := &cobra.Command{
 		Use:   "restore",
 		Short: "Restore integration packages from Git to tenant",
-		Long:  `Restore all editable integration packages from a Git repository to SAP Integration Suite tenant.`,
+		Long: `Restore all editable integration packages from a Git repository to SAP Integration Suite tenant.
+
+Configuration:
+  Settings can be loaded from the global config file (--config) under the
+  'restore' section. CLI flags override config file settings.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 
 			// If artifacts directory is provided, validate that is it a subdirectory of Git repo
-			gitRepoDir, err := config.GetStringWithEnvExpand(cmd, "dir-git-repo")
+			gitRepoDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-git-repo", "restore.dirGitRepo")
 			if err != nil {
 				return fmt.Errorf("security alert for --dir-git-repo: %w", err)
 			}
 
 			if gitRepoDir != "" {
-				artifactsDir, err := config.GetStringWithEnvExpand(cmd, "dir-artifacts")
+				artifactsDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-artifacts", "restore.dirArtifacts")
 				if err != nil {
 					return fmt.Errorf("security alert for --dir-artifacts: %w", err)
 				}
@@ -59,20 +64,21 @@ func NewRestoreCommand() *cobra.Command {
 func runRestore(cmd *cobra.Command) error {
 	log.Info().Msg("Executing snapshot restore command")
 
-	gitRepoDir, err := config.GetStringWithEnvExpand(cmd, "dir-git-repo")
+	// Support reading from config file under 'restore' key
+	gitRepoDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-git-repo", "restore.dirGitRepo")
 	if err != nil {
 		return fmt.Errorf("security alert for --dir-git-repo: %w", err)
 	}
-	artifactsBaseDir, err := config.GetStringWithEnvExpandWithDefault(cmd, "dir-artifacts", gitRepoDir)
-	if err != nil {
-		return fmt.Errorf("security alert for --dir-artifacts: %w", err)
+	artifactsBaseDir := config.GetStringWithFallback(cmd, "dir-artifacts", "restore.dirArtifacts")
+	if artifactsBaseDir == "" {
+		artifactsBaseDir = gitRepoDir
 	}
-	workDir, err := config.GetStringWithEnvExpand(cmd, "dir-work")
+	workDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-work", "restore.dirWork")
 	if err != nil {
 		return fmt.Errorf("security alert for --dir-work: %w", err)
 	}
-	includedIds := str.TrimSlice(config.GetStringSlice(cmd, "ids-include"))
-	excludedIds := str.TrimSlice(config.GetStringSlice(cmd, "ids-exclude"))
+	includedIds := str.TrimSlice(config.GetStringSliceWithFallback(cmd, "ids-include", "restore.idsInclude"))
+	excludedIds := str.TrimSlice(config.GetStringSliceWithFallback(cmd, "ids-exclude", "restore.idsExclude"))
 
 	serviceDetails := api.GetServiceDetails(cmd)
 	err = restoreSnapshot(serviceDetails, artifactsBaseDir, workDir, includedIds, excludedIds)

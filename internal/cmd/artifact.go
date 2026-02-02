@@ -20,10 +20,14 @@ func NewArtifactCommand() *cobra.Command {
 		Use:   "artifact",
 		Short: "Create/update artifacts",
 		Long: `Create or update artifacts on the
-SAP Integration Suite tenant.`,
+SAP Integration Suite tenant.
+
+Configuration:
+  Settings can be loaded from the global config file (--config) under the
+  'update.artifact' section. CLI flags override config file settings.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// Validate the artifact type
-			artifactType := config.GetString(cmd, "artifact-type")
+			artifactType := config.GetStringWithFallback(cmd, "artifact-type", "update.artifact.artifactType")
 			switch artifactType {
 			case "MessageMapping", "ScriptCollection", "Integration", "ValueMapping":
 			default:
@@ -42,16 +46,17 @@ SAP Integration Suite tenant.`,
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	artifactCmd.Flags().String("artifact-id", "", "ID of artifact")
-	artifactCmd.Flags().String("artifact-name", "", "Name of artifact. Defaults to artifact-id value when not provided")
-	artifactCmd.Flags().String("package-id", "", "ID of Integration Package")
-	artifactCmd.Flags().String("package-name", "", "Name of Integration Package. Defaults to package-id value when not provided")
-	artifactCmd.Flags().String("dir-artifact", "", "Directory containing contents of designtime artifact")
-	artifactCmd.Flags().String("file-param", "", "Use a different parameters.prop file instead of the default in src/main/resources/ ")
-	artifactCmd.Flags().String("file-manifest", "", "Use a different MANIFEST.MF file instead of the default in META-INF/")
-	artifactCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files")
-	artifactCmd.Flags().StringSlice("script-collection-map", nil, "Comma-separated source-target ID pairs for converting script collection references during create/update")
-	artifactCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping")
+	// Note: These can be set in config file under 'update.artifact' key
+	artifactCmd.Flags().String("artifact-id", "", "ID of artifact (config: update.artifact.artifactId)")
+	artifactCmd.Flags().String("artifact-name", "", "Name of artifact. Defaults to artifact-id value when not provided (config: update.artifact.artifactName)")
+	artifactCmd.Flags().String("package-id", "", "ID of Integration Package (config: update.artifact.packageId)")
+	artifactCmd.Flags().String("package-name", "", "Name of Integration Package. Defaults to package-id value when not provided (config: update.artifact.packageName)")
+	artifactCmd.Flags().String("dir-artifact", "", "Directory containing contents of designtime artifact (config: update.artifact.dirArtifact)")
+	artifactCmd.Flags().String("file-param", "", "Use a different parameters.prop file instead of the default in src/main/resources/ (config: update.artifact.fileParam)")
+	artifactCmd.Flags().String("file-manifest", "", "Use a different MANIFEST.MF file instead of the default in META-INF/ (config: update.artifact.fileManifest)")
+	artifactCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files (config: update.artifact.dirWork)")
+	artifactCmd.Flags().StringSlice("script-collection-map", nil, "Comma-separated source-target ID pairs for converting script collection references during create/update (config: update.artifact.scriptCollectionMap)")
+	artifactCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping (config: update.artifact.artifactType)")
 	// TODO - another flag for replacing value mapping in QAS?
 
 	_ = artifactCmd.MarkFlagRequired("artifact-id")
@@ -62,29 +67,30 @@ SAP Integration Suite tenant.`,
 }
 
 func runUpdateArtifact(cmd *cobra.Command) error {
-	artifactType := config.GetString(cmd, "artifact-type")
+	// Support reading from config file under 'update.artifact' key
+	artifactType := config.GetStringWithFallback(cmd, "artifact-type", "update.artifact.artifactType")
 	log.Info().Msgf("Executing update artifact %v command", artifactType)
 
-	artifactId := config.GetString(cmd, "artifact-id")
-	artifactName := config.GetString(cmd, "artifact-name")
-	packageId := config.GetString(cmd, "package-id")
-	packageName := config.GetString(cmd, "package-name")
+	artifactId := config.GetStringWithFallback(cmd, "artifact-id", "update.artifact.artifactId")
+	artifactName := config.GetStringWithFallback(cmd, "artifact-name", "update.artifact.artifactName")
+	packageId := config.GetStringWithFallback(cmd, "package-id", "update.artifact.packageId")
+	packageName := config.GetStringWithFallback(cmd, "package-name", "update.artifact.packageName")
 	// Default package name to package ID if it is not provided
 	if packageName == "" {
 		log.Info().Msgf("Using package ID %v as package name", packageId)
 		packageName = packageId
 	}
-	artifactDir, err := config.GetStringWithEnvExpand(cmd, "dir-artifact")
+	artifactDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-artifact", "update.artifact.dirArtifact")
 	if err != nil {
 		return fmt.Errorf("security alert for --dir-artifact: %w", err)
 	}
-	parametersFile := config.GetString(cmd, "file-param")
-	manifestFile := config.GetString(cmd, "file-manifest")
-	workDir, err := config.GetStringWithEnvExpand(cmd, "dir-work")
+	parametersFile := config.GetStringWithFallback(cmd, "file-param", "update.artifact.fileParam")
+	manifestFile := config.GetStringWithFallback(cmd, "file-manifest", "update.artifact.fileManifest")
+	workDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-work", "update.artifact.dirWork")
 	if err != nil {
 		return fmt.Errorf("security alert for --dir-work: %w", err)
 	}
-	scriptMap := str.TrimSlice(config.GetStringSlice(cmd, "script-collection-map"))
+	scriptMap := str.TrimSlice(config.GetStringSliceWithFallback(cmd, "script-collection-map", "update.artifact.scriptCollectionMap"))
 
 	defaultParamFile := fmt.Sprintf("%v/src/main/resources/parameters.prop", artifactDir)
 	if parametersFile == "" {

@@ -18,10 +18,14 @@ func NewDeployCommand() *cobra.Command {
 		Use:   "deploy",
 		Short: "Deploy designtime artifact to runtime",
 		Long: `Deploy artifact from designtime to
-runtime of SAP Integration Suite tenant.`,
+runtime of SAP Integration Suite tenant.
+
+Configuration:
+  Settings can be loaded from the global config file (--config) under the
+  'deploy' section. CLI flags override config file settings.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// Validate the artifact type
-			artifactType := config.GetString(cmd, "artifact-type")
+			artifactType := config.GetStringWithFallback(cmd, "artifact-type", "deploy.artifactType")
 			switch artifactType {
 			case "MessageMapping", "ScriptCollection", "Integration", "ValueMapping":
 			default:
@@ -40,12 +44,13 @@ runtime of SAP Integration Suite tenant.`,
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	deployCmd.Flags().StringSlice("artifact-ids", nil, "Comma separated list of artifact IDs")
-	deployCmd.Flags().Int("delay-length", 30, "Delay (in seconds) between each check of artifact deployment status")
-	deployCmd.Flags().Int("max-check-limit", 10, "Max number of times to check for artifact deployment status")
+	// Note: These can be set in config file under 'deploy' key
+	deployCmd.Flags().StringSlice("artifact-ids", nil, "Comma separated list of artifact IDs (config: deploy.artifactIds)")
+	deployCmd.Flags().Int("delay-length", 30, "Delay (in seconds) between each check of artifact deployment status (config: deploy.delayLength)")
+	deployCmd.Flags().Int("max-check-limit", 10, "Max number of times to check for artifact deployment status (config: deploy.maxCheckLimit)")
 	// To set to false, use --compare-versions=false
-	deployCmd.Flags().Bool("compare-versions", true, "Perform version comparison of design time against runtime before deployment")
-	deployCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping")
+	deployCmd.Flags().Bool("compare-versions", true, "Perform version comparison of design time against runtime before deployment (config: deploy.compareVersions)")
+	deployCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping (config: deploy.artifactType)")
 
 	_ = deployCmd.MarkFlagRequired("artifact-ids")
 	return deployCmd
@@ -54,13 +59,14 @@ runtime of SAP Integration Suite tenant.`,
 func runDeploy(cmd *cobra.Command) error {
 	serviceDetails := api.GetServiceDetails(cmd)
 
-	artifactType := config.GetString(cmd, "artifact-type")
+	// Support reading from config file under 'deploy' key
+	artifactType := config.GetStringWithFallback(cmd, "artifact-type", "deploy.artifactType")
 	log.Info().Msgf("Executing deploy %v command", artifactType)
 
-	artifactIds := config.GetStringSlice(cmd, "artifact-ids")
-	delayLength := config.GetInt(cmd, "delay-length")
-	maxCheckLimit := config.GetInt(cmd, "max-check-limit")
-	compareVersions := config.GetBool(cmd, "compare-versions")
+	artifactIds := config.GetStringSliceWithFallback(cmd, "artifact-ids", "deploy.artifactIds")
+	delayLength := config.GetIntWithFallback(cmd, "delay-length", "deploy.delayLength")
+	maxCheckLimit := config.GetIntWithFallback(cmd, "max-check-limit", "deploy.maxCheckLimit")
+	compareVersions := config.GetBoolWithFallback(cmd, "compare-versions", "deploy.compareVersions")
 
 	err := deployArtifacts(artifactIds, artifactType, delayLength, maxCheckLimit, compareVersions, serviceDetails)
 	if err != nil {

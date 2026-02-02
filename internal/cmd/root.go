@@ -24,7 +24,7 @@ func NewCmdRoot() *cobra.Command {
 		Long: `FlashPipe - The CI/CD Companion for SAP Integration Suite
 
 FlashPipe is a CLI that is used to simplify the Build-To-Deploy cycle
-for SAP Integration Suite by providing CI/CD capabilities for 
+for SAP Integration Suite by providing CI/CD capabilities for
 automating time-consuming manual tasks like:
 - synchronising integration artifacts to Git
 - creating/updating integration artifacts to SAP Integration Suite
@@ -73,6 +73,11 @@ func Execute() {
 	snapshotCmd := NewSnapshotCommand()
 	snapshotCmd.AddCommand(NewRestoreCommand())
 	rootCmd.AddCommand(snapshotCmd)
+	rootCmd.AddCommand(NewPDSnapshotCommand())
+	rootCmd.AddCommand(NewPDDeployCommand())
+	rootCmd.AddCommand(NewConfigGenerateCommand())
+	rootCmd.AddCommand(NewFlashpipeOrchestratorCommand())
+	rootCmd.AddCommand(NewConfigureCommand())
 
 	err := rootCmd.Execute()
 

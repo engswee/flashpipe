@@ -24,29 +24,33 @@ func NewSyncCommand() *cobra.Command {
 		Use:   "sync",
 		Short: "Sync designtime artifacts between tenant and Git",
 		Long: `Synchronise designtime artifacts between SAP Integration Suite
-tenant and a Git repository.`,
+tenant and a Git repository.
+
+Configuration:
+  Settings can be loaded from the global config file (--config) under the
+  'sync' section. CLI flags override config file settings.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// Validate Directory Naming Type
-			dirNamingType := config.GetString(cmd, "dir-naming-type")
+			dirNamingType := config.GetStringWithFallback(cmd, "dir-naming-type", "sync.dirNamingType")
 			switch dirNamingType {
 			case "ID", "NAME":
 			default:
 				return fmt.Errorf("invalid value for --dir-naming-type = %v", dirNamingType)
 			}
 			// Validate Draft Handling
-			draftHandling := config.GetString(cmd, "draft-handling")
+			draftHandling := config.GetStringWithFallback(cmd, "draft-handling", "sync.draftHandling")
 			switch draftHandling {
 			case "SKIP", "ADD", "ERROR":
 			default:
 				return fmt.Errorf("invalid value for --draft-handling = %v", draftHandling)
 			}
 			// If artifacts directory is provided, validate that is it a subdirectory of Git repo
-			gitRepoDir, err := config.GetStringWithEnvExpand(cmd, "dir-git-repo")
+			gitRepoDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-git-repo", "sync.dirGitRepo")
 			if err != nil {
 				return fmt.Errorf("security alert for --dir-git-repo: %w", err)
 			}
 			if gitRepoDir != "" {
-				artifactsDir, err := config.GetStringWithEnvExpand(cmd, "dir-artifacts")
+				artifactsDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-artifacts", "sync.dirArtifacts")
 				if err != nil {
 					return fmt.Errorf("security alert for --dir-artifacts: %w", err)
 				}
@@ -56,7 +60,7 @@ tenant and a Git repository.`,
 				}
 			}
 			// Validate target
-			target := config.GetString(cmd, "target")
+			target := config.GetStringWithFallback(cmd, "target", "sync.target")
 			switch target {
 			case "git", "tenant":
 			default:
@@ -75,21 +79,22 @@ tenant and a Git repository.`,
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	syncCmd.Flags().String("package-id", "", "ID of Integration Package")
-	syncCmd.PersistentFlags().String("dir-git-repo", "", "Directory of Git repository")
-	syncCmd.PersistentFlags().String("dir-artifacts", "", "Directory containing contents of artifacts")
-	syncCmd.PersistentFlags().String("dir-work", "/tmp", "Working directory for in-transit files")
-	syncCmd.Flags().String("dir-naming-type", "ID", "Name artifact directory by ID or Name. Allowed values: ID, NAME")
-	syncCmd.Flags().String("draft-handling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR")
-	syncCmd.PersistentFlags().StringSlice("ids-include", nil, "List of included artifact IDs")
-	syncCmd.PersistentFlags().StringSlice("ids-exclude", nil, "List of excluded artifact IDs")
-	syncCmd.PersistentFlags().String("target", "git", "Target of sync. Allowed values: git, tenant")
-	syncCmd.PersistentFlags().String("git-commit-msg", "Sync repo from tenant", "Message used in commit")
-	syncCmd.PersistentFlags().String("git-commit-user", "github-actions[bot]", "User used in commit")
-	syncCmd.PersistentFlags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit")
-	syncCmd.Flags().StringSlice("script-collection-map", nil, "Comma-separated source-target ID pairs for converting script collection references during sync ")
-	syncCmd.PersistentFlags().Bool("git-skip-commit", false, "Skip committing changes to Git repository")
-	syncCmd.Flags().Bool("sync-package-details", false, "Sync details of Integration Package")
+	// Note: These can be set in config file under 'sync' key
+	syncCmd.Flags().String("package-id", "", "ID of Integration Package (config: sync.packageId)")
+	syncCmd.PersistentFlags().String("dir-git-repo", "", "Directory of Git repository (config: sync.dirGitRepo)")
+	syncCmd.PersistentFlags().String("dir-artifacts", "", "Directory containing contents of artifacts (config: sync.dirArtifacts)")
+	syncCmd.PersistentFlags().String("dir-work", "/tmp", "Working directory for in-transit files (config: sync.dirWork)")
+	syncCmd.Flags().String("dir-naming-type", "ID", "Name artifact directory by ID or Name. Allowed values: ID, NAME (config: sync.dirNamingType)")
+	syncCmd.Flags().String("draft-handling", "SKIP", "Handling when artifact is in draft version. Allowed values: SKIP, ADD, ERROR (config: sync.draftHandling)")
+	syncCmd.PersistentFlags().StringSlice("ids-include", nil, "List of included artifact IDs (config: sync.idsInclude)")
+	syncCmd.PersistentFlags().StringSlice("ids-exclude", nil, "List of excluded artifact IDs (config: sync.idsExclude)")
+	syncCmd.PersistentFlags().String("target", "git", "Target of sync. Allowed values: git, tenant (config: sync.target)")
+	syncCmd.PersistentFlags().String("git-commit-msg", "Sync repo from tenant", "Message used in commit (config: sync.gitCommitMsg)")
+	syncCmd.PersistentFlags().String("git-commit-user", "github-actions[bot]", "User used in commit (config: sync.gitCommitUser)")
+	syncCmd.PersistentFlags().String("git-commit-email", "41898282+github-actions[bot]@users.noreply.github.com", "Email used in commit (config: sync.gitCommitEmail)")
+	syncCmd.Flags().StringSlice("script-collection-map", nil, "Comma-separated source-target ID pairs for converting script collection references during sync (config: sync.scriptCollectionMap)")
+	syncCmd.PersistentFlags().Bool("git-skip-commit", false, "Skip committing changes to Git repository (config: sync.gitSkipCommit)")
+	syncCmd.Flags().Bool("sync-package-details", false, "Sync details of Integration Package (config: sync.syncPackageDetails)")
 
 	_ = syncCmd.MarkFlagRequired("package-id")
 	_ = syncCmd.MarkFlagRequired("dir-git-repo")
@@ -101,30 +106,31 @@ tenant and a Git repository.`,
 func runSync(cmd *cobra.Command) error {
 	log.Info().Msg("Executing sync command")
 
-	packageId := config.GetString(cmd, "package-id")
-	gitRepoDir, err := config.GetStringWithEnvExpand(cmd, "dir-git-repo")
+	// Support reading from config file under 'sync' key
+	packageId := config.GetStringWithFallback(cmd, "package-id", "sync.packageId")
+	gitRepoDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-git-repo", "sync.dirGitRepo")
 	if err != nil {
 		return fmt.Errorf("security alert for --dir-git-repo: %w", err)
 	}
-	artifactsDir, err := config.GetStringWithEnvExpandWithDefault(cmd, "dir-artifacts", gitRepoDir)
-	if err != nil {
-		return fmt.Errorf("security alert for --dir-artifacts: %w", err)
+	artifactsDir := config.GetStringWithFallback(cmd, "dir-artifacts", "sync.dirArtifacts")
+	if artifactsDir == "" {
+		artifactsDir = gitRepoDir
 	}
-	workDir, err := config.GetStringWithEnvExpand(cmd, "dir-work")
+	workDir, err := config.GetStringWithEnvExpandAndFallback(cmd, "dir-work", "sync.dirWork")
 	if err != nil {
 		return fmt.Errorf("security alert for --dir-work: %w", err)
 	}
-	dirNamingType := config.GetString(cmd, "dir-naming-type")
-	draftHandling := config.GetString(cmd, "draft-handling")
-	includedIds := str.TrimSlice(config.GetStringSlice(cmd, "ids-include"))
-	excludedIds := str.TrimSlice(config.GetStringSlice(cmd, "ids-exclude"))
-	commitMsg := config.GetString(cmd, "git-commit-msg")
-	commitUser := config.GetString(cmd, "git-commit-user")
-	commitEmail := config.GetString(cmd, "git-commit-email")
-	scriptCollectionMap := str.TrimSlice(config.GetStringSlice(cmd, "script-collection-map"))
-	skipCommit := config.GetBool(cmd, "git-skip-commit")
-	syncPackageLevelDetails := config.GetBool(cmd, "sync-package-details")
-	target := config.GetString(cmd, "target")
+	dirNamingType := config.GetStringWithFallback(cmd, "dir-naming-type", "sync.dirNamingType")
+	draftHandling := config.GetStringWithFallback(cmd, "draft-handling", "sync.draftHandling")
+	includedIds := str.TrimSlice(config.GetStringSliceWithFallback(cmd, "ids-include", "sync.idsInclude"))
+	excludedIds := str.TrimSlice(config.GetStringSliceWithFallback(cmd, "ids-exclude", "sync.idsExclude"))
+	commitMsg := config.GetStringWithFallback(cmd, "git-commit-msg", "sync.gitCommitMsg")
+	commitUser := config.GetStringWithFallback(cmd, "git-commit-user", "sync.gitCommitUser")
+	commitEmail := config.GetStringWithFallback(cmd, "git-commit-email", "sync.gitCommitEmail")
+	scriptCollectionMap := str.TrimSlice(config.GetStringSliceWithFallback(cmd, "script-collection-map", "sync.scriptCollectionMap"))
+	skipCommit := config.GetBoolWithFallback(cmd, "git-skip-commit", "sync.gitSkipCommit")
+	syncPackageLevelDetails := config.GetBoolWithFallback(cmd, "sync-package-details", "sync.syncPackageDetails")
+	target := config.GetStringWithFallback(cmd, "target", "sync.target")
 
 	serviceDetails := api.GetServiceDetails(cmd)
 	// Initialise HTTP executer

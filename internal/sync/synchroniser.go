@@ -45,15 +45,18 @@ func (s *Synchroniser) PackageToGit(packageDataFromTenant *api.PackageSingleData
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	defer f.Close()
 	content, err := json.MarshalIndent(packageDataFromTenant, "", "  ")
 	if err != nil {
+		f.Close()
 		return errors.Wrap(err, 0)
 	}
 	_, err = f.Write(content)
 	if err != nil {
+		f.Close()
 		return errors.Wrap(err, 0)
 	}
+	// Explicitly close the file before CopyFile to prevent Windows file locking issues
+	f.Close()
 
 	// Get existing package details file if it exists and compare values
 	gitSourceFile := fmt.Sprintf("%v/%v.json", artifactsDir, packageId)

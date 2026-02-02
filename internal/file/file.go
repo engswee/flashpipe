@@ -278,3 +278,57 @@ func ZipDirToBase64(src string) (string, error) {
 	}
 	return base64.StdEncoding.EncodeToString(fileContent), nil
 }
+
+// ReadManifest reads a MANIFEST.MF file and returns key-value pairs
+func ReadManifest(manifestPath string) (map[string]string, error) {
+	metadata := make(map[string]string)
+
+	file, err := os.Open(manifestPath)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+	defer file.Close()
+
+	content, err := io.ReadAll(file)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	lines := strings.Split(string(content), "\n")
+	var currentKey string
+	var currentValue strings.Builder
+
+	for _, line := range lines {
+		line = strings.TrimRight(line, "\r")
+
+		// Multi-line values start with a space
+		if len(line) > 0 && line[0] == ' ' {
+			if currentKey != "" {
+				currentValue.WriteString(strings.TrimPrefix(line, " "))
+			}
+			continue
+		}
+
+		// Save previous key-value pair if exists
+		if currentKey != "" {
+			metadata[currentKey] = currentValue.String()
+			currentValue.Reset()
+		}
+
+		// Parse new key-value pair
+		parts := strings.SplitN(line, ":", 2)
+		if len(parts) == 2 {
+			currentKey = strings.TrimSpace(parts[0])
+			currentValue.WriteString(strings.TrimSpace(parts[1]))
+		} else {
+			currentKey = ""
+		}
+	}
+
+	// Save last key-value pair
+	if currentKey != "" {
+		metadata[currentKey] = currentValue.String()
+	}
+
+	return metadata, nil
+}

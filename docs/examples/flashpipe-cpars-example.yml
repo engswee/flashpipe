@@ -1,0 +1,109 @@
+# Example Flashpipe Configuration for Partner Directory Management
+# Copy this file and customize for your environment
+
+# =============================================================================
+# Connection Settings (Required)
+# =============================================================================
+# Use environment variables for sensitive credentials
+tmn-host: your-tenant.hana.ondemand.com
+oauth-host: your-tenant.authentication.sap.hana.ondemand.com
+oauth-clientid: ${OAUTH_CLIENT_ID}
+oauth-clientsecret: ${OAUTH_CLIENT_SECRET}
+
+# OR use Basic Authentication
+# tmn-host: your-tenant.hana.ondemand.com
+# tmn-userid: ${USERNAME}
+# tmn-password: ${PASSWORD}
+
+# =============================================================================
+# Partner Directory Snapshot Settings
+# =============================================================================
+pd-snapshot:
+  # Directory where parameters will be saved
+  resources-path: ./partner-directory
+
+  # Replace existing files when downloading
+  # true  = overwrite existing files
+  # false = only add new files, keep existing
+  replace: true
+
+  # Optional: Only snapshot specific Partner IDs
+  # Uncomment and modify to filter
+  # pids:
+  #   - SAP_SYSTEM_001
+  #   - CUSTOMER_API
+  #   - PARTNER_XYZ
+
+# =============================================================================
+# Partner Directory Deploy Settings
+# =============================================================================
+pd-deploy:
+  # Directory where parameters are read from
+  resources-path: ./partner-directory
+
+  # Replace existing values in CPI
+  # true  = update existing parameters with local values
+  # false = only create new parameters, skip existing
+  replace: true
+
+  # Full synchronization mode (CAUTION!)
+  # true  = delete remote parameters not present in local files
+  # false = only create/update, never delete
+  # WARNING: full-sync makes local files the source of truth!
+  full-sync: false
+
+  # Dry-run mode - preview changes without applying them
+  # true  = show what would change but don't modify CPI
+  # false = actually apply changes to CPI
+  dry-run: false
+
+  # Optional: Only deploy specific Partner IDs
+  # Uncomment and modify to filter
+  # pids:
+  #   - SAP_SYSTEM_001
+  #   - CUSTOMER_API
+  #   - PARTNER_XYZ
+
+# =============================================================================
+# Usage Examples
+# =============================================================================
+#
+# Set credentials via environment variables:
+#   export OAUTH_CLIENT_ID="your-client-id"
+#   export OAUTH_CLIENT_SECRET="your-client-secret"
+#
+# Snapshot (download) Partner Directory:
+#   flashpipe pd-snapshot --config flashpipe-cpars-example.yml
+#
+# Deploy with dry-run (preview changes):
+#   flashpipe pd-deploy --config flashpipe-cpars-example.yml --dry-run
+#
+# Deploy (apply changes):
+#   flashpipe pd-deploy --config flashpipe-cpars-example.yml
+#
+# Deploy with full-sync (delete remote params not in local):
+#   flashpipe pd-deploy --config flashpipe-cpars-example.yml --full-sync
+#
+# Override resources path:
+#   flashpipe pd-deploy --config flashpipe-cpars-example.yml \
+#     --resources-path ./other-directory
+#
+# Deploy only specific PIDs:
+#   flashpipe pd-deploy --config flashpipe-cpars-example.yml \
+#     --pids "PARTNER_001,PARTNER_002"
+#
+# =============================================================================
+# Environment-Specific Configs
+# =============================================================================
+# For multiple environments, create separate config files:
+#   - flashpipe-cpars-dev.yml
+#   - flashpipe-cpars-qa.yml
+#   - flashpipe-cpars-prod.yml
+#
+# Each with different:
+#   - tmn-host
+#   - oauth-host
+#   - resources-path
+#   - full-sync settings
+#
+# =============================================================================

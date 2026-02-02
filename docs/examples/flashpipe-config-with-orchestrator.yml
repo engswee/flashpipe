@@ -1,0 +1,196 @@
+# Flashpipe Configuration File with Orchestrator Settings
+# This file demonstrates how to configure the orchestrator using the global config file
+
+# SAP CPI Connection Settings (used by all commands)
+host: https://your-tenant.integrationsuite.cfapps.eu10.hana.ondemand.com
+username: your-username
+password: your-password
+
+# OAuth settings (alternative to username/password)
+# oauth-clientid: your-client-id
+# oauth-clientsecret: your-client-secret
+# oauth-host: your-tenant.authentication.eu10.hana.ondemand.com
+# oauth-path: /oauth/token
+
+# Orchestrator Configuration
+# All settings in this section can be overridden via CLI flags
+orchestrator:
+  # Required Settings
+  packagesDir: ./packages              # Directory containing your packages
+  deployConfig: ./deploy-config.yml    # Path to deployment configuration
+
+  # Optional: Filtering & Prefixing
+  deploymentPrefix: ""                 # Prefix for package/artifact IDs (e.g., "DEV", "PROD")
+  packageFilter: ""                    # Comma-separated package names to deploy
+  artifactFilter: ""                   # Comma-separated artifact names to deploy
+
+  # Optional: Config Loading
+  configPattern: "*.y*ml"              # File pattern when deployConfig is a folder
+  mergeConfigs: false                  # Merge multiple config files into one deployment
+
+  # Optional: Execution
+  keepTemp: false                      # Keep temporary files for debugging
+  mode: "update-and-deploy"            # Options: "update-and-deploy", "update-only", "deploy-only"
+
+  # Optional: Parallel Deployment Settings
+  deployRetries: 5                     # Number of status check retries per deployment
+  deployDelaySeconds: 15               # Seconds to wait between status checks
+  parallelDeployments: 3               # Max concurrent deployments per package
+
+# Partner Directory Configuration (optional)
+pd-snapshot:
+  output: ./partner-directories
+  pids: []
+  replace: false
+
+pd-deploy:
+  input: ./partner-directories
+  pids: []
+  mode: "replace"
+  dry-run: false
+  full-sync: false
+
+---
+# Example: Development Environment Configuration
+host: https://dev-tenant.integrationsuite.cfapps.eu10.hana.ondemand.com
+username: dev-user
+password: dev-password
+
+orchestrator:
+  packagesDir: ./packages
+  deployConfig: ./configs/dev
+  deploymentPrefix: DEV
+  mode: update-and-deploy
+
+  # Fast deployment for development
+  parallelDeployments: 5
+  deployRetries: 5
+  deployDelaySeconds: 15
+
+  # Merge all config files in folder
+  mergeConfigs: true
+  configPattern: "*.yml"
+
+---
+# Example: Production Environment Configuration
+host: https://prod-tenant.integrationsuite.cfapps.eu10.hana.ondemand.com
+oauth-clientid: prod-client-id
+oauth-clientsecret: prod-client-secret
+oauth-host: prod-tenant.authentication.eu10.hana.ondemand.com
+
+orchestrator:
+  packagesDir: ./packages
+  deployConfig: ./configs/production.yml
+  deploymentPrefix: PROD
+  mode: update-and-deploy
+
+  # Conservative settings for production
+  parallelDeployments: 2    # Lower parallelism for safety
+  deployRetries: 10         # More retries for reliability
+  deployDelaySeconds: 30    # Longer delays between checks
+
+  mergeConfigs: false
+  keepTemp: false
+
+---
+# Example: CI/CD Pipeline Configuration
+host: https://ci-tenant.integrationsuite.cfapps.eu10.hana.ondemand.com
+username: ${CPI_USERNAME}
+password: ${CPI_PASSWORD}
+
+orchestrator:
+  packagesDir: ./packages
+  # Load config from remote repository
+  deployConfig: https://raw.githubusercontent.com/myorg/configs/main/ci-config.yml
+  deploymentPrefix: CI
+  mode: update-and-deploy
+
+  # Optimize for speed in CI/CD
+  parallelDeployments: 10
+  deployRetries: 5
+  deployDelaySeconds: 10
+
+---
+# Example: Debugging/Testing Configuration
+host: https://dev-tenant.integrationsuite.cfapps.eu10.hana.ondemand.com
+username: dev-user
+password: dev-password
+
+orchestrator:
+  packagesDir: ./packages
+  deployConfig: ./test-config.yml
+  deploymentPrefix: TEST
+
+  # Focus on single package for testing
+  packageFilter: "TestPackage"
+
+  # Debug settings
+  mode: update-only         # Don't deploy, just update
+  keepTemp: true            # Keep temp files for inspection
+  parallelDeployments: 1    # Single-threaded for easier debugging
+
+---
+# Example: Selective Deployment Configuration
+host: https://qa-tenant.integrationsuite.cfapps.eu10.hana.ondemand.com
+username: qa-user
+password: qa-password
+
+orchestrator:
+  packagesDir: ./packages
+  deployConfig: ./configs/qa
+  deploymentPrefix: QA
+
+  # Deploy only specific packages
+  packageFilter: "CustomerIntegration,DeviceManagement"
+
+  # Deploy only specific artifacts within those packages
+  artifactFilter: "CustomerSync,DeviceStatusUpdate"
+
+  mode: update-and-deploy
+  parallelDeployments: 3
+  mergeConfigs: true
+
+---
+# Example: Multiple Configs from Folder
+host: https://dev-tenant.integrationsuite.cfapps.eu10.hana.ondemand.com
+username: dev-user
+password: dev-password
+
+orchestrator:
+  packagesDir: ./packages
+  # Point to a folder containing multiple config files
+  deployConfig: ./configs/all-environments
+  deploymentPrefix: DEV
+
+  # Process all .yml files in the folder
+  configPattern: "*.yml"
+
+  # Merge all configs into a single deployment
+  # Each config can have its own prefix which will be applied
+  mergeConfigs: true
+
+  mode: update-and-deploy
+  parallelDeployments: 5
+
+---
+# Usage Examples:
+#
+# 1. Use config file with all defaults:
+#    flashpipe orchestrator --config ./flashpipe-dev.yml --update
+#
+# 2. Override specific settings via CLI:
+#    flashpipe orchestrator --config ./flashpipe-dev.yml \
+#      --deployment-prefix OVERRIDE --parallel-deployments 10
+#
+# 3. Use different config for different environments:
+#    flashpipe orchestrator --config ./flashpipe-dev.yml --update
+#    flashpipe orchestrator --config ./flashpipe-qa.yml --update
+#    flashpipe orchestrator --config ./flashpipe-prod.yml --update
+#
+# 4. Debug mode with temp files:
+#    flashpipe orchestrator --config ./flashpipe-test.yml \
+#      --keep-temp --debug --update-only
+#
+# 5. Deploy specific packages only:
+#    flashpipe orchestrator --config ./flashpipe.yml \
+#      --package-filter "Package1,Package2"

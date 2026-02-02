@@ -1,0 +1,93 @@
+name: Build Artifacts
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - 'licenses/**'
+      - '*.md'
+      - '.gitignore'
+      - '.gitattributes'
+      - 'LICENSE'
+      - 'NOTICE'
+      - '.github/**'
+  workflow_dispatch:
+
+jobs:
+  build-binaries:
+    name: Build Cross-Platform Binaries
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for proper version tagging
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: 'go.mod'
+
+    - name: Build all platforms
+      run: make build-all
+      env:
+        CGO_ENABLED: 0
+
+    - name: List built artifacts
+      run: |
+        echo "Built artifacts:"
+        ls -lh bin/
+
+    - name: Upload Windows AMD64 binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: flashpipex-windows-amd64
+        path: bin/flashpipex-windows-amd64.exe
+        if-no-files-found: error
+        retention-days: 90
+
+    - name: Upload Linux AMD64 binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: flashpipex-linux-amd64
+        path: bin/flashpipex-linux-amd64
+        if-no-files-found: error
+        retention-days: 90
+
+    - name: Upload Linux ARM64 binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: flashpipex-linux-arm64
+        path: bin/flashpipex-linux-arm64
+        if-no-files-found: error
+        retention-days: 90
+
+    - name: Upload macOS AMD64 binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: flashpipex-darwin-amd64
+        path: bin/flashpipex-darwin-amd64
+        if-no-files-found: error
+        retention-days: 90
+
+    - name: Upload macOS ARM64 binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: flashpipex-darwin-arm64
+        path: bin/flashpipex-darwin-arm64
+        if-no-files-found: error
+        retention-days: 90
+
+    - name: Upload all binaries as single archive
+      uses: actions/upload-artifact@v4
+      with:
+        name: flashpipex-all-platforms
+        path: bin/*
+        if-no-files-found: error
+        retention-days: 90
