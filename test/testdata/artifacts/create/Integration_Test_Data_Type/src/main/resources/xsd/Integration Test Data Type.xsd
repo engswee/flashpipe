@@ -1,0 +1,38 @@
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:sample.com/ECC/FI" targetNamespace="urn:sample.com/ECC/FI">
+   <xsd:complexType name="Integration Test Data Type">
+        <xsd:sequence>
+            <xsd:element name="Create">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="Header">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="DocumentType" type="xsd:string"/>
+                                    <xsd:element name="CompanyCode" type="xsd:string"/>
+                                    <xsd:element name="CurrencyCode" type="xsd:string"/>
+                                    <xsd:element name="DocumentDate" type="xsd:string"/>
+                                    <xsd:element name="PostingDate" type="xsd:string"/>
+                                    <xsd:element name="ReferenceNo" type="xsd:string"/>
+                                    <xsd:element name="HeaderText" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="ReferenceTransaction" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="ReferenceKey" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="SourceLogicalSystem" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="BusinessTransaction" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="CustomFields" minOccurs="0" maxOccurs="unbounded">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="FieldName" type="xsd:string"/>
+                                                <xsd:element name="FieldValue" type="xsd:string"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

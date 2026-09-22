@@ -167,6 +167,11 @@ func (ip *IntegrationPackage) GetAllArtifacts(id string) ([]*ArtifactDetails, er
 		return nil, err
 	}
 	details = append(details, integrations...)
+	datatypes, err := ip.GetArtifactsData(id, "DataType")
+	if err != nil {
+		return nil, err
+	}
+	details = append(details, datatypes...)
 	mappings, err := ip.GetArtifactsData(id, "MessageMapping")
 	if err != nil {
 		return nil, err

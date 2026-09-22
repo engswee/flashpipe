@@ -25,7 +25,7 @@ SAP Integration Suite tenant.`,
 			// Validate the artifact type
 			artifactType := config.GetString(cmd, "artifact-type")
 			switch artifactType {
-			case "MessageMapping", "ScriptCollection", "Integration", "ValueMapping":
+			case "DataType", "MessageMapping", "ScriptCollection", "Integration", "ValueMapping":
 			default:
 				return fmt.Errorf("invalid value for --artifact-type = %v", artifactType)
 			}
@@ -51,7 +51,7 @@ SAP Integration Suite tenant.`,
 	artifactCmd.Flags().String("file-manifest", "", "Use a different MANIFEST.MF file instead of the default in META-INF/")
 	artifactCmd.Flags().String("dir-work", "/tmp", "Working directory for in-transit files")
 	artifactCmd.Flags().StringSlice("script-collection-map", nil, "Comma-separated source-target ID pairs for converting script collection references during create/update")
-	artifactCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping")
+	artifactCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: DataType, Integration, MessageMapping, ScriptCollection, ValueMapping")
 	// TODO - another flag for replacing value mapping in QAS?
 
 	_ = artifactCmd.MarkFlagRequired("artifact-id")

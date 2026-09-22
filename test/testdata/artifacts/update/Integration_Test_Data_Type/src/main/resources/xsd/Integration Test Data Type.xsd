@@ -1,0 +1,110 @@
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:sample.com/ECC/FI" targetNamespace="urn:sample.com/ECC/FI">
+   <xsd:complexType name="Integration Test Data Type">
+        <xsd:sequence>
+            <xsd:element name="Create">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="Header">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="DocumentType" type="xsd:string"/>
+                                    <xsd:element name="CompanyCode" type="xsd:string"/>
+                                    <xsd:element name="CurrencyCode" type="xsd:string"/>
+                                    <xsd:element name="DocumentDate" type="xsd:string"/>
+                                    <xsd:element name="PostingDate" type="xsd:string"/>
+                                    <xsd:element name="ReferenceNo" type="xsd:string"/>
+                                    <xsd:element name="HeaderText" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="ReferenceTransaction" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="ReferenceKey" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="SourceLogicalSystem" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="BusinessTransaction" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="CustomFields" minOccurs="0" maxOccurs="unbounded">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="FieldName" type="xsd:string"/>
+                                                <xsd:element name="FieldValue" type="xsd:string"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="Items" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="PostingKey" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="GLAccount" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="VendorNo" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="SpecialGLIndicator" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="Amount" type="xsd:string"/>
+                                    <xsd:element name="NetAmount" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="Assignment" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="ItemText" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="ReferenceKey1" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="ReferenceKey2" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="ReferenceKey3" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="CostCentre" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="WBSElement" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="ProfitCentre" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="BusinessArea" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="DocumentStatus" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="TargetSpecialGLInd" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="TaxCode" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="CashDiscountBaseAmt" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="CustomFields" minOccurs="0" maxOccurs="unbounded">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="FieldName" type="xsd:string"/>
+                                                <xsd:element name="FieldValue" type="xsd:string"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="LongText" minOccurs="0" maxOccurs="unbounded">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="TextId" type="xsd:string"/>
+                                                <xsd:element name="LanguageKey" type="xsd:string"/>
+                                                <xsd:element name="AppObj" type="xsd:string"/>
+                                                <xsd:element name="TextLine" type="xsd:string" maxOccurs="unbounded"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="TaxItems" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="Amount" type="xsd:string"/>
+                                    <xsd:element name="TaxBaseAmount" type="xsd:string"/>
+                                    <xsd:element name="TaxCode" type="xsd:string"/>
+                                    <xsd:element name="ReferenceKey1" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="TaxItemText" type="xsd:string" minOccurs="0"/>
+                                    <xsd:element name="CustomFields" minOccurs="0" maxOccurs="unbounded">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="FieldName" type="xsd:string"/>
+                                                <xsd:element name="FieldValue" type="xsd:string"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="LongText" minOccurs="0" maxOccurs="unbounded">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="TextId" type="xsd:string"/>
+                                                <xsd:element name="LanguageKey" type="xsd:string"/>
+                                                <xsd:element name="AppObj" type="xsd:string"/>
+                                                <xsd:element name="TextLine" type="xsd:string" maxOccurs="unbounded"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

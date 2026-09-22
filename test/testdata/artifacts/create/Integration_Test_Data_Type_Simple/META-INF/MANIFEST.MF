@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Integration Test Data Type Simple
+Bundle-SymbolicName: Integration_Test_Data_Type_Simple
+Bundle-Version: 1.0.0
+SAP-BundleType: DataType
+SAP-NodeType: IFLMAP
+Import-Package: 
+Provide-Capability: datatype.Integration_Test_Data_Type_Simple;version:V
+ ersion="1.0.0"
+

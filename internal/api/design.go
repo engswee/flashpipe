@@ -3,12 +3,13 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
 	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
-	"os"
-	"path/filepath"
 )
 
 type DesigntimeArtifact interface {
@@ -38,6 +39,8 @@ type designtimeArtifactUpdateData struct {
 
 func NewDesigntimeArtifact(artifactType string, exe *httpclnt.HTTPExecuter) DesigntimeArtifact {
 	switch artifactType {
+	case "DataType":
+		return NewDataType(exe)
 	case "MessageMapping":
 		return NewMessageMapping(exe)
 	case "ScriptCollection":

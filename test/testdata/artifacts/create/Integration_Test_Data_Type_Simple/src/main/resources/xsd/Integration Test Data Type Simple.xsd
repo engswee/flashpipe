@@ -1,0 +1,8 @@
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:sample.com/ECC/FI" targetNamespace="urn:sample.com/ECC/FI">
+   <xsd:simpleType name="Integration Test Data Type Simple">
+      <xsd:restriction base="xsd:string">
+         <xsd:minLength value="1" />
+      </xsd:restriction>
+   </xsd:simpleType>
+</xsd:schema>
