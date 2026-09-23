@@ -2,11 +2,12 @@ package api
 
 import (
 	"fmt"
-	"github.com/engswee/flashpipe/internal/httpclnt"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/engswee/flashpipe/internal/httpclnt"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIntegration_DeployMockBasic(t *testing.T) {
@@ -58,7 +59,7 @@ func TestIntegration_DeployMockOauth(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/oauth/token", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(fmt.Sprintf(`{ "access_token": "%v" }`, oauthToken)))
+		w.Write(fmt.Appendf(nil, `{ "access_token": "%v" }`, oauthToken))
 	})
 	mux.HandleFunc("/api/v1/DeployIntegrationDesigntimeArtifact", func(w http.ResponseWriter, r *http.Request) {
 		values := r.URL.Query()

@@ -20,13 +20,13 @@ func TestMockOauth(t *testing.T) {
 	// Handler for OAuth token
 	mux.HandleFunc("/oauth/token", func(w http.ResponseWriter, r *http.Request) {
 		auth := r.Header.Get("Authorization")
-		encoded := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%v:%v", clientId, clientSecret)))
+		encoded := base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%v:%v", clientId, clientSecret))
 		if auth != fmt.Sprintf("Basic %v", encoded) {
 			http.Error(w, "Invalid credentials for token URL authorization", http.StatusUnauthorized)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(fmt.Sprintf(`{ "access_token": "%v" }`, token)))
+		w.Write(fmt.Appendf(nil, `{ "access_token": "%v" }`, token))
 	})
 	// Handler for OData endpoint using OAuth token
 	mux.HandleFunc("/api/v1/IntegrationDesigntimeArtifacts(Id='Dummy',Version='Active')", func(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +71,7 @@ func TestMockBasicAuth(t *testing.T) {
 	// Handler for OData endpoint using basic authentication
 	mux.HandleFunc("/api/v1/IntegrationDesigntimeArtifacts(Id='Dummy',Version='Active')", func(w http.ResponseWriter, r *http.Request) {
 		auth := r.Header.Get("Authorization")
-		encoded := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%v:%v", userId, password)))
+		encoded := base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%v:%v", userId, password))
 		if auth != fmt.Sprintf("Basic %v", encoded) {
 			http.Error(w, "Invalid credentials for basic authentication", http.StatusUnauthorized)
 			return
@@ -111,7 +111,7 @@ func TestMockBasicAuthIDNotFound(t *testing.T) {
 	// Handler for OData endpoint using basic authentication
 	mux.HandleFunc("/api/v1/IntegrationDesigntimeArtifacts(Id='Dummy',Version='Active')", func(w http.ResponseWriter, r *http.Request) {
 		auth := r.Header.Get("Authorization")
-		encoded := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%v:%v", userId, password)))
+		encoded := base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%v:%v", userId, password))
 		if auth != fmt.Sprintf("Basic %v", encoded) {
 			http.Error(w, "Invalid credentials for basic authentication", http.StatusUnauthorized)
 			return
