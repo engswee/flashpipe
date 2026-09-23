@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Integration Test Fault Message Type
+Bundle-SymbolicName: Integration_Test_Fault_Message_Type
+Bundle-Version: 1.0.1
+SAP-BundleType: FaultMessageType
+SAP-NodeType: IFLMAP
+Import-Package: 
+Provide-Capability: faultmessagetype.Integration_Test_Fault_Message_Type
+ ;version:Version="1.0.0"
+

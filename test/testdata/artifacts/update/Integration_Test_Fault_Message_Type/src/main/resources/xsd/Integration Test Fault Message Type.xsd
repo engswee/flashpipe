@@ -1,0 +1,13 @@
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:sample.com/ECC/FI" targetNamespace="urn:sample.com/ECC/FI">
+   <xsd:include schemaLocation="dt://schema?key=ExchangeFaultData|ExchangeFaultData_2cf801e745b13be5f202aeb839f77c14" />
+   <xsd:include schemaLocation="dt://schema?key=Integration Test Data Type Simple|Integration_Test_Data_Type_Simple" />
+   <xsd:element name="Integration Test Fault Message Type">
+      <xsd:complexType>
+         <xsd:sequence>
+            <xsd:element name="standard" type="ExchangeFaultData" />
+            <xsd:element name="addition" type="Integration Test Data Type Simple" />
+         </xsd:sequence>
+      </xsd:complexType>
+   </xsd:element>
+</xsd:schema>

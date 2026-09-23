@@ -23,7 +23,7 @@ runtime of SAP Integration Suite tenant.`,
 			// Validate the artifact type
 			artifactType := config.GetString(cmd, "artifact-type")
 			switch artifactType {
-			case "DataType", "MessageMapping", "ScriptCollection", "Integration", "ValueMapping":
+			case "DataType", "MessageType", "FaultMessageType", "MessageMapping", "ScriptCollection", "Integration", "ValueMapping":
 			default:
 				return fmt.Errorf("invalid value for --artifact-type = %v", artifactType)
 			}
@@ -45,7 +45,7 @@ runtime of SAP Integration Suite tenant.`,
 	deployCmd.Flags().Int("max-check-limit", 10, "Max number of times to check for artifact deployment status")
 	// To set to false, use --compare-versions=false
 	deployCmd.Flags().Bool("compare-versions", true, "Perform version comparison of design time against runtime before deployment")
-	deployCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: DataType, Integration, MessageMapping, ScriptCollection, ValueMapping")
+	deployCmd.Flags().String("artifact-type", "Integration", "Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping, DataType, MessageType, FaultMessageType")
 
 	_ = deployCmd.MarkFlagRequired("artifact-ids")
 	return deployCmd

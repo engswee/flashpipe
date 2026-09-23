@@ -42,6 +42,10 @@ func NewDesigntimeArtifact(artifactType string, exe *httpclnt.HTTPExecuter) Desi
 	switch artifactType {
 	case "DataType":
 		return NewDataType(exe)
+	case "MessageType":
+		return NewMessageType(exe)
+	case "FaultMessageType":
+		return NewFaultMessageType(exe)
 	case "MessageMapping":
 		return NewMessageMapping(exe)
 	case "ScriptCollection":

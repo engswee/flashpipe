@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Integration Test Message Type
+Bundle-SymbolicName: Integration_Test_Message_Type
+Bundle-Version: 1.0.1
+SAP-BundleType: MessageType
+SAP-NodeType: IFLMAP
+Import-Package: 
+Provide-Capability: messagetype.Integration_Test_Message_Type;version:Ve
+ rsion="1.0.0"
+

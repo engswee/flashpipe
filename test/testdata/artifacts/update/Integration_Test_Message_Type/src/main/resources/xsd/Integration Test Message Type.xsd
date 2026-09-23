@@ -1,0 +1,5 @@
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:sample.com/ECC/FI" targetNamespace="urn:sample.com/ECC/FI">
+   <xsd:include schemaLocation="dt://schema?key=Integration Test Data Type|Integration_Test_Data_Type" />
+   <xsd:element name="Integration Test Message Type" type="Integration Test Data Type" />
+</xsd:schema>

@@ -60,6 +60,8 @@ func (suite *DesigntimeSuite) SetupSuite() {
 		{Type: "ValueMapping", ID: "Integration_Test_Value_Mapping"},
 		{Type: "DataType", ID: "Integration_Test_Data_Type"},
 		{Type: "DataType", ID: "Integration_Test_Data_Type_Simple"},
+		{Type: "MessageType", ID: "Integration_Test_Message_Type"},
+		{Type: "FaultMessageType", ID: "Integration_Test_Fault_Message_Type"},
 	}
 
 	// Setup viper in case debug logs are required
@@ -160,6 +162,8 @@ func TestDesigntime_Compare(t *testing.T) {
 		{Type: "ValueMapping", ID: "Integration_Test_Value_Mapping"},
 		{Type: "DataType", ID: "Integration_Test_Data_Type"},
 		{Type: "DataType", ID: "Integration_Test_Data_Type_Simple"},
+		{Type: "MessageType", ID: "Integration_Test_Message_Type"},
+		{Type: "FaultMessageType", ID: "Integration_Test_Fault_Message_Type"},
 	}
 	exe := httpclnt.New("", "", "", "", "dummy", "dummy", "localhost", "http", 8081, true)
 
@@ -191,7 +195,7 @@ func compare(id string, dt DesigntimeArtifact, t *testing.T) {
 	}
 	assert.True(t, file.Exists(destinationDir+"/META-INF/MANIFEST.MF"), "MANIFEST.MF missing in destination")
 	switch dt.(type) {
-	case *Integration, *MessageMapping, *ScriptCollection, *DataType:
+	case *Integration, *MessageMapping, *ScriptCollection, *DataType, *MessageType, *FaultMessageType:
 		assert.True(t, file.Exists(destinationDir+"/src/main/resources"), "/src/main/resources missing in destination")
 	case *ValueMapping:
 		assert.True(t, file.Exists(destinationDir+"/value_mapping.xml"), "value_mapping.xml missing in destination")
