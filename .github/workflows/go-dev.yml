@@ -30,10 +30,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out Git repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v7
       with:
         go-version-file: 'go.mod'
 
@@ -55,7 +55,7 @@ jobs:
         FLASHPIPE_APIPORTAL_OAUTH_CLIENTSECRET: ${{ secrets.APIPORTAL_OAUTH_CLIENTSECRET }}
 
     - name: Save output as artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: results
         path: coverage.html
