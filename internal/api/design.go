@@ -34,6 +34,7 @@ type designtimeArtifactUpdateData struct {
 	Name            string `json:"Name,omitempty"`
 	Id              string `json:"Id,omitempty"`
 	PackageId       string `json:"PackageId,omitempty"`
+	Description     string `json:"Description,omitempty"`
 	ArtifactContent string `json:"ArtifactContent"`
 }
 
@@ -54,11 +55,12 @@ func NewDesigntimeArtifact(artifactType string, exe *httpclnt.HTTPExecuter) Desi
 	}
 }
 
-func constructUpdateBody(method string, id string, name string, packageId string, content string) ([]byte, error) {
+func constructUpdateBody(method string, id string, name string, packageId string, content string, description string) ([]byte, error) {
 	artifact := &designtimeArtifactUpdateData{
 		Name:            name,
 		Id:              id,
 		PackageId:       packageId,
+		Description:     description,
 		ArtifactContent: content,
 	}
 	// Update of Message Mapping fails as PackageId and Id are not allowed
@@ -100,13 +102,13 @@ func download(targetFile string, id string, artifactType string, exe *httpclnt.H
 func create(id string, name string, packageId string, artifactDir string, artifactType string, exe *httpclnt.HTTPExecuter) error {
 	log.Info().Msgf("Creating %v designtime artifact %v", artifactType, id)
 	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts", artifactType)
-	return upsert(id, name, packageId, artifactDir, "POST", urlPath, 201, artifactType, "Create", exe)
+	return upsert(id, name, packageId, "", artifactDir, "POST", urlPath, 201, artifactType, "Create", exe)
 }
 
 func update(id string, name string, packageId string, artifactDir string, artifactType string, exe *httpclnt.HTTPExecuter) error {
 	log.Info().Msgf("Updating %v designtime artifact %v", artifactType, id)
 	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", artifactType, id)
-	return upsert(id, name, packageId, artifactDir, "PUT", urlPath, 200, artifactType, "Update", exe)
+	return upsert(id, name, packageId, "", artifactDir, "PUT", urlPath, 200, artifactType, "Update", exe)
 }
 
 func deploy(id string, artifactType string, exe *httpclnt.HTTPExecuter) error {
@@ -121,14 +123,14 @@ func deleteCall(id string, artifactType string, exe *httpclnt.HTTPExecuter) erro
 	return modifyingCall("DELETE", urlPath, nil, 200, fmt.Sprintf("Delete %v designtime artifact", artifactType), exe)
 }
 
-func upsert(id string, name string, packageId string, artifactDir string, method string, urlPath string, successCode int, artifactType string, callType string, exe *httpclnt.HTTPExecuter) error {
+func upsert(id string, name string, packageId string, description string, artifactDir string, method string, urlPath string, successCode int, artifactType string, callType string, exe *httpclnt.HTTPExecuter) error {
 	// Zip directory and encode to base64
 	encoded, err := file.ZipDirToBase64(artifactDir)
 	if err != nil {
 		return err
 	}
 	// NOTE - PUT requires that the Id in the request matches the Bundle-SymbolicName in the MANIFEST.MF
-	requestBody, err := constructUpdateBody(method, id, name, packageId, encoded)
+	requestBody, err := constructUpdateBody(method, id, name, packageId, encoded, description)
 	if err != nil {
 		return err
 	}

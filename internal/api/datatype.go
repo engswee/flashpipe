@@ -1,12 +1,23 @@
 package api
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
+
+	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
+	"github.com/go-errors/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type DataType struct {
 	exe *httpclnt.HTTPExecuter
 	typ string
+}
+
+type artifactAdditionalAttributes struct {
+	Description string `json:"Description"`
 }
 
 // NewDataType returns an initialised DataType instance.
@@ -22,11 +33,36 @@ func (dt *DataType) Create(id string, name string, packageId string, artifactDir
 }
 
 func (dt *DataType) Update(id string, name string, packageId string, artifactDir string) error {
-	return update(id, name, packageId, artifactDir, dt.typ, dt.exe)
+	// For DataType update, the API requires the Description field to be included in the request body.
+	// The description is stored in the additionalAttributes.json file in the artifact directory.
+	var description string
+	attrFile := artifactDir + "/src/main/resources/additionalAttributes.json"
+	if file.Exists(attrFile) {
+		fileContent, err := os.ReadFile(attrFile)
+		if err != nil {
+			return err
+		}
+		var jsonData *artifactAdditionalAttributes
+
+		err = json.Unmarshal(fileContent, &jsonData)
+		if err != nil {
+			log.Error().Msgf("Error unmarshalling file as JSON. Response body = %s", fileContent)
+			return errors.Wrap(err, 0)
+		}
+		log.Info().Msgf("additionalAttributes.json file found. Description = %s", jsonData.Description)
+		description = jsonData.Description
+	} else {
+		log.Info().Msgf("additionalAttributes.json file not found. Description will be unchanged")
+	}
+
+	log.Info().Msgf("Updating %v designtime artifact %v", dt.typ, id)
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", dt.typ, id)
+	return upsert(id, name, packageId, description, artifactDir, "PUT", urlPath, 200, dt.typ, "Update", dt.exe)
 }
 
 func (dt *DataType) Deploy(id string) error {
-	return deploy(id, dt.typ, dt.exe)
+	log.Warn().Msgf("Deployment of DataType designtime artifact not supported. Skipping deployment of %v", id)
+	return nil
 }
 
 func (dt *DataType) Delete(id string) error {
