@@ -2,22 +2,28 @@ package api
 
 import (
 	"fmt"
+	"os"
+	"strings"
+	"testing"
+
 	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
 	"github.com/engswee/flashpipe/internal/logger"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"os"
-	"strings"
-	"testing"
 )
+
+type ArtifactEntry struct {
+	Type string
+	ID   string
+}
 
 type DesigntimeSuite struct {
 	suite.Suite
 	serviceDetails *ServiceDetails
 	exe            *httpclnt.HTTPExecuter
-	artifacts      map[string]string
+	artifacts      []ArtifactEntry
 }
 
 func TestDesigntimeBasicAuth(t *testing.T) {
@@ -47,11 +53,13 @@ func (suite *DesigntimeSuite) SetupSuite() {
 	suite.exe = InitHTTPExecuter(suite.serviceDetails)
 
 	// List the artifacts that will be tested
-	suite.artifacts = map[string]string{
-		"Integration":      "Integration_Test_IFlow",
-		"MessageMapping":   "Integration_Test_Message_Mapping",
-		"ScriptCollection": "Integration_Test_Script_Collection",
-		"ValueMapping":     "Integration_Test_Value_Mapping",
+	suite.artifacts = []ArtifactEntry{
+		{Type: "Integration", ID: "Integration_Test_IFlow"},
+		{Type: "MessageMapping", ID: "Integration_Test_Message_Mapping"},
+		{Type: "ScriptCollection", ID: "Integration_Test_Script_Collection"},
+		{Type: "ValueMapping", ID: "Integration_Test_Value_Mapping"},
+		{Type: "DataType", ID: "Integration_Test_Data_Type"},
+		{Type: "DataType", ID: "Integration_Test_Data_Type_Simple"},
 	}
 
 	// Setup viper in case debug logs are required
@@ -79,8 +87,8 @@ func (suite *DesigntimeSuite) TearDownSuite() {
 	tearDownPackage(suite.T(), "FlashPipeIntegrationTest", suite.exe)
 
 	// Remove all the runtime artifacts
-	for _, value := range suite.artifacts {
-		tearDownRuntime(suite.T(), value, suite.exe)
+	for _, artifact := range suite.artifacts {
+		tearDownRuntime(suite.T(), artifact.ID, suite.exe)
 	}
 
 	err := os.RemoveAll("../../output/download")
@@ -91,9 +99,9 @@ func (suite *DesigntimeSuite) TearDownSuite() {
 }
 
 func (suite *DesigntimeSuite) Test_CreateUpdateDeployDelete() {
-	for artifactType, artifactId := range suite.artifacts {
-		dt := NewDesigntimeArtifact(artifactType, suite.exe)
-		createUpdateDeployDelete(artifactId, strings.ReplaceAll(artifactId, "_", " "), "FlashPipeIntegrationTest", dt, artifactType, suite.T())
+	for _, artifact := range suite.artifacts {
+		dt := NewDesigntimeArtifact(artifact.Type, suite.exe)
+		createUpdateDeployDelete(artifact.ID, strings.ReplaceAll(artifact.ID, "_", " "), "FlashPipeIntegrationTest", dt, artifact.Type, suite.T())
 	}
 }
 
@@ -145,17 +153,19 @@ func createUpdateDeployDelete(id string, name string, packageId string, dt Desig
 
 func TestDesigntime_Compare(t *testing.T) {
 	// List the artifacts that will be tested
-	artifacts := map[string]string{
-		"Integration":      "Integration_Test_IFlow",
-		"MessageMapping":   "Integration_Test_Message_Mapping",
-		"ScriptCollection": "Integration_Test_Script_Collection",
-		"ValueMapping":     "Integration_Test_Value_Mapping",
+	artifacts := []ArtifactEntry{
+		{Type: "Integration", ID: "Integration_Test_IFlow"},
+		{Type: "MessageMapping", ID: "Integration_Test_Message_Mapping"},
+		{Type: "ScriptCollection", ID: "Integration_Test_Script_Collection"},
+		{Type: "ValueMapping", ID: "Integration_Test_Value_Mapping"},
+		{Type: "DataType", ID: "Integration_Test_Data_Type"},
+		{Type: "DataType", ID: "Integration_Test_Data_Type_Simple"},
 	}
 	exe := httpclnt.New("", "", "", "", "dummy", "dummy", "localhost", "http", 8081, true)
 
-	for key, value := range artifacts {
-		dt := NewDesigntimeArtifact(key, exe)
-		compare(value, dt, t)
+	for _, artifact := range artifacts {
+		dt := NewDesigntimeArtifact(artifact.Type, exe)
+		compare(artifact.ID, dt, t)
 	}
 
 	err := os.RemoveAll("../../output/download")
@@ -181,7 +191,7 @@ func compare(id string, dt DesigntimeArtifact, t *testing.T) {
 	}
 	assert.True(t, file.Exists(destinationDir+"/META-INF/MANIFEST.MF"), "MANIFEST.MF missing in destination")
 	switch dt.(type) {
-	case *Integration, *MessageMapping, *ScriptCollection:
+	case *Integration, *MessageMapping, *ScriptCollection, *DataType:
 		assert.True(t, file.Exists(destinationDir+"/src/main/resources"), "/src/main/resources missing in destination")
 	case *ValueMapping:
 		assert.True(t, file.Exists(destinationDir+"/value_mapping.xml"), "value_mapping.xml missing in destination")
