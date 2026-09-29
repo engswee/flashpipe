@@ -18,13 +18,13 @@ type FaultMessageType struct {
 
 // NewFaultMessageType returns an initialised FaultMessageType instance.
 func NewFaultMessageType(exe *httpclnt.HTTPExecuter) DesigntimeArtifact {
-	dt := new(FaultMessageType)
-	dt.exe = exe
-	dt.typ = "FaultMessageType"
-	return dt
+	mt := new(FaultMessageType)
+	mt.exe = exe
+	mt.typ = "FaultMessageType"
+	return mt
 }
 
-func (dt *FaultMessageType) Create(id string, name string, packageId string, artifactDir string) error {
+func (mt *FaultMessageType) Create(id string, name string, packageId string, artifactDir string) error {
 	// For FaultMessageType create, the API requires the Description field to be included in the request body.
 	// The description is stored in the additionalAttributes.json file in the artifact directory.
 	var description string
@@ -46,12 +46,12 @@ func (dt *FaultMessageType) Create(id string, name string, packageId string, art
 	} else {
 		log.Info().Msgf("additionalAttributes.json file not found. Description will be unchanged")
 	}
-	log.Info().Msgf("Creating %v designtime artifact %v", dt.typ, id)
-	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts", dt.typ)
-	return upsert(id, name, packageId, description, artifactDir, "POST", urlPath, 201, dt.typ, "Create", dt.exe)
+	log.Info().Msgf("Creating %v designtime artifact %v", mt.typ, id)
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts", mt.typ)
+	return upsert(id, name, packageId, description, artifactDir, "POST", urlPath, 201, mt.typ, "Create", mt.exe)
 }
 
-func (dt *FaultMessageType) Update(id string, name string, packageId string, artifactDir string) error {
+func (mt *FaultMessageType) Update(id string, name string, packageId string, artifactDir string) error {
 	// For FaultMessageType update, the API requires the Description field to be included in the request body.
 	// The description is stored in the additionalAttributes.json file in the artifact directory.
 	var description string
@@ -74,32 +74,32 @@ func (dt *FaultMessageType) Update(id string, name string, packageId string, art
 		log.Info().Msgf("additionalAttributes.json file not found. Description will be unchanged")
 	}
 
-	log.Info().Msgf("Updating %v designtime artifact %v", dt.typ, id)
-	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", dt.typ, id)
-	return upsert(id, name, packageId, description, artifactDir, "PUT", urlPath, 200, dt.typ, "Update", dt.exe)
+	log.Info().Msgf("Updating %v designtime artifact %v", mt.typ, id)
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", mt.typ, id)
+	return upsert(id, name, packageId, description, artifactDir, "PUT", urlPath, 200, mt.typ, "Update", mt.exe)
 }
 
-func (dt *FaultMessageType) Deploy(id string) error {
+func (mt *FaultMessageType) Deploy(id string) error {
 	log.Warn().Msgf("Deployment of FaultMessageType designtime artifact not supported. Skipping deployment of %v", id)
 	return nil
 }
 
-func (dt *FaultMessageType) Delete(id string) error {
-	return deleteCall(id, dt.typ, dt.exe)
+func (mt *FaultMessageType) Delete(id string) error {
+	return deleteCall(id, mt.typ, mt.exe)
 }
 
-func (dt *FaultMessageType) Get(id string, version string) (string, string, bool, error) {
-	return get(id, version, dt.typ, dt.exe)
+func (mt *FaultMessageType) Get(id string, version string) (string, string, bool, error) {
+	return get(id, version, mt.typ, mt.exe)
 }
 
-func (dt *FaultMessageType) Download(targetFile string, id string) error {
-	return download(targetFile, id, dt.typ, dt.exe)
+func (mt *FaultMessageType) Download(targetFile string, id string) error {
+	return download(targetFile, id, mt.typ, mt.exe)
 }
 
-func (dt *FaultMessageType) CopyContent(srcDir string, tgtDir string) error {
+func (mt *FaultMessageType) CopyContent(srcDir string, tgtDir string) error {
 	return copyContent(srcDir, tgtDir)
 }
 
-func (dt *FaultMessageType) CompareContent(srcDir string, tgtDir string, _ []string, _ string) (bool, error) {
+func (mt *FaultMessageType) CompareContent(srcDir string, tgtDir string, _ []string, _ string) (bool, error) {
 	return diffContent(srcDir, tgtDir), nil
 }

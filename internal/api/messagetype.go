@@ -18,13 +18,13 @@ type MessageType struct {
 
 // NewMessageType returns an initialised MessageType instance.
 func NewMessageType(exe *httpclnt.HTTPExecuter) DesigntimeArtifact {
-	dt := new(MessageType)
-	dt.exe = exe
-	dt.typ = "MessageType"
-	return dt
+	mt := new(MessageType)
+	mt.exe = exe
+	mt.typ = "MessageType"
+	return mt
 }
 
-func (dt *MessageType) Create(id string, name string, packageId string, artifactDir string) error {
+func (mt *MessageType) Create(id string, name string, packageId string, artifactDir string) error {
 	// For MessageType create, the API requires the Description field to be included in the request body.
 	// The description is stored in the additionalAttributes.json file in the artifact directory.
 	var description string
@@ -46,12 +46,12 @@ func (dt *MessageType) Create(id string, name string, packageId string, artifact
 	} else {
 		log.Info().Msgf("additionalAttributes.json file not found. Description will be unchanged")
 	}
-	log.Info().Msgf("Creating %v designtime artifact %v", dt.typ, id)
-	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts", dt.typ)
-	return upsert(id, name, packageId, description, artifactDir, "POST", urlPath, 201, dt.typ, "Create", dt.exe)
+	log.Info().Msgf("Creating %v designtime artifact %v", mt.typ, id)
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts", mt.typ)
+	return upsert(id, name, packageId, description, artifactDir, "POST", urlPath, 201, mt.typ, "Create", mt.exe)
 }
 
-func (dt *MessageType) Update(id string, name string, packageId string, artifactDir string) error {
+func (mt *MessageType) Update(id string, name string, packageId string, artifactDir string) error {
 	// For MessageType update, the API requires the Description field to be included in the request body.
 	// The description is stored in the additionalAttributes.json file in the artifact directory.
 	var description string
@@ -74,32 +74,32 @@ func (dt *MessageType) Update(id string, name string, packageId string, artifact
 		log.Info().Msgf("additionalAttributes.json file not found. Description will be unchanged")
 	}
 
-	log.Info().Msgf("Updating %v designtime artifact %v", dt.typ, id)
-	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", dt.typ, id)
-	return upsert(id, name, packageId, description, artifactDir, "PUT", urlPath, 200, dt.typ, "Update", dt.exe)
+	log.Info().Msgf("Updating %v designtime artifact %v", mt.typ, id)
+	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts(Id='%v',Version='active')", mt.typ, id)
+	return upsert(id, name, packageId, description, artifactDir, "PUT", urlPath, 200, mt.typ, "Update", mt.exe)
 }
 
-func (dt *MessageType) Deploy(id string) error {
+func (mt *MessageType) Deploy(id string) error {
 	log.Warn().Msgf("Deployment of MessageType designtime artifact not supported. Skipping deployment of %v", id)
 	return nil
 }
 
-func (dt *MessageType) Delete(id string) error {
-	return deleteCall(id, dt.typ, dt.exe)
+func (mt *MessageType) Delete(id string) error {
+	return deleteCall(id, mt.typ, mt.exe)
 }
 
-func (dt *MessageType) Get(id string, version string) (string, string, bool, error) {
-	return get(id, version, dt.typ, dt.exe)
+func (mt *MessageType) Get(id string, version string) (string, string, bool, error) {
+	return get(id, version, mt.typ, mt.exe)
 }
 
-func (dt *MessageType) Download(targetFile string, id string) error {
-	return download(targetFile, id, dt.typ, dt.exe)
+func (mt *MessageType) Download(targetFile string, id string) error {
+	return download(targetFile, id, mt.typ, mt.exe)
 }
 
-func (dt *MessageType) CopyContent(srcDir string, tgtDir string) error {
+func (mt *MessageType) CopyContent(srcDir string, tgtDir string) error {
 	return copyContent(srcDir, tgtDir)
 }
 
-func (dt *MessageType) CompareContent(srcDir string, tgtDir string, _ []string, _ string) (bool, error) {
+func (mt *MessageType) CompareContent(srcDir string, tgtDir string, _ []string, _ string) (bool, error) {
 	return diffContent(srcDir, tgtDir), nil
 }
