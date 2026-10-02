@@ -14,7 +14,7 @@ import (
 )
 
 func NewCmdRoot() *cobra.Command {
-	var version = "3.7.0" // FLASHPIPE_VERSION
+	var version = "3.8.0" // FLASHPIPE_VERSION
 
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd := &cobra.Command{
