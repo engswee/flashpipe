@@ -57,7 +57,7 @@ Usage:
 Flags:
       --artifact-id string             ID of artifact
       --artifact-name string           Name of artifact. Defaults to artifact-id value when not provided
-      --artifact-type string           Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping (default "Integration")
+      --artifact-type string           Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping, DataType, MessageType, FaultMessageType (default "Integration")
       --dir-artifact string            Directory containing contents of designtime artifact
       --dir-work string                Working directory for in-transit files (default "/tmp")
       --file-manifest string           Use a different MANIFEST.MF file instead of the default in META-INF/
@@ -196,7 +196,7 @@ Usage:
 
 Flags:
       --artifact-ids strings   Comma separated list of artifact IDs
-      --artifact-type string   Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping (default "Integration")
+      --artifact-type string   Artifact type. Allowed values: Integration, MessageMapping, ScriptCollection, ValueMapping, DataType, MessageType, FaultMessageType (default "Integration")
       --compare-versions       Perform version comparison of design time against runtime before deployment (default true)
       --delay-length int       Delay (in seconds) between each check of artifact deployment status (default 30)
   -h, --help                   help for deploy

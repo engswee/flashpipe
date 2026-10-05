@@ -1,5 +1,14 @@
 # Release Notes
 
+## 3.8.0 (Released 5 October 2026)
+
+---
+- 🔥 New feature 🔥 - Additional support for the following artifact types
+  - Data Type
+  - Message Type
+  - Fault Message Type
+- Update to latest Go version 1.27.1 and dependencies
+
 ## 3.7.0 (Released 19 August 2025)
 
 ---
