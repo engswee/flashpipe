@@ -1,13 +1,9 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 
-	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
-	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -25,53 +21,20 @@ func NewMessageType(exe *httpclnt.HTTPExecuter) DesigntimeArtifact {
 }
 
 func (mt *MessageType) Create(id string, name string, packageId string, artifactDir string) error {
-	// For MessageType create, the API requires the Description field to be included in the request body.
-	// The description is stored in the additionalAttributes.json file in the artifact directory.
-	var description string
-	attrFile := artifactDir + "/src/main/resources/additionalAttributes.json"
-	if file.Exists(attrFile) {
-		fileContent, err := os.ReadFile(attrFile)
-		if err != nil {
-			return err
-		}
-		var jsonData *artifactAdditionalAttributes
-
-		err = json.Unmarshal(fileContent, &jsonData)
-		if err != nil {
-			log.Error().Msgf("Error unmarshalling file as JSON. Response body = %s", fileContent)
-			return errors.Wrap(err, 0)
-		}
-		log.Info().Msgf("additionalAttributes.json file found. Description = %s", jsonData.Description)
-		description = jsonData.Description
-	} else {
-		log.Info().Msgf("additionalAttributes.json file not found. Description will be unchanged")
+	description, err := getDescriptionFromAdditionalAttributes(artifactDir)
+	if err != nil {
+		return err
 	}
+
 	log.Info().Msgf("Creating %v designtime artifact %v", mt.typ, id)
 	urlPath := fmt.Sprintf("/api/v1/%vDesigntimeArtifacts", mt.typ)
 	return upsert(id, name, packageId, description, artifactDir, "POST", urlPath, 201, mt.typ, "Create", mt.exe)
 }
 
 func (mt *MessageType) Update(id string, name string, packageId string, artifactDir string) error {
-	// For MessageType update, the API requires the Description field to be included in the request body.
-	// The description is stored in the additionalAttributes.json file in the artifact directory.
-	var description string
-	attrFile := artifactDir + "/src/main/resources/additionalAttributes.json"
-	if file.Exists(attrFile) {
-		fileContent, err := os.ReadFile(attrFile)
-		if err != nil {
-			return err
-		}
-		var jsonData *artifactAdditionalAttributes
-
-		err = json.Unmarshal(fileContent, &jsonData)
-		if err != nil {
-			log.Error().Msgf("Error unmarshalling file as JSON. Response body = %s", fileContent)
-			return errors.Wrap(err, 0)
-		}
-		log.Info().Msgf("additionalAttributes.json file found. Description = %s", jsonData.Description)
-		description = jsonData.Description
-	} else {
-		log.Info().Msgf("additionalAttributes.json file not found. Description will be unchanged")
+	description, err := getDescriptionFromAdditionalAttributes(artifactDir)
+	if err != nil {
+		return err
 	}
 
 	log.Info().Msgf("Updating %v designtime artifact %v", mt.typ, id)

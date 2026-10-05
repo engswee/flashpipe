@@ -223,3 +223,29 @@ func DiffOptionalFile(srcDir string, tgtDir string, fileRelativePath string) boo
 	log.Info().Msgf("File %v does not exist in either source or target", fileRelativePath)
 	return true
 }
+
+type artifactAdditionalAttributes struct {
+	Description string `json:"Description"`
+}
+
+func getDescriptionFromAdditionalAttributes(artifactDir string) (string, error) {
+	attrFile := artifactDir + "/src/main/resources/additionalAttributes.json"
+	if file.Exists(attrFile) {
+		fileContent, err := os.ReadFile(attrFile)
+		if err != nil {
+			return "", err
+		}
+		var jsonData *artifactAdditionalAttributes
+
+		err = json.Unmarshal(fileContent, &jsonData)
+		if err != nil {
+			log.Error().Msgf("Error unmarshalling file as JSON. Response body = %s", fileContent)
+			return "", errors.Wrap(err, 0)
+		}
+		log.Info().Msgf("additionalAttributes.json file found. Description = %s", jsonData.Description)
+		return jsonData.Description, nil
+	} else {
+		log.Info().Msgf("additionalAttributes.json file not found. Description will be unchanged")
+		return "", nil
+	}
+}

@@ -1,23 +1,15 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 
-	"github.com/engswee/flashpipe/internal/file"
 	"github.com/engswee/flashpipe/internal/httpclnt"
-	"github.com/go-errors/errors"
 	"github.com/rs/zerolog/log"
 )
 
 type DataType struct {
 	exe *httpclnt.HTTPExecuter
 	typ string
-}
-
-type artifactAdditionalAttributes struct {
-	Description string `json:"Description"`
 }
 
 // NewDataType returns an initialised DataType instance.
@@ -33,26 +25,9 @@ func (dt *DataType) Create(id string, name string, packageId string, artifactDir
 }
 
 func (dt *DataType) Update(id string, name string, packageId string, artifactDir string) error {
-	// For DataType update, the API requires the Description field to be included in the request body.
-	// The description is stored in the additionalAttributes.json file in the artifact directory.
-	var description string
-	attrFile := artifactDir + "/src/main/resources/additionalAttributes.json"
-	if file.Exists(attrFile) {
-		fileContent, err := os.ReadFile(attrFile)
-		if err != nil {
-			return err
-		}
-		var jsonData *artifactAdditionalAttributes
-
-		err = json.Unmarshal(fileContent, &jsonData)
-		if err != nil {
-			log.Error().Msgf("Error unmarshalling file as JSON. Response body = %s", fileContent)
-			return errors.Wrap(err, 0)
-		}
-		log.Info().Msgf("additionalAttributes.json file found. Description = %s", jsonData.Description)
-		description = jsonData.Description
-	} else {
-		log.Info().Msgf("additionalAttributes.json file not found. Description will be unchanged")
+	description, err := getDescriptionFromAdditionalAttributes(artifactDir)
+	if err != nil {
+		return err
 	}
 
 	log.Info().Msgf("Updating %v designtime artifact %v", dt.typ, id)
